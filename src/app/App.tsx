@@ -792,36 +792,47 @@ const portfolioItems = [
 
 function PortfolioCarousel({ onNav }: { onNav: (p: Page) => void }) {
   const [active, setActive] = useState(0);
+  const isHovered = useRef(false);
 
   const prevSlide = () => {
-    setActive((curr) => (curr === 0 ? portfolioItems.length - 1 : curr - 1));
+    setActive((curr: number) => (curr === 0 ? portfolioItems.length - 1 : curr - 1));
   };
 
   const nextSlide = () => {
-    setActive((curr) => (curr === portfolioItems.length - 1 ? 0 : curr + 1));
+    setActive((curr: number) => (curr === portfolioItems.length - 1 ? 0 : curr + 1));
   };
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      if (!isHovered.current) {
+        nextSlide();
+      }
+    }, 4500);
+    return () => clearInterval(timer);
+  }, [active]);
 
   const currentItem = portfolioItems[active];
 
   return (
-    <div className="relative max-w-6xl mx-auto py-12 px-4 select-none overflow-hidden">
-      {/* Concave Arc Cards Stage */}
-      <div className="relative h-[340px] sm:h-[400px] flex items-center justify-center perspective-[1000px]">
-        <div className="relative w-full max-w-4xl h-full flex items-center justify-center">
+    <div
+      onMouseEnter={() => (isHovered.current = true)}
+      onMouseLeave={() => (isHovered.current = false)}
+      className="relative max-w-7xl mx-auto py-12 px-4 select-none overflow-hidden"
+    >
+      {/* Expanded Concave Arc Cards Stage */}
+      <div className="relative h-[440px] sm:h-[520px] flex items-center justify-center perspective-[1200px]">
+        <div className="relative w-full max-w-5xl h-full flex items-center justify-center">
           {portfolioItems.map((item, idx) => {
-            // Calculate relative offset from active item
             const total = portfolioItems.length;
             let offset = (idx - active + total) % total;
             if (offset > total / 2) offset -= total;
 
             const isCenter = offset === 0;
-
-            // Concave transform metrics
-            const translateX = offset * 220; // horizontal spacing
-            const translateZ = Math.abs(offset) * -120; // push side cards back
-            const rotateY = offset * -18; // angle inward toward center
-            const scale = isCenter ? 1.05 : 0.85;
-            const opacity = isCenter ? 1 : Math.abs(offset) === 1 ? 0.65 : 0.3;
+            const translateX = offset * 280;
+            const translateZ = Math.abs(offset) * -150;
+            const rotateY = offset * -20;
+            const scale = isCenter ? 1.1 : 0.85;
+            const opacity = isCenter ? 1 : Math.abs(offset) === 1 ? 0.7 : 0.3;
 
             return (
               <div
@@ -832,9 +843,9 @@ function PortfolioCarousel({ onNav }: { onNav: (p: Page) => void }) {
                   opacity,
                   zIndex: isCenter ? 30 : 20 - Math.abs(offset),
                 }}
-                className={`absolute w-52 sm:w-64 h-72 sm:h-96 rounded-2xl overflow-hidden cursor-pointer transition-all duration-700 ease-out shadow-2xl border-2 ${
+                className={`absolute w-64 sm:w-80 h-80 sm:h-[420px] rounded-3xl overflow-hidden cursor-pointer transition-all duration-700 ease-out shadow-2xl border-2 ${
                   isCenter
-                    ? "border-[#1D95B8] ring-4 ring-[#1D95B8]/20 shadow-[#1D95B8]/20"
+                    ? "border-[#1D95B8] ring-4 ring-[#1D95B8]/20 shadow-[#1D95B8]/30"
                     : "border-white/80 grayscale"
                 }`}
               >
@@ -843,11 +854,11 @@ function PortfolioCarousel({ onNav }: { onNav: (p: Page) => void }) {
                   alt={item.title}
                   className="w-full h-full object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent p-5 flex flex-col justify-end text-white">
-                  <span className="text-[10px] font-bold tracking-widest text-[#38BDF8] uppercase">
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent p-6 flex flex-col justify-end text-white">
+                  <span className="text-xs font-extrabold tracking-widest text-[#38BDF8] uppercase mb-1">
                     {item.category}
                   </span>
-                  <h4 className="font-serif text-sm sm:text-base font-bold line-clamp-2">
+                  <h4 className="font-serif text-base sm:text-lg font-bold line-clamp-2">
                     {item.title}
                   </h4>
                 </div>
@@ -857,14 +868,12 @@ function PortfolioCarousel({ onNav }: { onNav: (p: Page) => void }) {
         </div>
       </div>
 
-      {/* Editorial Details & Navigation Panel */}
-      <div className="mt-8 text-center max-w-2xl mx-auto space-y-4">
-        {/* Index counter */}
+      {/* Details & Navigation Controls */}
+      <div className="mt-6 text-center max-w-2xl mx-auto space-y-4">
         <div className="text-xs font-serif font-bold tracking-widest text-[#5C6B72]">
           {currentItem.id} <span className="opacity-40">/ 0{portfolioItems.length}</span>
         </div>
 
-        {/* Title & Description */}
         <h3
           className="font-serif text-2xl sm:text-3xl font-bold text-[#10202B] leading-snug"
           style={{ fontFamily: "'Montserrat', sans-serif" }}
@@ -875,21 +884,20 @@ function PortfolioCarousel({ onNav }: { onNav: (p: Page) => void }) {
           {currentItem.description}
         </p>
 
-        {/* Action Controls */}
         <div className="pt-4 flex items-center justify-center gap-6">
           <button
             type="button"
             onClick={prevSlide}
             aria-label="Previous card"
-            className="w-11 h-11 rounded-full bg-white border border-[#D6E4EA] text-[#10202B] flex items-center justify-center hover:border-[#1D95B8] hover:text-[#1D95B8] transition-all shadow-md active:scale-95"
+            className="w-12 h-12 rounded-full bg-white border border-[#D6E4EA] text-[#10202B] flex items-center justify-center hover:border-[#1D95B8] hover:text-[#1D95B8] transition-all shadow-md active:scale-95"
           >
-            <ChevronLeft className="w-5 h-5" />
+            <ChevronLeft className="w-6 h-6" />
           </button>
 
           <button
             type="button"
             onClick={() => onNav(currentItem.page)}
-            className="px-8 py-3 rounded-full bg-[#0EA5E9] hover:bg-[#0284C7] text-white font-bold text-xs tracking-wider uppercase transition-all shadow-lg hover:scale-105"
+            className="px-8 py-3.5 rounded-full bg-[#0EA5E9] hover:bg-[#0284C7] text-white font-bold text-xs tracking-wider uppercase transition-all shadow-lg hover:scale-105"
           >
             {currentItem.btnText}
           </button>
@@ -898,9 +906,9 @@ function PortfolioCarousel({ onNav }: { onNav: (p: Page) => void }) {
             type="button"
             onClick={nextSlide}
             aria-label="Next card"
-            className="w-11 h-11 rounded-full bg-white border border-[#D6E4EA] text-[#10202B] flex items-center justify-center hover:border-[#1D95B8] hover:text-[#1D95B8] transition-all shadow-md active:scale-95"
+            className="w-12 h-12 rounded-full bg-white border border-[#D6E4EA] text-[#10202B] flex items-center justify-center hover:border-[#1D95B8] hover:text-[#1D95B8] transition-all shadow-md active:scale-95"
           >
-            <ChevronRight className="w-5 h-5" />
+            <ChevronRight className="w-6 h-6" />
           </button>
         </div>
       </div>
