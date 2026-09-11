@@ -72,32 +72,7 @@ function CTABanner({
   onDonate: () => void;
   onInvolve: () => void;
 }) {
-  return (
-    <section className="py-20 px-6 bg-[#10202b]">
-      <div className="max-w-4xl mx-auto text-center">
-        <h2 className="font-serif text-3xl md:text-4xl font-bold text-white mb-4">
-          Ready to make a lasting difference?
-        </h2>
-        <p className="text-[#8FAFBC] text-lg mb-10 max-w-xl mx-auto">
-          Every contribution directly transforms lives across Kenya.
-        </p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <button
-            onClick={onDonate}
-            className="px-8 py-3.5 rounded-xl bg-[#0EA5E9] text-white font-semibold text-base hover:bg-[#0284C7] transition-colors duration-150"
-          >
-            Donate Now
-          </button>
-          <button
-            onClick={onInvolve}
-            className="px-8 py-3.5 rounded-xl border-2 border-[#0EA5E9] text-[#38BDF8] font-semibold text-base hover:bg-[#0EA5E9]/10 transition-colors duration-150"
-          >
-            Get Involved
-          </button>
-        </div>
-      </div>
-    </section>
-  );
+  return null;
 }
 
 // ─── DONATION MODAL ───────────────────────────────────────────────────────────
@@ -600,30 +575,34 @@ function Footer({
     onNav(p);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
+
   return (
     <footer
-      className="bg-[#10202B] text-[#8FAFBC]"
+      className="bg-[#10202B] text-[#8FAFBC] border-t border-[#1C3241]"
       style={{ fontFamily: "'Montserrat', sans-serif" }}
     >
-      <div className="max-w-7xl mx-auto px-6 py-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
-        <div>
-          <div className="h-12 mb-4 flex items-center bg-transparent">
+      <div className="max-w-7xl mx-auto px-6 py-12">
+        {/* Top Brand Header */}
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between pb-8 border-b border-[#1C3241] gap-4">
+          <div className="flex items-center gap-4">
             <img
               src={footerLogo}
               alt="Wahome Foundation Logo"
-              className="h-12 w-auto object-contain bg-transparent mix-blend-screen"
+              className="h-10 w-auto object-contain mix-blend-screen"
             />
+            <div className="h-6 w-px bg-[#1C3241] hidden sm:block" />
+            <span className="text-xs tracking-widest uppercase text-[#1D95B8] font-bold">
+              Inspire & Empower · Est. 2006
+            </span>
           </div>
 
-          <p className="text-sm leading-relaxed mb-6">
-            Wahome Foundation is registered Under US and Kenyan law with the aim of Empowering
-            communities across Kenya
-          </p>
-          <div className="flex gap-3">
+          {/* Social Links */}
+          <div className="flex items-center gap-3">
             {[Facebook, Instagram, Youtube].map((Icon, i) => (
               <button
                 key={i}
-                className="w-8 h-8 rounded-full border border-[#5C6B72] flex items-center justify-center hover:border-[#1D95B8] hover:text-[#1D95B8] transition-colors"
+                type="button"
+                className="w-9 h-9 rounded-full bg-[#162B38] border border-[#1C3241] flex items-center justify-center hover:border-[#1D95B8] hover:text-white transition-all"
               >
                 <Icon className="w-4 h-4" />
               </button>
@@ -631,86 +610,67 @@ function Footer({
           </div>
         </div>
 
-        <div>
-          <h3 className="font-bold text-white text-sm uppercase tracking-wider mb-4">
-            Quick Links
-          </h3>
-          <ul className="space-y-2.5 text-sm">
-            <li>
-              <button onClick={() => go("home")} className="hover:text-white transition-colors">
-                Home
-              </button>
-            </li>
-            <li>
-              <button onClick={() => go("about")} className="hover:text-white transition-colors">
-                About Us
-              </button>
-            </li>
-            <li>
-              <button onClick={onOpenDonate} className="hover:text-white transition-colors">
-                Donate Now
-              </button>
-            </li>
-            <li>
-              <button
-                onClick={() => go("mentorship")}
-                className="hover:text-white transition-colors"
-              >
-                Get Involved
-              </button>
-            </li>
-          </ul>
+        {/* 3-Column Structural Grid with Single Column Quick Links */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 py-10 border-b border-[#1C3241] text-left">
+          {/* Column 1: Single Column Quick Links */}
+          <div>
+            <h4 className="text-xs font-bold uppercase tracking-widest text-white mb-4">
+              Quick Links
+            </h4>
+            <div className="flex flex-col space-y-2.5 text-xs font-medium">
+              <button onClick={() => go("home")} className="text-left hover:text-white transition-colors">Home</button>
+              <button onClick={() => go("about")} className="text-left hover:text-white transition-colors">About Us</button>
+              <button onClick={() => go("scholarship")} className="text-left hover:text-white transition-colors">Scholarship</button>
+              <button onClick={() => go("wells")} className="text-left hover:text-white transition-colors">Wells of Hope</button>
+              <button onClick={() => go("prize")} className="text-left hover:text-white transition-colors">Prize Giving</button>
+              <button onClick={() => go("mentorship")} className="text-left hover:text-white transition-colors">Mentorship</button>
+            </div>
+          </div>
+
+          {/* Column 2: Kenya Office */}
+          <div className="space-y-2.5 text-xs">
+            <h4 className="text-xs font-bold uppercase tracking-widest text-white mb-4">
+              Kenya HQ
+            </h4>
+            <p className="flex items-center gap-2">
+              <MapPin className="w-3.5 h-3.5 text-[#1D95B8] shrink-0" />
+              69 Haile Salasie Rd, Nanyuki, Kenya
+            </p>
+            <p className="flex items-center gap-2">
+              <Phone className="w-3.5 h-3.5 text-[#1D95B8] shrink-0" />
+              +254 700 000 000
+            </p>
+            <p className="flex items-center gap-2">
+              <Mail className="w-3.5 h-3.5 text-[#1D95B8] shrink-0" />
+              info@wahomefoundation.com
+            </p>
+          </div>
+
+          {/* Column 3: US Office */}
+          <div className="space-y-2.5 text-xs">
+            <h4 className="text-xs font-bold uppercase tracking-widest text-white mb-4">
+              US Office
+            </h4>
+            <p className="flex items-center gap-2">
+              <MapPin className="w-3.5 h-3.5 text-[#1D95B8] shrink-0" />
+              560 Boston Turnpike, Shrewsbury, MA 01545
+            </p>
+            <p className="flex items-center gap-2">
+              <Mail className="w-3.5 h-3.5 text-[#1D95B8] shrink-0" />
+              info@wahomefoundation.com
+            </p>
+          </div>
         </div>
 
-        <div>
-          <h3 className="font-bold text-white text-sm uppercase tracking-wider mb-4">
-            Kenya Office
-          </h3>
-          <ul className="space-y-3 text-sm">
-            <li className="flex items-start gap-2.5">
-              <MapPin className="w-4 h-4 text-[#1D95B8] shrink-0 mt-0.5" />
-              <span>69 Haile Salasie Rd, Nanyuki, Kenya</span>
-            </li>
-            <li className="flex items-center gap-2.5">
-              <Phone className="w-4 h-4 text-[#1D95B8] shrink-0" />
-              <span>+254 700 000 000</span>
-            </li>
-            <li className="flex items-center gap-2.5">
-              <Mail className="w-4 h-4 text-[#1D95B8] shrink-0" />
-              <a
-                href="mailto:info@wahomefoundation.com"
-                className="hover:text-white transition-colors"
-              >
-                info@wahomefoundation.com
-              </a>
-            </li>
-          </ul>
+        {/* Bottom Bar */}
+        <div className="pt-6 flex flex-col sm:flex-row items-center justify-between text-[11px] text-[#5C6B72] gap-2">
+          <p>© {new Date().getFullYear()} Wahome Foundation. Registered NGO & 501(c)(3) Organization.</p>
+          <div className="flex items-center gap-4">
+            <button onClick={onOpenDonate} className="hover:text-[#1D95B8] transition-colors">Support Our Cause</button>
+            <span>·</span>
+            <button onClick={() => go("about")} className="hover:text-[#1D95B8] transition-colors">Privacy & Terms</button>
+          </div>
         </div>
-
-        <div>
-          <h3 className="font-bold text-white text-sm uppercase tracking-wider mb-4">
-            US Office
-          </h3>
-          <ul className="space-y-3 text-sm">
-            <li className="flex items-start gap-2.5">
-              <MapPin className="w-4 h-4 text-[#1D95B8] shrink-0 mt-0.5" />
-              <span>560 Boston Turnpike, Shrewsbury, MA 01545</span>
-            </li>
-            <li className="flex items-center gap-2.5">
-              <Mail className="w-4 h-4 text-[#1D95B8] shrink-0" />
-              <a
-                href="mailto:info@wahomefoundation.com"
-                className="hover:text-white transition-colors"
-              >
-                info@wahomefoundation.com
-              </a>
-            </li>
-          </ul>
-        </div>
-      </div>
-
-      <div className="border-t border-[#1C3241] py-6 text-center text-xs text-[#5C6B72]">
-        © {new Date().getFullYear()} Wahome Foundation. All rights reserved.
       </div>
     </footer>
   );
@@ -805,11 +765,11 @@ function PortfolioCarousel({ onNav }: { onNav: (p: Page) => void }) {
   useEffect(() => {
     const timer = setInterval(() => {
       if (!isHovered.current) {
-        nextSlide();
+        setActive((curr: number) => (curr === portfolioItems.length - 1 ? 0 : curr + 1));
       }
     }, 4500);
     return () => clearInterval(timer);
-  }, [active]);
+  }, []);
 
   const currentItem = portfolioItems[active];
 
@@ -817,22 +777,22 @@ function PortfolioCarousel({ onNav }: { onNav: (p: Page) => void }) {
     <div
       onMouseEnter={() => (isHovered.current = true)}
       onMouseLeave={() => (isHovered.current = false)}
-      className="relative max-w-7xl mx-auto py-12 px-4 select-none overflow-hidden"
+      className="relative max-w-6xl mx-auto py-2 px-4 select-none overflow-hidden"
     >
-      {/* Expanded Concave Arc Cards Stage */}
-      <div className="relative h-[440px] sm:h-[520px] flex items-center justify-center perspective-[1200px]">
-        <div className="relative w-full max-w-5xl h-full flex items-center justify-center">
+      {/* Compact Concave Arc Cards Stage */}
+      <div className="relative h-[280px] sm:h-[320px] flex items-center justify-center perspective-[1000px]">
+        <div className="relative w-full max-w-4xl h-full flex items-center justify-center">
           {portfolioItems.map((item, idx) => {
             const total = portfolioItems.length;
             let offset = (idx - active + total) % total;
             if (offset > total / 2) offset -= total;
 
             const isCenter = offset === 0;
-            const translateX = offset * 280;
-            const translateZ = Math.abs(offset) * -150;
-            const rotateY = offset * -20;
-            const scale = isCenter ? 1.1 : 0.85;
-            const opacity = isCenter ? 1 : Math.abs(offset) === 1 ? 0.7 : 0.3;
+            const translateX = offset * 210;
+            const translateZ = Math.abs(offset) * -110;
+            const rotateY = offset * -18;
+            const scale = isCenter ? 1.05 : 0.82;
+            const opacity = isCenter ? 1 : Math.abs(offset) === 1 ? 0.65 : 0.25;
 
             return (
               <div
@@ -843,9 +803,9 @@ function PortfolioCarousel({ onNav }: { onNav: (p: Page) => void }) {
                   opacity,
                   zIndex: isCenter ? 30 : 20 - Math.abs(offset),
                 }}
-                className={`absolute w-64 sm:w-80 h-80 sm:h-[420px] rounded-3xl overflow-hidden cursor-pointer transition-all duration-700 ease-out shadow-2xl border-2 ${
+                className={`absolute w-52 sm:w-64 h-64 sm:h-72 rounded-2xl overflow-hidden cursor-pointer transition-all duration-700 ease-out shadow-xl border-2 ${
                   isCenter
-                    ? "border-[#1D95B8] ring-4 ring-[#1D95B8]/20 shadow-[#1D95B8]/30"
+                    ? "border-[#1D95B8] ring-4 ring-[#1D95B8]/20 shadow-[#1D95B8]/20"
                     : "border-white/80 grayscale"
                 }`}
               >
@@ -854,11 +814,11 @@ function PortfolioCarousel({ onNav }: { onNav: (p: Page) => void }) {
                   alt={item.title}
                   className="w-full h-full object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent p-6 flex flex-col justify-end text-white">
-                  <span className="text-xs font-extrabold tracking-widest text-[#38BDF8] uppercase mb-1">
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent p-4 flex flex-col justify-end text-white">
+                  <span className="text-[10px] font-extrabold tracking-widest text-[#38BDF8] uppercase mb-0.5">
                     {item.category}
                   </span>
-                  <h4 className="font-serif text-base sm:text-lg font-bold line-clamp-2">
+                  <h4 className="font-serif text-xs sm:text-sm font-bold line-clamp-2">
                     {item.title}
                   </h4>
                 </div>
@@ -868,36 +828,36 @@ function PortfolioCarousel({ onNav }: { onNav: (p: Page) => void }) {
         </div>
       </div>
 
-      {/* Details & Navigation Controls */}
-      <div className="mt-6 text-center max-w-2xl mx-auto space-y-4">
-        <div className="text-xs font-serif font-bold tracking-widest text-[#5C6B72]">
+      {/* Compact Details & Navigation */}
+      <div className="mt-2 text-center max-w-xl mx-auto space-y-2">
+        <div className="text-[11px] font-serif font-bold tracking-widest text-[#5C6B72]">
           {currentItem.id} <span className="opacity-40">/ 0{portfolioItems.length}</span>
         </div>
 
         <h3
-          className="font-serif text-2xl sm:text-3xl font-bold text-[#10202B] leading-snug"
+          className="font-serif text-xl sm:text-2xl font-bold text-[#10202B] leading-tight"
           style={{ fontFamily: "'Montserrat', sans-serif" }}
         >
           {currentItem.title}
         </h3>
-        <p className="text-sm text-[#5C6B72] leading-relaxed max-w-lg mx-auto">
+        <p className="text-xs text-[#5C6B72] leading-relaxed max-w-md mx-auto line-clamp-2">
           {currentItem.description}
         </p>
 
-        <div className="pt-4 flex items-center justify-center gap-6">
+        <div className="pt-2 flex items-center justify-center gap-4">
           <button
             type="button"
             onClick={prevSlide}
             aria-label="Previous card"
-            className="w-12 h-12 rounded-full bg-white border border-[#D6E4EA] text-[#10202B] flex items-center justify-center hover:border-[#1D95B8] hover:text-[#1D95B8] transition-all shadow-md active:scale-95"
+            className="w-9 h-9 rounded-full bg-white border border-[#D6E4EA] text-[#10202B] flex items-center justify-center hover:border-[#1D95B8] hover:text-[#1D95B8] transition-all shadow-sm active:scale-95"
           >
-            <ChevronLeft className="w-6 h-6" />
+            <ChevronLeft className="w-4 h-4" />
           </button>
 
           <button
             type="button"
             onClick={() => onNav(currentItem.page)}
-            className="px-8 py-3.5 rounded-full bg-[#0EA5E9] hover:bg-[#0284C7] text-white font-bold text-xs tracking-wider uppercase transition-all shadow-lg hover:scale-105"
+            className="px-6 py-2.5 rounded-full bg-[#0EA5E9] hover:bg-[#0284C7] text-white font-bold text-xs tracking-wider uppercase transition-all shadow-md hover:scale-105"
           >
             {currentItem.btnText}
           </button>
@@ -906,10 +866,158 @@ function PortfolioCarousel({ onNav }: { onNav: (p: Page) => void }) {
             type="button"
             onClick={nextSlide}
             aria-label="Next card"
-            className="w-12 h-12 rounded-full bg-white border border-[#D6E4EA] text-[#10202B] flex items-center justify-center hover:border-[#1D95B8] hover:text-[#1D95B8] transition-all shadow-md active:scale-95"
+            className="w-9 h-9 rounded-full bg-white border border-[#D6E4EA] text-[#10202B] flex items-center justify-center hover:border-[#1D95B8] hover:text-[#1D95B8] transition-all shadow-sm active:scale-95"
           >
-            <ChevronRight className="w-6 h-6" />
+            <ChevronRight className="w-4 h-4" />
           </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── PAST CAMPAIGN SHOWCASE DATA ─────────────────────────────────────────────
+
+const campaignShowcaseItems = [
+  {
+    id: "01",
+    tag: "FUNDRAISING RUN · BOSTON",
+    title: "Boston Marathon",
+    subtitle: "26.2 Miles for Kenya's Future",
+    description:
+      "Founding Trustee Wilson Wahome ran the 2026 Boston Marathon to raise critical tuition funds and expand access to clean water across regional schools.",
+    images: [marathon1, marathon2, marathon3, marathon4, marathon5, marathon6],
+    actionLabel: "Read Full Story",
+    page: "scholarship" as Page,
+  },
+  {
+    id: "02",
+    tag: "ANNUAL APPRECIATION EVENT",
+    title: "Fundraiser Thank You Dinner",
+    subtitle: "Celebrating Donor & Community Impact",
+    description:
+      "An evening in Boston honoring our U.S. partners and donors, celebrating milestones in scholarship distributions, mentorship cohorts, and new water wells.",
+    images: [
+      "https://images.unsplash.com/photo-1644174547761-de211415598e?w=800&h=500&fit=crop&auto=format",
+      "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=800&h=500&fit=crop&auto=format",
+      "https://images.unsplash.com/photo-1511578314322-379afb476865?w=800&h=500&fit=crop&auto=format",
+    ],
+    actionLabel: "Read Full Story",
+    page: "about" as Page,
+  },
+];
+
+function PastCampaignsShowcase({ onNav }: { onNav: (p: Page) => void }) {
+  return (
+    <div className="relative max-w-6xl mx-auto px-2 select-none">
+      <div className="grid lg:grid-cols-2 gap-4 items-stretch">
+        {/* Campaign 1: Boston Marathon */}
+        <div className="bg-[#EAF6FA]/50 rounded-2xl p-3 border border-[#D6E4EA] shadow-sm grid grid-cols-12 gap-3 items-center hover:border-[#1D95B8]/40 transition-all">
+          {/* Left Portrait Image */}
+          <div className="col-span-5 relative aspect-[3/4] w-full rounded-xl overflow-hidden bg-[#B9D3DE] shadow-sm">
+            <CampaignSlideshow
+              images={[
+                marathon1,
+                marathon2,
+                marathon3,
+                marathon4,
+                marathon5,
+                marathon6,
+              ]}
+              aspectClass="aspect-[3/4]"
+            />
+          </div>
+
+          {/* Right Content */}
+          <div className="col-span-7 flex flex-col justify-between h-full py-1 text-left">
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[9px] font-extrabold tracking-widest text-[#1D95B8] uppercase truncate">
+                  BOSTON RUN
+                </span>
+                <span className="text-[10px] font-serif font-bold text-[#5C6B72]">
+                  01/02
+                </span>
+              </div>
+
+              <h3
+                className="font-serif text-base font-bold text-[#10202B] leading-tight mb-0.5"
+                style={{ fontFamily: "'Montserrat', sans-serif" }}
+              >
+                Boston Marathon
+              </h3>
+              <p className="text-[11px] font-semibold text-[#1D95B8] mb-1.5">
+                26.2 Miles for Kenya
+              </p>
+
+              <p className="text-[11px] text-[#5C6B72] leading-snug line-clamp-3">
+                Founding Trustee Wilson Wahome ran the Boston Marathon to raise tuition funds and expand clean water access across regional schools.
+              </p>
+            </div>
+
+            <div className="pt-2 border-t border-[#D6E4EA]/80 mt-2">
+              <button
+                type="button"
+                onClick={() => onNav("scholarship")}
+                className="inline-flex items-center gap-1.5 text-[#1D95B8] font-bold text-[10px] uppercase tracking-wider hover:gap-2 transition-all"
+              >
+                Read Full Story <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Campaign 2: Fundraiser Dinner */}
+        <div className="bg-[#EAF6FA]/50 rounded-2xl p-3 border border-[#D6E4EA] shadow-sm grid grid-cols-12 gap-3 items-center hover:border-[#1D95B8]/40 transition-all">
+          {/* Left Portrait Image */}
+          <div className="col-span-5 relative aspect-[3/4] w-full rounded-xl overflow-hidden bg-[#B9D3DE] shadow-sm">
+            <CampaignSlideshow
+              images={[
+                "https://images.unsplash.com/photo-1644174547761-de211415598e?w=800&h=1000&fit=crop&auto=format",
+                "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=800&h=1000&fit=crop&auto=format",
+                "https://images.unsplash.com/photo-1511578314322-379afb476865?w=800&h=1000&fit=crop&auto=format",
+              ]}
+              aspectClass="aspect-[3/4]"
+            />
+          </div>
+
+          {/* Right Content */}
+          <div className="col-span-7 flex flex-col justify-between h-full py-1 text-left">
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[9px] font-extrabold tracking-widest text-[#1D95B8] uppercase truncate">
+                  THANK YOU DINNER
+                </span>
+                <span className="text-[10px] font-serif font-bold text-[#5C6B72]">
+                  02/02
+                </span>
+              </div>
+
+              <h3
+                className="font-serif text-base font-bold text-[#10202B] leading-tight mb-0.5"
+                style={{ fontFamily: "'Montserrat', sans-serif" }}
+              >
+                Thank You Dinner
+              </h3>
+              <p className="text-[11px] font-semibold text-[#1D95B8] mb-1.5">
+                Celebrating Donor Impact
+              </p>
+
+              <p className="text-[11px] text-[#5C6B72] leading-snug line-clamp-3">
+                An evening in Boston honoring U.S. partners and donors, celebrating milestones in scholarship distributions, mentorship, and new water wells.
+              </p>
+            </div>
+
+            <div className="pt-2 border-t border-[#D6E4EA]/80 mt-2">
+              <button
+                type="button"
+                onClick={() => onNav("about")}
+                className="inline-flex items-center gap-1.5 text-[#1D95B8] font-bold text-[10px] uppercase tracking-wider hover:gap-2 transition-all"
+              >
+                Read Full Story <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -1067,12 +1175,13 @@ function HomePage({
         </div>
       </section>
 
-      <section className="py-20 px-6 bg-[#EAF6FA]">
+      {/* Our Portfolios Carousel Section */}
+      <section className="py-8 px-6 bg-[#EAF6FA]">
         <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-10">
+          <div className="text-center mb-4">
             <SectionTag>Our Portfolios</SectionTag>
             <h2
-              className="font-serif text-3xl md:text-4xl font-bold text-[#10202B]"
+              className="font-serif text-2xl md:text-3xl font-bold text-[#10202B]"
               style={{ fontFamily: "'Montserrat', sans-serif" }}
             >
               Programmes that change lives
@@ -1082,96 +1191,21 @@ function HomePage({
         </div>
       </section>
 
-      <section className="py-20 px-6 bg-white">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center max-w-2xl mx-auto mb-16">
-            <SectionTag>Past Campaigns</SectionTag>
-            <h2
-              className="font-serif text-3xl md:text-4xl font-bold text-[#10202B] mb-4"
-              style={{ fontFamily: "'Montserrat', sans-serif" }}
-            >
-              Every campaign, one goal
-            </h2>
-            <p className="text-[#5C6B72] leading-relaxed">
-              From marathon fundraisers to appreciation dinners, each initiative channeled support
-              directly into our scholarship, water, and mentorship programmes.
-            </p>
-          </div>
-
-          <div className="space-y-12">
-            <article className="grid md:grid-cols-[380px_1fr] gap-8 items-center bg-[#EAF6FA]/40 p-6 md:p-8 rounded-3xl border border-[#D6E4EA] hover:border-[#1D95B8]/30 transition-all">
-              <CampaignSlideshow
-                images={[
-                  marathon1,
-                  marathon2,
-                  marathon3,
-                  marathon4,
-                  marathon5,
-                  marathon6,
-                ]}
-              />
-              <div className="flex flex-col justify-center">
-                <span className="text-xs font-bold uppercase tracking-wider text-[#1D95B8] mb-2">
-                  Fundraising Run · Boston
-                </span>
-                <h3
-                  className="text-2xl md:text-3xl font-bold text-[#10202B] mb-4"
-                  style={{ fontFamily: "'Montserrat', sans-serif" }}
-                >
-                  Boston Marathon
-                </h3>
-                <p className="text-[#5C6B72] text-base leading-relaxed mb-6">
-                  The founding Trustee, Wilson Wahome participated on the Boston Marathon &apos;26, taking on
-                  26.2 miles to raise awareness and support for Kenya&apos;s school going Kids. The continuous
-                  dedication of our participants helps provide tuition support and expanded clean water
-                  access across regional communities.
-                </p>
-                <div>
-                  <button
-                    onClick={() => go("scholarship")}
-                    className="inline-flex items-center gap-2 text-[#1D95B8] font-bold text-sm hover:gap-3 transition-all"
-                  >
-                    Read Full Story <ArrowRight className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            </article>
-
-            <article className="grid md:grid-cols-[380px_1fr] gap-8 items-center bg-[#EAF6FA]/40 p-6 md:p-8 rounded-3xl border border-[#D6E4EA] hover:border-[#1D95B8]/30 transition-all">
-              <CampaignSlideshow
-                images={[
-                  "https://images.unsplash.com/photo-1644174547761-de211415598e?w=800&h=500&fit=crop&auto=format",
-                  "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=800&h=500&fit=crop&auto=format",
-                  "https://images.unsplash.com/photo-1511578314322-379afb476865?w=800&h=500&fit=crop&auto=format",
-                ]}
-              />
-              <div className="flex flex-col justify-center">
-                <span className="text-xs font-bold uppercase tracking-wider text-[#1D95B8] mb-2">
-                  Annual Appreciation Event
-                </span>
-                <h3
-                  className="text-2xl md:text-3xl font-bold text-[#10202B] mb-4"
-                  style={{ fontFamily: "'Montserrat', sans-serif" }}
-                >
-                  Fundraiser Thank You Dinner
-                </h3>
-                <p className="text-[#5C6B72] text-base leading-relaxed mb-6">
-                  An evening honoring our partners and donors in the US Held in Boston to celebrate key
-                  milestones across our scholarship Mentorship cohorts and new well installations.
-                </p>
-                <div>
-                  <button
-                    onClick={() => go("about")}
-                    className="inline-flex items-center gap-2 text-[#1D95B8] font-bold text-sm hover:gap-3 transition-all"
-                  >
-                    Read Full Story <ArrowRight className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            </article>
-          </div>
-        </div>
-      </section>
+      {/* Past Campaigns Section */}
+      <section className="py-4 px-4 bg-white">
+  <div className="max-w-6xl mx-auto">
+    <div className="text-center mb-2">
+      <SectionTag>Past Campaigns</SectionTag>
+      <h2
+        className="font-serif text-xl md:text-2xl font-bold text-[#10202B]"
+        style={{ fontFamily: "'Montserrat', sans-serif" }}
+      >
+        Every campaign, one goal
+      </h2>
+    </div>
+    <PastCampaignsShowcase onNav={go} />
+  </div>
+</section>
 
       <section className="py-20 px-6 bg-white">
         <div className="max-w-7xl mx-auto">
