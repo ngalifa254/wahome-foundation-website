@@ -611,7 +611,6 @@ function Navbar({ current, onNav, onOpenDonate }: NavbarProps) {
 
 function Footer({
   onNav,
-  onOpenDonate,
 }: {
   onNav: (p: Page) => void;
   onOpenDonate: () => void;
@@ -654,7 +653,7 @@ function Footer({
           </div>
         </div>
 
-        {/* Resurfaced Offices Grid (Quick Links Removed) */}
+        {/* Resurfaced Offices Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-6 border-b border-[#1C3241] text-left text-xs">
           {/* Kenya HQ */}
           <div className="bg-[#162B38]/40 rounded-xl p-4 border border-[#1C3241] space-y-1.5">
@@ -691,22 +690,15 @@ function Footer({
           </div>
         </div>
 
-        {/* Bottom Bar */}
-        <div className="pt-4 flex flex-col sm:flex-row items-center justify-between text-[11px] text-[#5C6B72] gap-2">
-          <p>© {new Date().getFullYear()} Wahome Foundation. Registered NGO & 501(c)(3) Organization.</p>
-          <div className="flex items-center gap-4">
-            <button
-              type="button"
-              onClick={onOpenDonate}
-              className="hover:text-[#1D95B8] transition-colors font-semibold text-white/80"
-            >
-              Support Our Cause
-            </button>
-            <span>·</span>
+        {/* Bottom Bar: Copyright & Inlined Privacy & Terms */}
+        <div className="pt-4 flex flex-col sm:flex-row items-center justify-between text-[11px] text-[#5C6B72] gap-2 text-left">
+          <div className="flex flex-wrap items-center gap-2">
+            <p>© {new Date().getFullYear()} Wahome Foundation. Registered NGO & 501(c)(3) Organization.</p>
+            <span className="hidden sm:inline">·</span>
             <button
               type="button"
               onClick={() => go("about")}
-              className="hover:text-[#1D95B8] transition-colors"
+              className="text-[#8FAFBC] hover:text-[#1D95B8] transition-colors underline-offset-2 hover:underline"
             >
               Privacy & Terms
             </button>
