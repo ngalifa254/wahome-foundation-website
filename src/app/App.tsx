@@ -133,7 +133,7 @@ function DonateModal({
             </h3>
             <p className="text-[#5C6B72] text-sm max-w-md mx-auto">
               {paymentMethod === "mpesa"
-                ? `An M-Pesa payment prompt has been sent to ${mpesaPhone || "your phone"}. Please enter your PIN to complete the donation.`
+                ? `An M-Pesa payment prompt has been sent to ${mpesaPhone || "your phone"}. Please enter your PIN to complete the contribution.`
                 : paymentMethod === "paybill"
                   ? `Please complete your transfer via Paybill 123456 using Account Name: ${`${firstName} ${lastName}`.trim() || "Your Name"}.`
                   : "Your contribution directly empowers bright students and communities across Kenya."}
@@ -157,7 +157,7 @@ function DonateModal({
             <div>
               <div className="flex items-center justify-between mb-2">
                 <h3 className="font-bold text-lg text-[#10202B]">
-                  How much would you like to donate today?
+                  How much would you like to contribute today?
                 </h3>
                 <div className="flex items-center bg-[#EAF6FA] p-1 rounded-xl border border-[#D6E4EA]">
                   <button
@@ -186,7 +186,7 @@ function DonateModal({
               </div>
 
               <p className="text-xs text-[#5C6B72] mb-4">
-                All donations directly impact our organization and help us further our mission.
+                All contributions directly impact our students and help us further our mission.
               </p>
 
               <div className="relative">
@@ -396,7 +396,7 @@ function DonateModal({
                   <span className="font-semibold text-[#10202B]">{frequency}</span>
                 </div>
                 <div className="border-t border-[#E2E8F0] pt-2 flex justify-between font-bold text-[#10202B]">
-                  <span>Donation Total</span>
+                  <span>Support Total</span>
                   <span className="text-[#1D95B8]">
                     {currencySymbol}
                     {amount || "0"}
@@ -409,7 +409,7 @@ function DonateModal({
               type="submit"
               className="w-full py-4 rounded-xl bg-[#0EA5E9] hover:bg-[#0284C7] text-white font-bold text-base transition-colors shadow-md"
             >
-              Donate now ({currencySymbol}
+              Support a Child ({currencySymbol}
               {amount || "0"})
             </button>
           </form>
@@ -419,7 +419,7 @@ function DonateModal({
   );
 }
 
-// ─── Navbar ──────────────────────────────────────────────────────────────────
+// ─── Navbar (Floating Non-Full-Bleed Pill) ───────────────────────────────────
 
 interface NavbarProps {
   current: Page;
@@ -464,13 +464,6 @@ function Navbar({ current, onNav, onOpenDonate }: NavbarProps) {
     };
   }, []);
 
-  useEffect(() => {
-    if (open) {
-      setVisible(true);
-      if (timerRef.current) clearTimeout(timerRef.current);
-    }
-  }, [open]);
-
   const go = (p: Page) => {
     onNav(p);
     setOpen(false);
@@ -478,24 +471,30 @@ function Navbar({ current, onNav, onOpenDonate }: NavbarProps) {
   };
 
   return (
-    <header
+    <div
       onMouseEnter={() => {
         setVisible(true);
         if (timerRef.current) clearTimeout(timerRef.current);
       }}
-      className={`sticky top-0 z-40 bg-white/10 backdrop-blur-md transition-all duration-100 transform ${
+      className={`fixed top-4 inset-x-0 z-50 max-w-6xl mx-auto px-4 transition-all duration-300 transform ${
         visible
           ? "translate-y-0 opacity-100"
-          : "-translate-y-full opacity-0 pointer-events-none"
-      } ${scrolled ? "shadow-md bg-white/10" : "border-b border-[#D6E4EA]/60"}`}
+          : "-translate-y-20 opacity-0 pointer-events-none"
+      }`}
       style={{ fontFamily: "'Montserrat', sans-serif" }}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-[88px] flex items-center justify-between">
+      <header
+        className={`w-full rounded-full border transition-all duration-300 px-6 h-16 flex items-center justify-between ${
+          scrolled
+            ? "bg-[#10202B]/90 backdrop-blur-md border-white/20 shadow-xl"
+            : "bg-[#10202B]/75 backdrop-blur-sm border-white/10 shadow-lg"
+        }`}
+      >
         <button onClick={() => go("home")} className="flex items-center shrink-0">
           <img
             src={mainLogo}
-            alt="Wahome Foundation - Inspire & Empower"
-            className="h-14 md:h-16 w-auto object-contain transition-all"
+            alt="Wahome Foundation Logo"
+            className="h-9 w-auto object-contain brightness-0 invert"
           />
         </button>
 
@@ -504,10 +503,10 @@ function Navbar({ current, onNav, onOpenDonate }: NavbarProps) {
             <button
               key={l.page}
               onClick={() => go(l.page)}
-              className={`px-3.5 py-2 rounded-lg text-sm font-semibold transition-colors duration-150 ${
+              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all duration-150 ${
                 current === l.page
-                  ? "bg-[#EAF6FA] text-[#0EA5E9]"
-                  : "text-[#0EA5E9] hover:text-[#0284C7] hover:bg-[#EAF6FA]/60"
+                  ? "bg-[#1D95B8] text-white shadow-sm"
+                  : "text-white/80 hover:text-white hover:bg-white/10"
               }`}
             >
               {l.label}
@@ -517,31 +516,31 @@ function Navbar({ current, onNav, onOpenDonate }: NavbarProps) {
 
         <button
           onClick={onOpenDonate}
-          className="hidden lg:flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#0EA5E9] text-white text-sm font-semibold hover:bg-[#0284C7] transition-colors duration-150"
+          className="hidden lg:flex items-center gap-2 px-5 py-2 rounded-full bg-[#0EA5E9] hover:bg-[#0284C7] text-white text-xs font-bold tracking-wider uppercase transition-all shadow-md hover:scale-105"
         >
-          <Heart className="w-4 h-4" />
-          Donate Now
+          <Heart className="w-3.5 h-3.5 fill-white" />
+          Support a Child
         </button>
 
         <button
           onClick={() => setOpen(!open)}
-          className="lg:hidden p-2 rounded-lg text-[#0EA5E9] hover:bg-[#EAF6FA] transition-colors"
+          className="lg:hidden p-1.5 rounded-full text-white hover:bg-white/10 transition-colors"
           aria-label="Toggle menu"
         >
-          {open ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
-      </div>
+      </header>
 
       {open && (
-        <div className="lg:hidden border-t border-[#D6E4EA]/60 bg-white/95 backdrop-blur-md px-4 py-4 flex flex-col gap-1 shadow-lg">
+        <div className="lg:hidden mt-2 border border-white/20 bg-[#10202B]/95 backdrop-blur-md rounded-2xl p-4 flex flex-col gap-1.5 shadow-2xl">
           {navLinks.map((l) => (
             <button
               key={l.page}
               onClick={() => go(l.page)}
-              className={`w-full text-left px-4 py-3 rounded-xl text-sm font-semibold transition-colors ${
+              className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-semibold transition-colors ${
                 current === l.page
-                  ? "bg-[#EAF6FA] text-[#0EA5E9]"
-                  : "text-[#0EA5E9] hover:bg-[#EAF6FA]/60"
+                  ? "bg-[#1D95B8] text-white"
+                  : "text-white/80 hover:bg-white/10"
               }`}
             >
               {l.label}
@@ -552,13 +551,13 @@ function Navbar({ current, onNav, onOpenDonate }: NavbarProps) {
               setOpen(false);
               onOpenDonate();
             }}
-            className="mt-2 w-full py-3 rounded-xl bg-[#0EA5E9] text-white text-sm font-semibold hover:bg-[#0284C7] transition-colors"
+            className="mt-2 w-full py-2.5 rounded-xl bg-[#0EA5E9] text-white text-xs font-bold uppercase tracking-wider hover:bg-[#0284C7] transition-colors"
           >
-            Donate Now
+            Support a Child
           </button>
         </div>
       )}
-    </header>
+    </div>
   );
 }
 
@@ -582,7 +581,6 @@ function Footer({
       style={{ fontFamily: "'Montserrat', sans-serif" }}
     >
       <div className="max-w-7xl mx-auto px-6 py-12">
-        {/* Top Brand Header */}
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between pb-8 border-b border-[#1C3241] gap-4">
           <div className="flex items-center gap-4">
             <img
@@ -596,7 +594,6 @@ function Footer({
             </span>
           </div>
 
-          {/* Social Links */}
           <div className="flex items-center gap-3">
             {[Facebook, Instagram, Youtube].map((Icon, i) => (
               <button
@@ -610,9 +607,7 @@ function Footer({
           </div>
         </div>
 
-        {/* 3-Column Structural Grid with Single Column Quick Links */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 py-10 border-b border-[#1C3241] text-left">
-          {/* Column 1: Single Column Quick Links */}
           <div>
             <h4 className="text-xs font-bold uppercase tracking-widest text-white mb-4">
               Quick Links
@@ -627,7 +622,6 @@ function Footer({
             </div>
           </div>
 
-          {/* Column 2: Kenya Office */}
           <div className="space-y-2.5 text-xs">
             <h4 className="text-xs font-bold uppercase tracking-widest text-white mb-4">
               Kenya HQ
@@ -646,7 +640,6 @@ function Footer({
             </p>
           </div>
 
-          {/* Column 3: US Office */}
           <div className="space-y-2.5 text-xs">
             <h4 className="text-xs font-bold uppercase tracking-widest text-white mb-4">
               US Office
@@ -662,7 +655,6 @@ function Footer({
           </div>
         </div>
 
-        {/* Bottom Bar */}
         <div className="pt-6 flex flex-col sm:flex-row items-center justify-between text-[11px] text-[#5C6B72] gap-2">
           <p>© {new Date().getFullYear()} Wahome Foundation. Registered NGO & 501(c)(3) Organization.</p>
           <div className="flex items-center gap-4">
@@ -688,7 +680,7 @@ function PageHero({
   breadcrumb: string;
 }) {
   return (
-    <section className="bg-[#10202B] py-20 px-6 relative overflow-hidden">
+    <section className="bg-[#10202B] py-20 px-6 relative overflow-hidden pt-28">
       <div
         className="absolute inset-0 opacity-10"
         style={{
@@ -779,7 +771,6 @@ function PortfolioCarousel({ onNav }: { onNav: (p: Page) => void }) {
       onMouseLeave={() => (isHovered.current = false)}
       className="relative max-w-6xl mx-auto py-2 px-4 select-none overflow-hidden"
     >
-      {/* Compact Concave Arc Cards Stage */}
       <div className="relative h-[280px] sm:h-[320px] flex items-center justify-center perspective-[1000px]">
         <div className="relative w-full max-w-4xl h-full flex items-center justify-center">
           {portfolioItems.map((item, idx) => {
@@ -828,7 +819,6 @@ function PortfolioCarousel({ onNav }: { onNav: (p: Page) => void }) {
         </div>
       </div>
 
-      {/* Compact Details & Navigation */}
       <div className="mt-2 text-center max-w-xl mx-auto space-y-2">
         <div className="text-[11px] font-serif font-bold tracking-widest text-[#5C6B72]">
           {currentItem.id} <span className="opacity-40">/ 0{portfolioItems.length}</span>
@@ -878,42 +868,11 @@ function PortfolioCarousel({ onNav }: { onNav: (p: Page) => void }) {
 
 // ─── PAST CAMPAIGN SHOWCASE DATA ─────────────────────────────────────────────
 
-const campaignShowcaseItems = [
-  {
-    id: "01",
-    tag: "FUNDRAISING RUN · BOSTON",
-    title: "Boston Marathon",
-    subtitle: "26.2 Miles for Kenya's Future",
-    description:
-      "Founding Trustee Wilson Wahome ran the 2026 Boston Marathon to raise critical tuition funds and expand access to clean water across regional schools.",
-    images: [marathon1, marathon2, marathon3, marathon4, marathon5, marathon6],
-    actionLabel: "Read Full Story",
-    page: "scholarship" as Page,
-  },
-  {
-    id: "02",
-    tag: "ANNUAL APPRECIATION EVENT",
-    title: "Fundraiser Thank You Dinner",
-    subtitle: "Celebrating Donor & Community Impact",
-    description:
-      "An evening in Boston honoring our U.S. partners and donors, celebrating milestones in scholarship distributions, mentorship cohorts, and new water wells.",
-    images: [
-      "https://images.unsplash.com/photo-1644174547761-de211415598e?w=800&h=500&fit=crop&auto=format",
-      "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=800&h=500&fit=crop&auto=format",
-      "https://images.unsplash.com/photo-1511578314322-379afb476865?w=800&h=500&fit=crop&auto=format",
-    ],
-    actionLabel: "Read Full Story",
-    page: "about" as Page,
-  },
-];
-
 function PastCampaignsShowcase({ onNav }: { onNav: (p: Page) => void }) {
   return (
     <div className="relative max-w-6xl mx-auto px-2 select-none">
       <div className="grid lg:grid-cols-2 gap-4 items-stretch">
-        {/* Campaign 1: Boston Marathon */}
         <div className="bg-[#EAF6FA]/50 rounded-2xl p-3 border border-[#D6E4EA] shadow-sm grid grid-cols-12 gap-3 items-center hover:border-[#1D95B8]/40 transition-all">
-          {/* Left Portrait Image */}
           <div className="col-span-5 relative aspect-[3/4] w-full rounded-xl overflow-hidden bg-[#B9D3DE] shadow-sm">
             <CampaignSlideshow
               images={[
@@ -928,7 +887,6 @@ function PastCampaignsShowcase({ onNav }: { onNav: (p: Page) => void }) {
             />
           </div>
 
-          {/* Right Content */}
           <div className="col-span-7 flex flex-col justify-between h-full py-1 text-left">
             <div>
               <div className="flex items-center justify-between mb-1">
@@ -967,9 +925,7 @@ function PastCampaignsShowcase({ onNav }: { onNav: (p: Page) => void }) {
           </div>
         </div>
 
-        {/* Campaign 2: Fundraiser Dinner */}
         <div className="bg-[#EAF6FA]/50 rounded-2xl p-3 border border-[#D6E4EA] shadow-sm grid grid-cols-12 gap-3 items-center hover:border-[#1D95B8]/40 transition-all">
-          {/* Left Portrait Image */}
           <div className="col-span-5 relative aspect-[3/4] w-full rounded-xl overflow-hidden bg-[#B9D3DE] shadow-sm">
             <CampaignSlideshow
               images={[
@@ -981,7 +937,6 @@ function PastCampaignsShowcase({ onNav }: { onNav: (p: Page) => void }) {
             />
           </div>
 
-          {/* Right Content */}
           <div className="col-span-7 flex flex-col justify-between h-full py-1 text-left">
             <div>
               <div className="flex items-center justify-between mb-1">
@@ -1024,7 +979,7 @@ function PastCampaignsShowcase({ onNav }: { onNav: (p: Page) => void }) {
   );
 }
 
-// ─── HOME PAGE ────────────────────────────────────────────────────────────────
+// ─── HOME PAGE (Surfaced Scholars & Prize Giving Highlights) ─────────────────
 
 function CampaignSlideshow({
   images,
@@ -1084,7 +1039,8 @@ function HomePage({
 
   return (
     <div>
-      <section className="relative min-h-[92vh] flex items-center bg-[#10202B] overflow-hidden">
+      {/* Hero Section */}
+      <section className="relative min-h-[92vh] flex items-center bg-[#10202B] overflow-hidden pt-20">
         <div className="absolute inset-0">
           <video
             autoPlay
@@ -1119,7 +1075,7 @@ function HomePage({
               onClick={onOpenDonate}
               className="px-8 py-4 rounded-xl bg-[#0EA5E9] text-white font-semibold hover:bg-[#0284C7] transition-colors duration-150 shadow-lg"
             >
-              Donate Now
+              Support a Child
             </button>
             <button
               onClick={() => go("about")}
@@ -1131,23 +1087,24 @@ function HomePage({
         </div>
       </section>
 
-      <section className="py-20 px-6 bg-white">
-        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
+      {/* Who We Are */}
+      <section className="py-16 px-6 bg-white">
+        <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
           <div>
             <SectionTag>Who We Are</SectionTag>
             <h2
-              className="font-serif text-4xl md:text-5xl font-bold text-[#10202B] leading-tight mb-6"
+              className="font-serif text-3xl md:text-4xl font-bold text-[#10202B] leading-tight mb-6"
               style={{ fontFamily: "'Montserrat', sans-serif" }}
             >
               Inspiring and empowering Kenya&apos;s next generation
             </h2>
-            <p className="text-[#5C6B72] text-lg leading-relaxed mb-6">
+            <p className="text-[#5C6B72] text-base leading-relaxed mb-6">
               Founded in 2006, Wahome Foundation works to empower communities across Kenya through
               education, clean water access, and mentorship — one student, one well, one story at a time.
             </p>
             <button
               onClick={() => go("about")}
-              className="inline-flex items-center gap-2 text-[#1D95B8] font-semibold hover:gap-3 transition-all duration-150"
+              className="inline-flex items-center gap-2 text-[#1D95B8] font-semibold text-sm hover:gap-3 transition-all duration-150"
             >
               Learn More <ArrowRight className="w-4 h-4" />
             </button>
@@ -1175,8 +1132,64 @@ function HomePage({
         </div>
       </section>
 
+      {/* Surfaced Feature 1: Featured Scholars Showcase */}
+      <section className="py-16 px-6 bg-[#EAF6FA]">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center max-w-xl mx-auto mb-10">
+            <SectionTag>MEET OUR SCHOLARS</SectionTag>
+            <h2
+              className="font-serif text-2xl md:text-3xl font-bold text-[#10202B]"
+              style={{ fontFamily: "'Montserrat', sans-serif" }}
+            >
+              The dreams your support makes possible
+            </h2>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="flex bg-white rounded-2xl border border-[#D6E4EA] overflow-hidden shadow-sm p-4 gap-4 items-center">
+              <img
+                src={alexPhoto}
+                alt="Alex Karani"
+                className="w-24 h-24 rounded-xl object-cover shrink-0"
+              />
+              <div>
+                <h4 className="font-bold text-[#10202B] text-base">Alex Karani</h4>
+                <p className="text-xs text-[#1D95B8] font-semibold mb-1">Grade 10 · Active Scholar</p>
+                <p className="text-xs text-[#5C6B72] line-clamp-3">
+                  "The Foundation helped me join High School and gave me hope of pursuing a career in Agriculture Engineering."
+                </p>
+              </div>
+            </div>
+
+            <div className="flex bg-white rounded-2xl border border-[#D6E4EA] overflow-hidden shadow-sm p-4 gap-4 items-center">
+              <img
+                src={jedidahPhoto}
+                alt="Jedidah Watetu"
+                className="w-24 h-24 rounded-xl object-cover shrink-0"
+              />
+              <div>
+                <h4 className="font-bold text-[#10202B] text-base">Jedidah Watetu</h4>
+                <p className="text-xs text-[#1D95B8] font-semibold mb-1">Grade 10 · St Rita Kiaragana Girls</p>
+                <p className="text-xs text-[#5C6B72] line-clamp-3">
+                  "I got a scholarship to join High School. Now aspiring to be a Doctor thanks to the Wahome Foundation."
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-8 text-center">
+            <button
+              onClick={() => go("scholarship")}
+              className="inline-flex items-center gap-2 text-[#1D95B8] font-bold text-xs uppercase tracking-wider hover:gap-3 transition-all"
+            >
+              View All Student Stories <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      </section>
+
       {/* Our Portfolios Carousel Section */}
-      <section className="py-8 px-6 bg-[#EAF6FA]">
+      <section className="py-12 px-6 bg-white">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-4">
             <SectionTag>Our Portfolios</SectionTag>
@@ -1191,33 +1204,68 @@ function HomePage({
         </div>
       </section>
 
-      {/* Past Campaigns Section */}
-      <section className="py-4 px-4 bg-white">
-  <div className="max-w-6xl mx-auto">
-    <div className="text-center mb-2">
-      <SectionTag>Past Campaigns</SectionTag>
-      <h2
-        className="font-serif text-xl md:text-2xl font-bold text-[#10202B]"
-        style={{ fontFamily: "'Montserrat', sans-serif" }}
-      >
-        Every campaign, one goal
-      </h2>
-    </div>
-    <PastCampaignsShowcase onNav={go} />
-  </div>
-</section>
+      {/* Surfaced Feature 2: Prize Giving Event Highlight */}
+      <section className="py-12 px-6 bg-[#EAF6FA]">
+        <div className="max-w-6xl mx-auto bg-white rounded-3xl p-8 border border-[#D6E4EA] shadow-sm grid md:grid-cols-12 gap-8 items-center">
+          <div className="md:col-span-5 relative aspect-[4/3] rounded-2xl overflow-hidden bg-[#B9D3DE]">
+            <img
+              src={image_DSC_0332}
+              alt="Prize Giving Day"
+              className="w-full h-full object-cover"
+            />
+          </div>
+          <div className="md:col-span-7 text-left space-y-3">
+            <SectionTag>SAVE THE DATE</SectionTag>
+            <h3 className="font-serif text-2xl font-bold text-[#10202B]">
+              Prize Giving Day 2027
+            </h3>
+            <p className="text-xs text-[#5C6B72] leading-relaxed">
+              Every year, Wahome Foundation convenes hundreds of students, parents, and community leaders to honor academic excellence across partner schools.
+            </p>
+            <div className="text-xs font-semibold text-[#1D95B8] space-y-1 pt-1">
+              <p>📅 Saturday, 9 January 2027</p>
+              <p>📍 Mugumo Comprehensive School Grounds, Nanyuki</p>
+            </div>
+            <div className="pt-2">
+              <button
+                onClick={() => go("prize")}
+                className="px-6 py-2.5 rounded-full bg-[#0EA5E9] hover:bg-[#0284C7] text-white text-xs font-bold uppercase tracking-wider transition-all shadow-md"
+              >
+                Learn More About Ceremony
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
 
-      <section className="py-20 px-6 bg-white">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center max-w-2xl mx-auto mb-12">
+      {/* Past Campaigns Section */}
+      <section className="py-12 px-4 bg-white">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-4">
+            <SectionTag>Past Campaigns</SectionTag>
+            <h2
+              className="font-serif text-xl md:text-2xl font-bold text-[#10202B]"
+              style={{ fontFamily: "'Montserrat', sans-serif" }}
+            >
+              Every campaign, one goal
+            </h2>
+          </div>
+          <PastCampaignsShowcase onNav={go} />
+        </div>
+      </section>
+
+      {/* Media Updates */}
+      <section className="py-16 px-6 bg-[#EAF6FA]">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center max-w-2xl mx-auto mb-10">
             <SectionTag>Blog & News</SectionTag>
             <h2
-              className="font-serif text-3xl md:text-4xl font-bold text-[#10202B] mb-4"
+              className="font-serif text-2xl md:text-3xl font-bold text-[#10202B] mb-2"
               style={{ fontFamily: "'Montserrat', sans-serif" }}
             >
               Stories & updates
             </h2>
-            <p className="text-[#5C6B72] leading-relaxed">
+            <p className="text-xs text-[#5C6B72] leading-relaxed">
               Articles, videos, and press coverage on our operations, partnerships, and impact.
             </p>
           </div>
@@ -1229,8 +1277,6 @@ function HomePage({
           </div>
         </div>
       </section>
-
-      <CTABanner onDonate={onOpenDonate} onInvolve={() => go("mentorship")} />
     </div>
   );
 }
@@ -1424,8 +1470,6 @@ function AboutPage({ onNav }: { onNav: (p: Page) => void }) {
           </div>
         </div>
       </section>
-
-      <CTABanner onDonate={() => go("scholarship")} onInvolve={() => go("mentorship")} />
     </div>
   );
 }
@@ -1498,8 +1542,6 @@ function WellsPage({
           </div>
         </div>
       </section>
-
-      <CTABanner onDonate={() => {}} onInvolve={() => go("mentorship")} />
     </div>
   );
 }
@@ -1667,8 +1709,6 @@ function ScholarshipPage({
           </div>
         </div>
       </section>
-
-      <CTABanner onDonate={onOpenDonate} onInvolve={() => go("mentorship")} />
     </div>
   );
 }
@@ -1905,8 +1945,6 @@ function PrizePage({
           </div>
         </div>
       </section>
-
-      <CTABanner onDonate={onOpenDonate} onInvolve={() => go("mentorship")} />
     </div>
   );
 }
@@ -2037,8 +2075,6 @@ function MentorshipPage({
           </div>
         </div>
       </section>
-
-      <CTABanner onDonate={onOpenDonate} onInvolve={() => go("scholarship")} />
     </div>
   );
 }
@@ -2139,16 +2175,16 @@ function MediaCard({
   );
 }
 
-// ─── FLOATING DONATE WIDGET ────────────────────────────────────────────────────
+// ─── FLOATING DONATE WIDGET (Streamlined Copy) ───────────────────────────────
 
 function FloatingDonateButton({ onClick }: { onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="fixed bottom-6 right-6 z-40 px-6 py-4 rounded-full bg-[#0EA5E9] text-white font-semibold text-base shadow-xl hover:bg-[#0284C7] transition-all duration-150 flex items-center gap-2 hover:scale-105"
+      className="fixed bottom-6 right-6 z-40 px-5 py-3.5 rounded-full bg-[#0EA5E9] text-white font-bold text-xs uppercase tracking-wider shadow-xl hover:bg-[#0284C7] transition-all duration-150 flex items-center gap-2 hover:scale-105"
     >
-      <Heart className="w-5 h-5 fill-white" />
-      Donate Now
+      <Heart className="w-4 h-4 fill-white" />
+      Support a Child
     </button>
   );
 }
