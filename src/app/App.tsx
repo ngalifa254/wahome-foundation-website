@@ -1031,6 +1031,8 @@ function CampaignSlideshow({
   );
 }
 
+// ─── HOME PAGE ───────
+
 function HomePage({
   onNav,
   onOpenDonate,
@@ -1044,9 +1046,9 @@ function HomePage({
   };
 
   return (
-    <div>
+    <div className="bg-white">
       {/* Hero Section */}
-      <section className="relative min-h-[92vh] flex items-center bg-[#10202B] overflow-hidden pt-20">
+      <section className="relative min-h-[90vh] flex items-center bg-[#10202B] overflow-hidden pt-20">
         <div className="absolute inset-0">
           <video
             autoPlay
@@ -1057,78 +1059,77 @@ function HomePage({
           >
             <source src={wahomeSlideshow} type="video/mp4" />
           </video>
-          <div className="absolute inset-0 bg-gradient-to-r from-[#10202B]/80 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#10202B]/85 via-[#10202B]/60 to-transparent" />
         </div>
-        <div className="relative max-w-2xl px-6 py-32 text-left z-10">
-          <span className="inline-block text-xs font-bold tracking-[0.2em] uppercase text-[#1D95B8] mb-5">
-            Wahome Foundation · Est. 2006
-          </span>
-          <h1
-            className="font-serif text-5xl md:text-6xl lg:text-7xl font-bold text-white leading-[1.1] mb-6"
-            style={{ fontFamily: "'Montserrat', sans-serif" }}
-          >
-            Change lives
-            <br />
-            <span className="text-[#1D95B8]">through</span>
-            <br />
-            direct action
-          </h1>
-          <p className="text-[#8FAFBC] text-lg leading-relaxed mb-10 max-w-xl">
-            Your support today helps a bright child stay in school and chase their dreams.
-          </p>
-          <div className="flex flex-wrap gap-4">
-            <button
-              onClick={onOpenDonate}
-              className="px-8 py-4 rounded-xl bg-[#0EA5E9] text-white font-semibold hover:bg-[#0284C7] transition-colors duration-150 shadow-lg"
+        <div className="relative max-w-6xl mx-auto px-6 py-28 text-left z-10 w-full">
+          <div className="max-w-2xl">
+            <span className="inline-block text-xs font-bold tracking-[0.2em] uppercase text-[#1D95B8] mb-4">
+              Wahome Foundation · Est. 2006
+            </span>
+            <h1
+              className="font-serif text-5xl sm:text-6xl font-bold text-white leading-[1.1] mb-6"
+              style={{ fontFamily: "'Montserrat', sans-serif" }}
             >
-              Support a Child
-            </button>
-            <button
-              onClick={() => go("about")}
-              className="px-8 py-4 rounded-xl bg-white/10 text-white font-semibold backdrop-blur border border-white/20 hover:bg-white/20 transition-colors duration-150"
-            >
-              Learn More
-            </button>
+              Change lives <br />
+              <span className="text-[#1D95B8]">through</span> <br />
+              direct action
+            </h1>
+            <p className="text-[#8FAFBC] text-base sm:text-lg leading-relaxed mb-8">
+              Your support today helps a bright child stay in school, access clean water, and chase their dreams.
+            </p>
+            <div className="flex flex-wrap gap-4">
+              <button
+                onClick={onOpenDonate}
+                className="px-8 py-3.5 rounded-full bg-[#0EA5E9] text-white font-bold text-xs uppercase tracking-wider hover:bg-[#0284C7] transition-all shadow-lg hover:scale-105"
+              >
+                Support a Child
+              </button>
+              <button
+                onClick={() => go("about")}
+                className="px-8 py-3.5 rounded-full bg-white/10 text-white font-bold text-xs uppercase tracking-wider backdrop-blur border border-white/20 hover:bg-white/20 transition-all"
+              >
+                Learn More
+              </button>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Who We Are */}
-      <section className="py-16 px-6 bg-white">
-        <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
-          <div>
+      {/* 1. Who We Are [BG: White] */}
+      <section className="py-16 px-6 bg-white border-b border-[#EAF6FA]">
+        <div className="max-w-6xl mx-auto grid lg:grid-cols-12 gap-10 items-center">
+          <div className="lg:col-span-7 space-y-4 text-left">
             <SectionTag>Who We Are</SectionTag>
             <h2
-              className="font-serif text-3xl md:text-4xl font-bold text-[#10202B] leading-tight mb-6"
+              className="font-serif text-3xl sm:text-4xl font-bold text-[#10202B] leading-tight"
               style={{ fontFamily: "'Montserrat', sans-serif" }}
             >
               Inspiring and empowering Kenya&apos;s next generation
             </h2>
-            <p className="text-[#5C6B72] text-base leading-relaxed mb-6">
-              Founded in 2006, Wahome Foundation works to empower communities across Kenya through
-              education, clean water access, and mentorship — one student, one well, one story at a time.
+            <p className="text-[#5C6B72] text-sm sm:text-base leading-relaxed">
+              Founded in 2006, Wahome Foundation works to empower communities across Kenya through education, clean water access, and mentorship — one student, one well, one story at a time.
             </p>
             <button
               onClick={() => go("about")}
-              className="inline-flex items-center gap-2 text-[#1D95B8] font-semibold text-sm hover:gap-3 transition-all duration-150"
+              className="inline-flex items-center gap-2 text-[#1D95B8] font-bold text-xs uppercase tracking-wider hover:gap-3 transition-all pt-2"
             >
-              Learn More <ArrowRight className="w-4 h-4" />
+              Discover Our Story <ArrowRight className="w-4 h-4" />
             </button>
           </div>
-          <div className="relative rounded-3xl overflow-hidden aspect-[4/3] bg-[#B9D3DE]">
+          <div className="lg:col-span-5 relative rounded-2xl overflow-hidden aspect-[4/3] bg-[#B9D3DE] shadow-md border border-[#D6E4EA]">
             <img
               src={image_fundeducation}
               alt="Community members gathered"
               className="w-full h-full object-cover"
             />
-            <div className="absolute bottom-6 left-6 right-6 bg-white/90 backdrop-blur rounded-2xl p-4 shadow-lg">
+            <div className="absolute bottom-4 left-4 right-4 bg-white/95 backdrop-blur rounded-xl p-3 shadow-md border border-[#D6E4EA]">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-[#1D95B8] flex items-center justify-center shrink-0">
-                  <Heart className="w-5 h-5 text-white" />
+                <div className="w-8 h-8 rounded-full bg-[#1D95B8] flex items-center justify-center shrink-0">
+                  <Heart className="w-4 h-4 text-white" />
                 </div>
                 <div>
-                  <p className="text-xs font-semibold text-[#5C6B72]">Impact to date</p>
-                  <p className="text-sm font-bold text-[#10202B]">
+                  <p className="text-[10px] font-semibold text-[#5C6B72] uppercase tracking-wider">Impact to date</p>
+                  <p className="text-xs font-bold text-[#10202B]">
                     820+ lives directly transformed
                   </p>
                 </div>
@@ -1138,13 +1139,47 @@ function HomePage({
         </div>
       </section>
 
-      {/* Surfaced Feature 1: Featured Scholars Showcase */}
+      {/* 2. Unburied Highlight: Prize Giving Day 2027 [BG: Sky Blue] */}
       <section className="py-16 px-6 bg-[#EAF6FA]">
+        <div className="max-w-6xl mx-auto bg-white rounded-2xl p-6 sm:p-8 border border-[#D6E4EA] shadow-sm grid md:grid-cols-12 gap-8 items-center">
+          <div className="md:col-span-5 relative aspect-[4/3] rounded-xl overflow-hidden bg-[#B9D3DE] border border-[#D6E4EA]">
+            <img
+              src={image_DSC_0332}
+              alt="Prize Giving Day"
+              className="w-full h-full object-cover"
+            />
+          </div>
+          <div className="md:col-span-7 text-left space-y-3">
+            <SectionTag>ANNUAL FLAGSHIP EVENT</SectionTag>
+            <h3 className="font-serif text-2xl sm:text-3xl font-bold text-[#10202B]" style={{ fontFamily: "'Montserrat', sans-serif" }}>
+              Prize Giving Day 2027
+            </h3>
+            <p className="text-xs sm:text-sm text-[#5C6B72] leading-relaxed">
+              Every year, Wahome Foundation convenes hundreds of students, parents, and community leaders to honor academic excellence and reward top performers across partner schools.
+            </p>
+            <div className="text-xs font-semibold text-[#1D95B8] space-y-1 pt-1">
+              <p>📅 Saturday, 9 January 2027</p>
+              <p>📍 Mugumo Comprehensive School Grounds, Nanyuki</p>
+            </div>
+            <div className="pt-2">
+              <button
+                onClick={() => go("prize")}
+                className="px-6 py-2.5 rounded-full bg-[#0EA5E9] hover:bg-[#0284C7] text-white text-xs font-bold uppercase tracking-wider transition-all shadow-sm hover:scale-105"
+              >
+                Learn More About Ceremony
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 3. Surfaced Feature: Meet Our Scholars [BG: White] */}
+      <section className="py-16 px-6 bg-white border-b border-[#EAF6FA]">
         <div className="max-w-6xl mx-auto">
           <div className="text-center max-w-xl mx-auto mb-10">
             <SectionTag>MEET OUR SCHOLARS</SectionTag>
             <h2
-              className="font-serif text-2xl md:text-3xl font-bold text-[#10202B]"
+              className="font-serif text-2xl sm:text-3xl font-bold text-[#10202B]"
               style={{ fontFamily: "'Montserrat', sans-serif" }}
             >
               The dreams your support makes possible
@@ -1152,31 +1187,31 @@ function HomePage({
           </div>
 
           <div className="grid md:grid-cols-2 gap-6">
-            <div className="flex bg-white rounded-2xl border border-[#D6E4EA] overflow-hidden shadow-sm p-4 gap-4 items-center">
+            <div className="bg-[#EAF6FA]/40 rounded-2xl border border-[#D6E4EA] p-5 flex gap-4 items-center shadow-sm hover:border-[#1D95B8]/40 transition-all text-left">
               <img
                 src={alexPhoto}
                 alt="Alex Karani"
-                className="w-24 h-24 rounded-xl object-cover shrink-0"
+                className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl object-cover shrink-0"
               />
-              <div>
+              <div className="space-y-1">
                 <h4 className="font-bold text-[#10202B] text-base">Alex Karani</h4>
-                <p className="text-xs text-[#1D95B8] font-semibold mb-1">Grade 10 · Active Scholar</p>
-                <p className="text-xs text-[#5C6B72] line-clamp-3">
-                  "The Foundation helped me join High School and gave me hope of pursuing a career in Agriculture Engineering."
+                <p className="text-[11px] text-[#1D95B8] font-bold uppercase tracking-wider">Grade 10 · Active Scholar</p>
+                <p className="text-xs text-[#5C6B72] line-clamp-3 leading-relaxed">
+                  "The Foundation helped me join High School and gave me hope of pursuing a career in Agricultural Engineering."
                 </p>
               </div>
             </div>
 
-            <div className="flex bg-white rounded-2xl border border-[#D6E4EA] overflow-hidden shadow-sm p-4 gap-4 items-center">
+            <div className="bg-[#EAF6FA]/40 rounded-2xl border border-[#D6E4EA] p-5 flex gap-4 items-center shadow-sm hover:border-[#1D95B8]/40 transition-all text-left">
               <img
                 src={jedidahPhoto}
                 alt="Jedidah Watetu"
-                className="w-24 h-24 rounded-xl object-cover shrink-0"
+                className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl object-cover shrink-0"
               />
-              <div>
+              <div className="space-y-1">
                 <h4 className="font-bold text-[#10202B] text-base">Jedidah Watetu</h4>
-                <p className="text-xs text-[#1D95B8] font-semibold mb-1">Grade 10 · St Rita Kiaragana Girls</p>
-                <p className="text-xs text-[#5C6B72] line-clamp-3">
+                <p className="text-[11px] text-[#1D95B8] font-bold uppercase tracking-wider">Grade 10 · St Rita Kiaragana Girls</p>
+                <p className="text-xs text-[#5C6B72] line-clamp-3 leading-relaxed">
                   "I got a scholarship to join High School. Now aspiring to be a Doctor thanks to the Wahome Foundation."
                 </p>
               </div>
@@ -1194,13 +1229,13 @@ function HomePage({
         </div>
       </section>
 
-      {/* Our Portfolios Carousel Section */}
-      <section className="py-12 px-6 bg-white">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-4">
+      {/* 4. Our Portfolios Spotlight Carousel [BG: Sky Blue] */}
+      <section className="py-16 px-6 bg-[#EAF6FA]">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-6">
             <SectionTag>Our Portfolios</SectionTag>
             <h2
-              className="font-serif text-2xl md:text-3xl font-bold text-[#10202B]"
+              className="font-serif text-2xl sm:text-3xl font-bold text-[#10202B]"
               style={{ fontFamily: "'Montserrat', sans-serif" }}
             >
               Programmes that change lives
@@ -1210,47 +1245,13 @@ function HomePage({
         </div>
       </section>
 
-      {/* Surfaced Feature 2: Prize Giving Event Highlight */}
-      <section className="py-12 px-6 bg-[#EAF6FA]">
-        <div className="max-w-6xl mx-auto bg-white rounded-3xl p-8 border border-[#D6E4EA] shadow-sm grid md:grid-cols-12 gap-8 items-center">
-          <div className="md:col-span-5 relative aspect-[4/3] rounded-2xl overflow-hidden bg-[#B9D3DE]">
-            <img
-              src={image_DSC_0332}
-              alt="Prize Giving Day"
-              className="w-full h-full object-cover"
-            />
-          </div>
-          <div className="md:col-span-7 text-left space-y-3">
-            <SectionTag>SAVE THE DATE</SectionTag>
-            <h3 className="font-serif text-2xl font-bold text-[#10202B]">
-              Prize Giving Day 2027
-            </h3>
-            <p className="text-xs text-[#5C6B72] leading-relaxed">
-              Every year, Wahome Foundation convenes hundreds of students, parents, and community leaders to honor academic excellence across partner schools.
-            </p>
-            <div className="text-xs font-semibold text-[#1D95B8] space-y-1 pt-1">
-              <p>📅 Saturday, 9 January 2027</p>
-              <p>📍 Mugumo Comprehensive School Grounds, Nanyuki</p>
-            </div>
-            <div className="pt-2">
-              <button
-                onClick={() => go("prize")}
-                className="px-6 py-2.5 rounded-full bg-[#0EA5E9] hover:bg-[#0284C7] text-white text-xs font-bold uppercase tracking-wider transition-all shadow-md"
-              >
-                Learn More About Ceremony
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Past Campaigns Section */}
-      <section className="py-12 px-4 bg-white">
+      {/* 5. Past Campaigns Section [BG: White] */}
+      <section className="py-16 px-6 bg-white border-b border-[#EAF6FA]">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-4">
+          <div className="text-center mb-6">
             <SectionTag>Past Campaigns</SectionTag>
             <h2
-              className="font-serif text-xl md:text-2xl font-bold text-[#10202B]"
+              className="font-serif text-2xl sm:text-3xl font-bold text-[#10202B]"
               style={{ fontFamily: "'Montserrat', sans-serif" }}
             >
               Every campaign, one goal
@@ -1260,13 +1261,13 @@ function HomePage({
         </div>
       </section>
 
-      {/* Media Updates */}
+      {/* 6. Blog & News Media Updates [BG: Sky Blue] */}
       <section className="py-16 px-6 bg-[#EAF6FA]">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center max-w-2xl mx-auto mb-10">
+          <div className="text-center max-w-xl mx-auto mb-10">
             <SectionTag>Blog & News</SectionTag>
             <h2
-              className="font-serif text-2xl md:text-3xl font-bold text-[#10202B] mb-2"
+              className="font-serif text-2xl sm:text-3xl font-bold text-[#10202B] mb-2"
               style={{ fontFamily: "'Montserrat', sans-serif" }}
             >
               Stories & updates
