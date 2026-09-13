@@ -626,87 +626,71 @@ function Footer({
       className="bg-[#10202B] text-[#8FAFBC] border-t border-[#1C3241]"
       style={{ fontFamily: "'Montserrat', sans-serif" }}
     >
-      <div className="max-w-7xl mx-auto px-6 py-12">
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between pb-8 border-b border-[#1C3241] gap-4">
-          <div className="flex items-center gap-4">
+      <div className="max-w-6xl mx-auto px-6 py-8">
+        {/* Main Single-Row Architectural Bar */}
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 pb-6 border-b border-[#1C3241]">
+          {/* Brand Emblem */}
+          <div className="flex items-center gap-3 shrink-0">
             <img
               src={footerLogo}
               alt="Wahome Foundation Logo"
-              className="h-10 w-auto object-contain mix-blend-screen"
+              className="h-8 w-auto object-contain mix-blend-screen"
             />
-            <div className="h-6 w-px bg-[#1C3241] hidden sm:block" />
-            <span className="text-xs tracking-widest uppercase text-[#1D95B8] font-bold">
-              Inspire & Empower · Est. 2006
+            <div className="h-4 w-px bg-[#1C3241] hidden sm:block" />
+            <span className="text-[10px] tracking-widest uppercase text-[#1D95B8] font-bold">
+              Est. 2006 · NGO & 501(c)(3)
             </span>
           </div>
 
-          <div className="flex items-center gap-3">
+          {/* Offices (Inlined Minimal Strip) */}
+          <div className="flex flex-wrap items-center gap-x-8 gap-y-2 text-xs font-medium text-[#8FAFBC]">
+            <span className="flex items-center gap-1.5">
+              <MapPin className="w-3.5 h-3.5 text-[#1D95B8] shrink-0" />
+              Nanyuki, Kenya
+            </span>
+            <span className="flex items-center gap-1.5">
+              <MapPin className="w-3.5 h-3.5 text-[#1D95B8] shrink-0" />
+              Shrewsbury, MA (US)
+            </span>
+            <span className="flex items-center gap-1.5 text-white/90">
+              <Mail className="w-3.5 h-3.5 text-[#1D95B8] shrink-0" />
+              info@wahomefoundation.com
+            </span>
+          </div>
+
+          {/* Social Icons */}
+          <div className="flex items-center gap-2 shrink-0">
             {[Facebook, Instagram, Youtube].map((Icon, i) => (
               <button
                 key={i}
                 type="button"
-                className="w-9 h-9 rounded-full bg-[#162B38] border border-[#1C3241] flex items-center justify-center hover:border-[#1D95B8] hover:text-white transition-all"
+                className="w-8 h-8 rounded-full bg-[#162B38] border border-[#1C3241] flex items-center justify-center hover:border-[#1D95B8] hover:text-white transition-all"
               >
-                <Icon className="w-4 h-4" />
+                <Icon className="w-3.5 h-3.5" />
               </button>
             ))}
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 py-10 border-b border-[#1C3241] text-left">
-          <div>
-            <h4 className="text-xs font-bold uppercase tracking-widest text-white mb-4">
-              Quick Links
-            </h4>
-            <div className="flex flex-col space-y-2.5 text-xs font-medium">
-              <button onClick={() => go("home")} className="text-left hover:text-white transition-colors">Home</button>
-              <button onClick={() => go("about")} className="text-left hover:text-white transition-colors">About Us</button>
-              <button onClick={() => go("scholarship")} className="text-left hover:text-white transition-colors">Scholarship</button>
-              <button onClick={() => go("wells")} className="text-left hover:text-white transition-colors">Wells of Hope</button>
-              <button onClick={() => go("prize")} className="text-left hover:text-white transition-colors">Prize Giving</button>
-              <button onClick={() => go("mentorship")} className="text-left hover:text-white transition-colors">Mentorship</button>
-            </div>
-          </div>
-
-          <div className="space-y-2.5 text-xs">
-            <h4 className="text-xs font-bold uppercase tracking-widest text-white mb-4">
-              Kenya HQ
-            </h4>
-            <p className="flex items-center gap-2">
-              <MapPin className="w-3.5 h-3.5 text-[#1D95B8] shrink-0" />
-              69 Haile Salasie Rd, Nanyuki, Kenya
-            </p>
-            <p className="flex items-center gap-2">
-              <Phone className="w-3.5 h-3.5 text-[#1D95B8] shrink-0" />
-              +254 700 000 000
-            </p>
-            <p className="flex items-center gap-2">
-              <Mail className="w-3.5 h-3.5 text-[#1D95B8] shrink-0" />
-              info@wahomefoundation.com
-            </p>
-          </div>
-
-          <div className="space-y-2.5 text-xs">
-            <h4 className="text-xs font-bold uppercase tracking-widest text-white mb-4">
-              US Office
-            </h4>
-            <p className="flex items-center gap-2">
-              <MapPin className="w-3.5 h-3.5 text-[#1D95B8] shrink-0" />
-              560 Boston Turnpike, Shrewsbury, MA 01545
-            </p>
-            <p className="flex items-center gap-2">
-              <Mail className="w-3.5 h-3.5 text-[#1D95B8] shrink-0" />
-              info@wahomefoundation.com
-            </p>
-          </div>
-        </div>
-
-        <div className="pt-6 flex flex-col sm:flex-row items-center justify-between text-[11px] text-[#5C6B72] gap-2">
-          <p>© {new Date().getFullYear()} Wahome Foundation. Registered NGO & 501(c)(3) Organization.</p>
+        {/* Bottom Legal Bar */}
+        <div className="pt-4 flex flex-col sm:flex-row items-center justify-between text-[11px] text-[#5C6B72] gap-2">
+          <p>© {new Date().getFullYear()} Wahome Foundation. All rights reserved.</p>
           <div className="flex items-center gap-4">
-            <button onClick={onOpenDonate} className="hover:text-[#1D95B8] transition-colors">Support Our Cause</button>
+            <button
+              type="button"
+              onClick={onOpenDonate}
+              className="hover:text-[#1D95B8] transition-colors font-semibold text-white/80"
+            >
+              Support Our Cause
+            </button>
             <span>·</span>
-            <button onClick={() => go("about")} className="hover:text-[#1D95B8] transition-colors">Privacy & Terms</button>
+            <button
+              type="button"
+              onClick={() => go("about")}
+              className="hover:text-[#1D95B8] transition-colors"
+            >
+              Privacy & Terms
+            </button>
           </div>
         </div>
       </div>
@@ -1183,16 +1167,11 @@ function HomePage({
             <p className="text-[#8FAFBC] text-base sm:text-lg leading-relaxed mb-8">
               Your support today helps a bright child stay in school, access clean water, and chase their dreams.
             </p>
-            <div className="flex flex-wrap gap-4">
+            <div>
               <button
-                onClick={onOpenDonate}
-                className="px-8 py-3.5 rounded-full bg-[#0EA5E9] text-white font-bold text-xs uppercase tracking-wider hover:bg-[#0284C7] transition-all shadow-lg hover:scale-105"
-              >
-                Support a Child
-              </button>
-              <button
+                type="button"
                 onClick={() => go("about")}
-                className="px-8 py-3.5 rounded-full bg-white/10 text-white font-bold text-xs uppercase tracking-wider backdrop-blur border border-white/20 hover:bg-white/20 transition-all"
+                className="px-8 py-3.5 rounded-full bg-white/10 text-white font-bold text-xs uppercase tracking-wider backdrop-blur border border-white/20 hover:bg-white/20 transition-all shadow-md"
               >
                 Learn More
               </button>
