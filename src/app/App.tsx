@@ -698,7 +698,7 @@ function Footer({
 
         {/* Row 3: Centered Stacked Legal Info */}
         <div className="pt-3 flex flex-col items-center justify-center text-center text-[10px] text-[#5C6B72] gap-1">
-          <p>© 2026 Wahome Foundation. Registered NGO & 501(c)(3) Organization.</p>
+          <p>© 2026 Wahome Foundation. Registered Charitable Organization.</p>
           <button
             type="button"
             onClick={() => go("about")}
