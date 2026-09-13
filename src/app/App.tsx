@@ -1,29 +1,29 @@
-import image_mentorship_1 from "@/imports/mentorship-1.jpg";
-import image_DSC_0332 from "@/imports/DSC_0332.jpg";
-import image_DSC_0445 from "@/imports/DSC_0445.jpg";
-import image_Prizegiving_What_we_do from "@/imports/Prizegiving-What-we-do.png";
-import image_wells_of_hope from "@/imports/wells_of_hope.jpg";
-import image_fundeducation from "@/imports/fundeducation.jpg";
-import alexPhoto from "@/imports/Alex.jpeg";
-import jedidahPhoto from "@/imports/Jedidah.jpeg";
-import jamesPhoto from "@/imports/James.jpeg";
-import newtonPhoto from "@/imports/Newton.jpeg";
-import samuelPhoto from "@/imports/Samuel.jpeg";
-import wahomeSlideshow from "@/imports/wahome_foundation_slideshow.mp4";
-import thomasPhoto from "@/imports/thomas.jpg";
-import wellsPhoto from "@/imports/wells.jpg";
-import mentorshipPhoto from "@/imports/mentorship.jpg";
-import dkPhoto from "@/imports/dk.jpg";
-import cynthiaPhoto from "@/imports/cynthia.jpeg";
-import georgePhoto from "@/imports/george.jpg";
-import footerLogo from "@/imports/wlogo.jfif";
-import mainLogo from "@/imports/mainlogo.png";
-import marathon1 from "@/imports/marathon1.jpg";
-import marathon2 from "@/imports/marathon2.jpg";
-import marathon3 from "@/imports/marathon3.jpg";
-import marathon4 from "@/imports/marathon4.jpg";
-import marathon5 from "@/imports/marathon5.jpg";
-import marathon6 from "@/imports/marathon6.jpg";
+import image_mentorship_1 from "../imports/mentorship-1.jpg";
+import image_DSC_0332 from "../imports/DSC_0332.jpg";
+import image_DSC_0445 from "../imports/DSC_0445.jpg";
+import image_Prizegiving_What_we_do from "../imports/Prizegiving-What-we-do.png";
+import image_wells_of_hope from "../imports/wells_of_hope.jpg";
+import image_fundeducation from "../imports/fundeducation.jpg";
+import alexPhoto from "../imports/Alex.jpeg";
+import jedidahPhoto from "../imports/Jedidah.jpeg";
+import jamesPhoto from "../imports/James.jpeg";
+import newtonPhoto from "../imports/Newton.jpeg";
+import samuelPhoto from "../imports/Samuel.jpeg";
+import wahomeSlideshow from "../imports/wahome_foundation_slideshow.mp4";
+import thomasPhoto from "../imports/thomas.jpg";
+import wellsPhoto from "../imports/wells.jpg";
+import mentorshipPhoto from "../imports/mentorship.jpg";
+import dkPhoto from "../imports/dk.jpg";
+import cynthiaPhoto from "../imports/cynthia.jpeg";
+import georgePhoto from "../imports/george.jpg";
+import footerLogo from "../imports/wlogo.jfif";
+import mainLogo from "../imports/mainlogo.png";
+import marathon1 from "../imports/marathon1.jpg";
+import marathon2 from "../imports/marathon2.jpg";
+import marathon3 from "../imports/marathon3.jpg";
+import marathon4 from "../imports/marathon4.jpg";
+import marathon5 from "../imports/marathon5.jpg";
+import marathon6 from "../imports/marathon6.jpg";
 import { useState, useEffect, useRef } from "react";
 
 import {
@@ -73,6 +73,52 @@ function CTABanner({
   onInvolve: () => void;
 }) {
   return null;
+}
+
+// ─── CAMPAIGN SLIDESHOW (Defined before usage) ───────────────────────────────
+
+function CampaignSlideshow({
+  images,
+  aspectClass = "aspect-[3/4]",
+}: {
+  images: string[];
+  aspectClass?: string;
+}) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % images.length);
+    }, 3500);
+    return () => clearInterval(timer);
+  }, [images.length]);
+
+  return (
+    <div
+      className={`relative w-full ${aspectClass} rounded-2xl overflow-hidden bg-[#B9D3DE] shadow-md`}
+    >
+      {images.map((img, i) => (
+        <img
+          key={i}
+          src={img}
+          alt={`Campaign slide ${i + 1}`}
+          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out ${
+            i === currentIndex ? "opacity-100" : "opacity-0"
+          }`}
+        />
+      ))}
+      <div className="absolute bottom-3 right-3 flex gap-1.5 z-10 bg-black/40 backdrop-blur px-2.5 py-1 rounded-full">
+        {images.map((_, i) => (
+          <div
+            key={i}
+            className={`h-1.5 rounded-full transition-all ${
+              i === currentIndex ? "bg-white w-4" : "bg-white/50 w-1.5"
+            }`}
+          />
+        ))}
+      </div>
+    </div>
+  );
 }
 
 // ─── DONATION MODAL ───────────────────────────────────────────────────────────
@@ -419,7 +465,7 @@ function DonateModal({
   );
 }
 
-// ─── Navbar (Floating Non-Full-Bleed Pill) ───────────────────────────────────
+// ─── Floating Non-Full-Bleed Navbar ──────────────────────────────────────────
 
 interface NavbarProps {
   current: Page;
@@ -483,7 +529,6 @@ function Navbar({ current, onNav, onOpenDonate }: NavbarProps) {
       }`}
       style={{ fontFamily: "'Montserrat', sans-serif" }}
     >
-      {/* Floating Pill Header */}
       <header
         className={`w-full rounded-full border transition-all duration-300 px-6 h-20 flex items-center justify-between ${
           scrolled
@@ -491,7 +536,6 @@ function Navbar({ current, onNav, onOpenDonate }: NavbarProps) {
             : "bg-[#10202B]/85 backdrop-blur-sm border-white/10 shadow-lg"
         }`}
       >
-        {/* Enlarged Original Colored Logo */}
         <button onClick={() => go("home")} className="flex items-center shrink-0">
           <img
             src={mainLogo}
@@ -500,7 +544,6 @@ function Navbar({ current, onNav, onOpenDonate }: NavbarProps) {
           />
         </button>
 
-        {/* Navigation Links */}
         <nav className="hidden lg:flex items-center gap-1">
           {navLinks.map((l) => (
             <button
@@ -517,7 +560,6 @@ function Navbar({ current, onNav, onOpenDonate }: NavbarProps) {
           ))}
         </nav>
 
-        {/* Primary CTA */}
         <button
           onClick={onOpenDonate}
           className="hidden lg:flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#0EA5E9] hover:bg-[#0284C7] text-white text-xs font-bold tracking-wider uppercase transition-all shadow-md hover:scale-105"
@@ -526,7 +568,6 @@ function Navbar({ current, onNav, onOpenDonate }: NavbarProps) {
           Support a Child
         </button>
 
-        {/* Mobile Toggle */}
         <button
           onClick={() => setOpen(!open)}
           className="lg:hidden p-1.5 rounded-full text-white hover:bg-white/10 transition-colors"
@@ -536,7 +577,6 @@ function Navbar({ current, onNav, onOpenDonate }: NavbarProps) {
         </button>
       </header>
 
-      {/* Mobile Menu */}
       {open && (
         <div className="lg:hidden mt-2 border border-white/20 bg-[#10202B]/95 backdrop-blur-md rounded-2xl p-4 flex flex-col gap-1.5 shadow-2xl">
           {navLinks.map((l) => (
@@ -985,7 +1025,7 @@ function PastCampaignsShowcase({ onNav }: { onNav: (p: Page) => void }) {
   );
 }
 
-// ─── HOME PAGE (Surfaced Scholars & Prize Giving Highlights) ─────────────────
+// ─── VIBRANT PRIZE GIVING EVENT BANNER ───────────────────────────────────────
 
 function PrizeGivingBanner({
   onNav,
@@ -998,12 +1038,10 @@ function PrizeGivingBanner({
     <section className="py-16 px-6 bg-[#EAF6FA]">
       <div className="max-w-6xl mx-auto">
         <div className="relative rounded-3xl overflow-hidden bg-[#10202B] text-white p-6 sm:p-10 border border-[#1C3241] shadow-2xl">
-          {/* Ambient Glow Effects */}
           <div className="absolute -top-24 -right-24 w-96 h-96 bg-[#0EA5E9]/20 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-[#1D95B8]/20 rounded-full blur-3xl pointer-events-none" />
 
           <div className="relative z-10 grid lg:grid-cols-12 gap-8 items-center">
-            {/* Image Container with Badge */}
             <div className="lg:col-span-5 relative group rounded-2xl overflow-hidden shadow-xl aspect-[4/3] bg-[#162B38]">
               <img
                 src={image_DSC_0332}
@@ -1023,7 +1061,6 @@ function PrizeGivingBanner({
               </div>
             </div>
 
-            {/* Event Details Content */}
             <div className="lg:col-span-7 flex flex-col justify-between text-left space-y-6">
               <div>
                 <div className="flex items-center gap-2 mb-2">
@@ -1045,7 +1082,6 @@ function PrizeGivingBanner({
                 </p>
               </div>
 
-              {/* Event Logistics Micro-Cards */}
               <div className="grid sm:grid-cols-2 gap-3">
                 <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-xl p-3.5 flex items-start gap-3">
                   <div className="w-8 h-8 rounded-lg bg-[#1D95B8]/20 flex items-center justify-center shrink-0 text-[#38BDF8] text-sm">
@@ -1076,7 +1112,6 @@ function PrizeGivingBanner({
                 </div>
               </div>
 
-              {/* Actions */}
               <div className="pt-2 flex flex-wrap items-center gap-3">
                 <button
                   type="button"
@@ -2199,7 +2234,7 @@ function MediaCard({
           </>
         )}
       </div>
-      <div className="p-6">
+      <div className="p-6 text-left">
         <div className="flex items-center gap-1.5 text-xs font-semibold text-[#1D95B8] mb-2">
           <TypeIcon className="w-3.5 h-3.5" />
           {typeMeta.label}
