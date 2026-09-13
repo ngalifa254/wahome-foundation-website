@@ -626,7 +626,7 @@ function Footer({
       style={{ fontFamily: "'Montserrat', sans-serif" }}
     >
       <div className="max-w-6xl mx-auto px-6 py-8">
-        {/* Top Brand & Social Row */}
+        {/* Top Brand & Social Row (Preserved in place per red outline) */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-6 border-b border-[#1C3241] gap-4">
           <div className="flex items-center gap-3">
             <img
@@ -653,56 +653,60 @@ function Footer({
           </div>
         </div>
 
-        {/* Resurfaced Offices Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-6 border-b border-[#1C3241] text-left text-xs">
-          {/* Kenya HQ */}
-          <div className="bg-[#162B38]/40 rounded-xl p-4 border border-[#1C3241] space-y-1.5">
-            <h4 className="text-[10px] font-bold uppercase tracking-widest text-[#1D95B8] mb-2">
-              Kenya HQ
-            </h4>
-            <p className="flex items-center gap-2 text-white/90">
-              <MapPin className="w-3.5 h-3.5 text-[#1D95B8] shrink-0" />
-              69 Haile Salasie Rd, Nanyuki, Kenya
-            </p>
-            <p className="flex items-center gap-2 text-[#8FAFBC]">
-              <Phone className="w-3.5 h-3.5 text-[#1D95B8] shrink-0" />
-              +254 700 000 000
-            </p>
-            <p className="flex items-center gap-2 text-[#8FAFBC]">
-              <Mail className="w-3.5 h-3.5 text-[#1D95B8] shrink-0" />
-              info@wahomefoundation.com
-            </p>
-          </div>
+        {/* Centered Offices Section */}
+        <div className="py-6 border-b border-[#1C3241] text-center">
+          {/* Subheading: Contact Us */}
+          <span className="inline-block text-[10px] font-extrabold tracking-widest text-[#1D95B8] uppercase mb-4">
+            Contact Us
+          </span>
 
-          {/* US Office */}
-          <div className="bg-[#162B38]/40 rounded-xl p-4 border border-[#1C3241] space-y-1.5">
-            <h4 className="text-[10px] font-bold uppercase tracking-widest text-[#1D95B8] mb-2">
-              US Office
-            </h4>
-            <p className="flex items-center gap-2 text-white/90">
-              <MapPin className="w-3.5 h-3.5 text-[#1D95B8] shrink-0" />
-              560 Boston Turnpike, Shrewsbury, MA 01545
-            </p>
-            <p className="flex items-center gap-2 text-[#8FAFBC]">
-              <Mail className="w-3.5 h-3.5 text-[#1D95B8] shrink-0" />
-              info@wahomefoundation.com
-            </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto text-xs">
+            {/* Kenya HQ */}
+            <div className="bg-[#162B38]/40 rounded-xl p-5 border border-[#1C3241] space-y-2 flex flex-col items-center justify-center">
+              <h4 className="text-[10px] font-bold uppercase tracking-widest text-[#1D95B8] mb-1">
+                Kenya HQ
+              </h4>
+              <p className="flex items-center justify-center gap-2 text-white/90">
+                <MapPin className="w-3.5 h-3.5 text-[#1D95B8] shrink-0" />
+                69 Haile Salasie Rd, Nanyuki, Kenya
+              </p>
+              <p className="flex items-center justify-center gap-2 text-[#8FAFBC]">
+                <Phone className="w-3.5 h-3.5 text-[#1D95B8] shrink-0" />
+                +254 700 000 000
+              </p>
+              <p className="flex items-center justify-center gap-2 text-[#8FAFBC]">
+                <Mail className="w-3.5 h-3.5 text-[#1D95B8] shrink-0" />
+                info@wahomefoundation.com
+              </p>
+            </div>
+
+            {/* US Office */}
+            <div className="bg-[#162B38]/40 rounded-xl p-5 border border-[#1C3241] space-y-2 flex flex-col items-center justify-center">
+              <h4 className="text-[10px] font-bold uppercase tracking-widest text-[#1D95B8] mb-1">
+                US Office
+              </h4>
+              <p className="flex items-center justify-center gap-2 text-white/90">
+                <MapPin className="w-3.5 h-3.5 text-[#1D95B8] shrink-0" />
+                560 Boston Turnpike, Shrewsbury, MA 01545
+              </p>
+              <p className="flex items-center justify-center gap-2 text-[#8FAFBC]">
+                <Mail className="w-3.5 h-3.5 text-[#1D95B8] shrink-0" />
+                info@wahomefoundation.com
+              </p>
+            </div>
           </div>
         </div>
 
-        {/* Bottom Bar: Copyright & Inlined Privacy & Terms */}
-        <div className="pt-4 flex flex-col sm:flex-row items-center justify-between text-[11px] text-[#5C6B72] gap-2 text-left">
-          <div className="flex flex-wrap items-center gap-2">
-            <p>© {new Date().getFullYear()} Wahome Foundation. Registered NGO & 501(c)(3) Organization.</p>
-            <span className="hidden sm:inline">·</span>
-            <button
-              type="button"
-              onClick={() => go("about")}
-              className="text-[#8FAFBC] hover:text-[#1D95B8] transition-colors underline-offset-2 hover:underline"
-            >
-              Privacy & Terms
-            </button>
-          </div>
+        {/* Bottom Bar: Centered Copyright & Stacked Privacy & Terms */}
+        <div className="pt-5 flex flex-col items-center justify-center text-center text-[11px] text-[#5C6B72] gap-1.5">
+          <p>© 2026 Wahome Foundation. Registered NGO & 501(c)(3) Organization.</p>
+          <button
+            type="button"
+            onClick={() => go("about")}
+            className="text-[#8FAFBC] hover:text-[#1D95B8] transition-colors font-medium hover:underline"
+          >
+            Privacy & Terms
+          </button>
         </div>
       </div>
     </footer>
