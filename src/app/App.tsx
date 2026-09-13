@@ -987,51 +987,122 @@ function PastCampaignsShowcase({ onNav }: { onNav: (p: Page) => void }) {
 
 // ─── HOME PAGE (Surfaced Scholars & Prize Giving Highlights) ─────────────────
 
-function CampaignSlideshow({
-  images,
-  aspectClass = "aspect-[3/4]",
+function PrizeGivingBanner({
+  onNav,
+  onOpenDonate,
 }: {
-  images: string[];
-  aspectClass?: string;
+  onNav: (p: Page) => void;
+  onOpenDonate: () => void;
 }) {
-  const [currentIndex, setCurrentIndex] = useState(0);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % images.length);
-    }, 3500);
-    return () => clearInterval(timer);
-  }, [images.length]);
-
   return (
-    <div
-      className={`relative w-full ${aspectClass} rounded-2xl overflow-hidden bg-[#B9D3DE] shadow-md`}
-    >
-      {images.map((img, i) => (
-        <img
-          key={i}
-          src={img}
-          alt={`Campaign slide ${i + 1}`}
-          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out ${
-            i === currentIndex ? "opacity-100" : "opacity-0"
-          }`}
-        />
-      ))}
-      <div className="absolute bottom-3 right-3 flex gap-1.5 z-10 bg-black/40 backdrop-blur px-2.5 py-1 rounded-full">
-        {images.map((_, i) => (
-          <div
-            key={i}
-            className={`h-1.5 rounded-full transition-all ${
-              i === currentIndex ? "bg-white w-4" : "bg-white/50 w-1.5"
-            }`}
-          />
-        ))}
+    <section className="py-16 px-6 bg-[#EAF6FA]">
+      <div className="max-w-6xl mx-auto">
+        <div className="relative rounded-3xl overflow-hidden bg-[#10202B] text-white p-6 sm:p-10 border border-[#1C3241] shadow-2xl">
+          {/* Ambient Glow Effects */}
+          <div className="absolute -top-24 -right-24 w-96 h-96 bg-[#0EA5E9]/20 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-[#1D95B8]/20 rounded-full blur-3xl pointer-events-none" />
+
+          <div className="relative z-10 grid lg:grid-cols-12 gap-8 items-center">
+            {/* Image Container with Badge */}
+            <div className="lg:col-span-5 relative group rounded-2xl overflow-hidden shadow-xl aspect-[4/3] bg-[#162B38]">
+              <img
+                src={image_DSC_0332}
+                alt="Prize Giving Day Celebrations"
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#10202B]/90 via-transparent to-black/20" />
+              
+              <div className="absolute top-4 left-4 bg-[#0EA5E9] text-white text-[10px] font-extrabold uppercase tracking-widest px-3 py-1.5 rounded-full shadow-lg border border-white/20">
+                Annual Flagship Event
+              </div>
+
+              <div className="absolute bottom-4 left-4 right-4">
+                <p className="text-xs text-white/90 font-medium italic drop-shadow">
+                  “Honoring academic effort & inspiring future leaders across Kenya.”
+                </p>
+              </div>
+            </div>
+
+            {/* Event Details Content */}
+            <div className="lg:col-span-7 flex flex-col justify-between text-left space-y-6">
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="w-2 h-2 rounded-full bg-[#38BDF8] animate-pulse" />
+                  <span className="text-xs font-extrabold tracking-widest text-[#38BDF8] uppercase">
+                    SAVE THE DATE · 2027
+                  </span>
+                </div>
+
+                <h2
+                  className="font-serif text-3xl sm:text-4xl font-bold text-white leading-tight mb-3"
+                  style={{ fontFamily: "'Montserrat', sans-serif" }}
+                >
+                  Prize Giving Day 2027
+                </h2>
+
+                <p className="text-xs sm:text-sm text-[#8FAFBC] leading-relaxed">
+                  Every year, Wahome Foundation convenes hundreds of students, parents, and community leaders to honor academic excellence and reward top performers across regional partner schools.
+                </p>
+              </div>
+
+              {/* Event Logistics Micro-Cards */}
+              <div className="grid sm:grid-cols-2 gap-3">
+                <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-xl p-3.5 flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-[#1D95B8]/20 flex items-center justify-center shrink-0 text-[#38BDF8] text-sm">
+                    📅
+                  </div>
+                  <div>
+                    <span className="block text-[10px] font-bold text-[#8FAFBC] uppercase tracking-wider">
+                      Date & Time
+                    </span>
+                    <span className="text-xs font-semibold text-white">
+                      Sat, 9 Jan 2027 · 10:00 AM
+                    </span>
+                  </div>
+                </div>
+
+                <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-xl p-3.5 flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-[#1D95B8]/20 flex items-center justify-center shrink-0 text-[#38BDF8] text-sm">
+                    📍
+                  </div>
+                  <div>
+                    <span className="block text-[10px] font-bold text-[#8FAFBC] uppercase tracking-wider">
+                      Venue
+                    </span>
+                    <span className="text-xs font-semibold text-white line-clamp-1">
+                      Mugumo Comprehensive, Nanyuki
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="pt-2 flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => onNav("prize")}
+                  className="px-6 py-3 rounded-full bg-[#0EA5E9] hover:bg-[#0284C7] text-white font-bold text-xs uppercase tracking-wider transition-all shadow-lg hover:scale-105"
+                >
+                  Learn More About Ceremony
+                </button>
+
+                <button
+                  type="button"
+                  onClick={onOpenDonate}
+                  className="px-6 py-3 rounded-full bg-white/10 hover:bg-white/20 text-white font-bold text-xs uppercase tracking-wider backdrop-blur border border-white/20 transition-all"
+                >
+                  Partner With Us
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
+    </section>
   );
 }
 
-// ─── HOME PAGE ───────
+// ─── HOME PAGE ────────────────────────────────────────────────────────────────
 
 function HomePage({
   onNav,
@@ -1139,39 +1210,8 @@ function HomePage({
         </div>
       </section>
 
-      {/* 2. Unburied Highlight: Prize Giving Day 2027 [BG: Sky Blue] */}
-      <section className="py-16 px-6 bg-[#EAF6FA]">
-        <div className="max-w-6xl mx-auto bg-white rounded-2xl p-6 sm:p-8 border border-[#D6E4EA] shadow-sm grid md:grid-cols-12 gap-8 items-center">
-          <div className="md:col-span-5 relative aspect-[4/3] rounded-xl overflow-hidden bg-[#B9D3DE] border border-[#D6E4EA]">
-            <img
-              src={image_DSC_0332}
-              alt="Prize Giving Day"
-              className="w-full h-full object-cover"
-            />
-          </div>
-          <div className="md:col-span-7 text-left space-y-3">
-            <SectionTag>ANNUAL FLAGSHIP EVENT</SectionTag>
-            <h3 className="font-serif text-2xl sm:text-3xl font-bold text-[#10202B]" style={{ fontFamily: "'Montserrat', sans-serif" }}>
-              Prize Giving Day 2027
-            </h3>
-            <p className="text-xs sm:text-sm text-[#5C6B72] leading-relaxed">
-              Every year, Wahome Foundation convenes hundreds of students, parents, and community leaders to honor academic excellence and reward top performers across partner schools.
-            </p>
-            <div className="text-xs font-semibold text-[#1D95B8] space-y-1 pt-1">
-              <p>📅 Saturday, 9 January 2027</p>
-              <p>📍 Mugumo Comprehensive School Grounds, Nanyuki</p>
-            </div>
-            <div className="pt-2">
-              <button
-                onClick={() => go("prize")}
-                className="px-6 py-2.5 rounded-full bg-[#0EA5E9] hover:bg-[#0284C7] text-white text-xs font-bold uppercase tracking-wider transition-all shadow-sm hover:scale-105"
-              >
-                Learn More About Ceremony
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* 2. Vibrant Banner: Prize Giving Day 2027 [BG: Sky Blue] */}
+      <PrizeGivingBanner onNav={go} onOpenDonate={onOpenDonate} />
 
       {/* 3. Surfaced Feature: Meet Our Scholars [BG: White] */}
       <section className="py-16 px-6 bg-white border-b border-[#EAF6FA]">
