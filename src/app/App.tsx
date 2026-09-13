@@ -627,10 +627,9 @@ function Footer({
       style={{ fontFamily: "'Montserrat', sans-serif" }}
     >
       <div className="max-w-6xl mx-auto px-6 py-8">
-        {/* Main Single-Row Architectural Bar */}
-        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 pb-6 border-b border-[#1C3241]">
-          {/* Brand Emblem */}
-          <div className="flex items-center gap-3 shrink-0">
+        {/* Top Brand & Social Row */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-6 border-b border-[#1C3241] gap-4">
+          <div className="flex items-center gap-3">
             <img
               src={footerLogo}
               alt="Wahome Foundation Logo"
@@ -638,28 +637,11 @@ function Footer({
             />
             <div className="h-4 w-px bg-[#1C3241] hidden sm:block" />
             <span className="text-[10px] tracking-widest uppercase text-[#1D95B8] font-bold">
-              Est. 2006 · NGO & 501(c)(3)
+              Inspire & Empower · Est. 2006
             </span>
           </div>
 
-          {/* Offices (Inlined Minimal Strip) */}
-          <div className="flex flex-wrap items-center gap-x-8 gap-y-2 text-xs font-medium text-[#8FAFBC]">
-            <span className="flex items-center gap-1.5">
-              <MapPin className="w-3.5 h-3.5 text-[#1D95B8] shrink-0" />
-              Nanyuki, Kenya
-            </span>
-            <span className="flex items-center gap-1.5">
-              <MapPin className="w-3.5 h-3.5 text-[#1D95B8] shrink-0" />
-              Shrewsbury, MA (US)
-            </span>
-            <span className="flex items-center gap-1.5 text-white/90">
-              <Mail className="w-3.5 h-3.5 text-[#1D95B8] shrink-0" />
-              info@wahomefoundation.com
-            </span>
-          </div>
-
-          {/* Social Icons */}
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-2">
             {[Facebook, Instagram, Youtube].map((Icon, i) => (
               <button
                 key={i}
@@ -672,9 +654,46 @@ function Footer({
           </div>
         </div>
 
-        {/* Bottom Legal Bar */}
+        {/* Resurfaced Offices Grid (Quick Links Removed) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-6 border-b border-[#1C3241] text-left text-xs">
+          {/* Kenya HQ */}
+          <div className="bg-[#162B38]/40 rounded-xl p-4 border border-[#1C3241] space-y-1.5">
+            <h4 className="text-[10px] font-bold uppercase tracking-widest text-[#1D95B8] mb-2">
+              Kenya HQ
+            </h4>
+            <p className="flex items-center gap-2 text-white/90">
+              <MapPin className="w-3.5 h-3.5 text-[#1D95B8] shrink-0" />
+              69 Haile Salasie Rd, Nanyuki, Kenya
+            </p>
+            <p className="flex items-center gap-2 text-[#8FAFBC]">
+              <Phone className="w-3.5 h-3.5 text-[#1D95B8] shrink-0" />
+              +254 700 000 000
+            </p>
+            <p className="flex items-center gap-2 text-[#8FAFBC]">
+              <Mail className="w-3.5 h-3.5 text-[#1D95B8] shrink-0" />
+              info@wahomefoundation.com
+            </p>
+          </div>
+
+          {/* US Office */}
+          <div className="bg-[#162B38]/40 rounded-xl p-4 border border-[#1C3241] space-y-1.5">
+            <h4 className="text-[10px] font-bold uppercase tracking-widest text-[#1D95B8] mb-2">
+              US Office
+            </h4>
+            <p className="flex items-center gap-2 text-white/90">
+              <MapPin className="w-3.5 h-3.5 text-[#1D95B8] shrink-0" />
+              560 Boston Turnpike, Shrewsbury, MA 01545
+            </p>
+            <p className="flex items-center gap-2 text-[#8FAFBC]">
+              <Mail className="w-3.5 h-3.5 text-[#1D95B8] shrink-0" />
+              info@wahomefoundation.com
+            </p>
+          </div>
+        </div>
+
+        {/* Bottom Bar */}
         <div className="pt-4 flex flex-col sm:flex-row items-center justify-between text-[11px] text-[#5C6B72] gap-2">
-          <p>© {new Date().getFullYear()} Wahome Foundation. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Wahome Foundation. Registered NGO & 501(c)(3) Organization.</p>
           <div className="flex items-center gap-4">
             <button
               type="button"
