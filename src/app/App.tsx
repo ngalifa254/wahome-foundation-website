@@ -483,21 +483,24 @@ function Navbar({ current, onNav, onOpenDonate }: NavbarProps) {
       }`}
       style={{ fontFamily: "'Montserrat', sans-serif" }}
     >
+      {/* Floating Pill Header */}
       <header
-        className={`w-full rounded-full border transition-all duration-300 px-6 h-16 flex items-center justify-between ${
+        className={`w-full rounded-full border transition-all duration-300 px-6 h-20 flex items-center justify-between ${
           scrolled
-            ? "bg-[#10202B]/90 backdrop-blur-md border-white/20 shadow-xl"
-            : "bg-[#10202B]/75 backdrop-blur-sm border-white/10 shadow-lg"
+            ? "bg-[#10202B]/95 backdrop-blur-md border-white/20 shadow-xl"
+            : "bg-[#10202B]/85 backdrop-blur-sm border-white/10 shadow-lg"
         }`}
       >
+        {/* Enlarged Original Colored Logo */}
         <button onClick={() => go("home")} className="flex items-center shrink-0">
           <img
             src={mainLogo}
             alt="Wahome Foundation Logo"
-            className="h-9 w-auto object-contain brightness-0 invert"
+            className="h-11 sm:h-12 w-auto object-contain transition-all hover:scale-105"
           />
         </button>
 
+        {/* Navigation Links */}
         <nav className="hidden lg:flex items-center gap-1">
           {navLinks.map((l) => (
             <button
@@ -514,14 +517,16 @@ function Navbar({ current, onNav, onOpenDonate }: NavbarProps) {
           ))}
         </nav>
 
+        {/* Primary CTA */}
         <button
           onClick={onOpenDonate}
-          className="hidden lg:flex items-center gap-2 px-5 py-2 rounded-full bg-[#0EA5E9] hover:bg-[#0284C7] text-white text-xs font-bold tracking-wider uppercase transition-all shadow-md hover:scale-105"
+          className="hidden lg:flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#0EA5E9] hover:bg-[#0284C7] text-white text-xs font-bold tracking-wider uppercase transition-all shadow-md hover:scale-105"
         >
           <Heart className="w-3.5 h-3.5 fill-white" />
           Support a Child
         </button>
 
+        {/* Mobile Toggle */}
         <button
           onClick={() => setOpen(!open)}
           className="lg:hidden p-1.5 rounded-full text-white hover:bg-white/10 transition-colors"
@@ -531,6 +536,7 @@ function Navbar({ current, onNav, onOpenDonate }: NavbarProps) {
         </button>
       </header>
 
+      {/* Mobile Menu */}
       {open && (
         <div className="lg:hidden mt-2 border border-white/20 bg-[#10202B]/95 backdrop-blur-md rounded-2xl p-4 flex flex-col gap-1.5 shadow-2xl">
           {navLinks.map((l) => (
