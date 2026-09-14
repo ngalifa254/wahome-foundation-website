@@ -1,38 +1,39 @@
-import image_mentorship_1 from "@/imports/mentorship-1.jpg";
-import image_DSC_0332 from "@/imports/DSC_0332.jpg";
-import image_DSC_0445 from "@/imports/DSC_0445.jpg";
-import image_Prizegiving_What_we_do from "@/imports/Prizegiving-What-we-do.png";
-import image_wells_of_hope from "@/imports/wells_of_hope.jpg";
-import image_fundeducation from "@/imports/fundeducation.jpg";
-import alexPhoto from "@/imports/Alex.jpeg";
-import jedidahPhoto from "@/imports/Jedidah.jpeg";
-import jamesPhoto from "@/imports/James.jpeg";
-import newtonPhoto from "@/imports/Newton.jpeg";
-import samuelPhoto from "@/imports/Samuel.jpeg";
-import wahomeSlideshow from "@/imports/wahome_foundation_slideshow.mp4";
-import thomasPhoto from "@/imports/thomas.jpg";
-import wellsPhoto from "@/imports/wells.jpg";
-import mentorshipPhoto from "@/imports/mentorship.jpg";
-import dkPhoto from "@/imports/dk.jpg";
-import cynthiaPhoto from "@/imports/cynthia.jpeg";
-import georgePhoto from "@/imports/george.jpg";
-import footerLogo from "@/imports/wlogo.jfif";
-import mainLogo from "@/imports/mainlogo.png";
-import marathon1 from "@/imports/marathon1.jpg";
-import marathon2 from "@/imports/marathon2.jpg";
-import marathon3 from "@/imports/marathon3.jpg";
-import marathon4 from "@/imports/marathon4.jpg";
-import marathon5 from "@/imports/marathon5.jpg";
-import marathon6 from "@/imports/marathon6.jpg";
+import image_mentorship_1 from "../imports/mentorship-1.jpg";
+import image_DSC_0332 from "../imports/DSC_0332.jpg";
+import image_DSC_0445 from "../imports/DSC_0445.jpg";
+import image_Prizegiving_What_we_do from "../imports/Prizegiving-What-we-do.png";
+import image_wells_of_hope from "../imports/wells_of_hope.jpg";
+import image_fundeducation from "../imports/fundeducation.jpg";
+import alexPhoto from "../imports/Alex.jpeg";
+import jedidahPhoto from "../imports/Jedidah.jpeg";
+import jamesPhoto from "../imports/James.jpeg";
+import newtonPhoto from "../imports/Newton.jpeg";
+import samuelPhoto from "../imports/Samuel.jpeg";
+import wahomeSlideshow from "../imports/wahome_foundation_slideshow.mp4";
+import thomasPhoto from "../imports/thomas.jpg";
+import wellsPhoto from "../imports/wells.jpg";
+import mentorshipPhoto from "../imports/mentorship.jpg";
+import dkPhoto from "../imports/dk.jpg";
+import cynthiaPhoto from "../imports/cynthia.jpeg";
+import georgePhoto from "../imports/george.jpg";
+import footerLogo from "../imports/wlogo.jfif";
+import mainLogo from "../imports/mainlogo.png";
+import marathon1 from "../imports/marathon1.jpg";
+import marathon2 from "../imports/marathon2.jpg";
+import marathon3 from "../imports/marathon3.jpg";
+import marathon4 from "../imports/marathon4.jpg";
+import marathon5 from "../imports/marathon5.jpg";
+import marathon6 from "../imports/marathon6.jpg";
 
 // Partner Logos
-import logoAutismAllies from "@/imports/logos/autismallies.PNG";
-import logoCoffeeBench from "@/imports/logos/Coffeebench.png";
-import logoLaikipiaHeights from "@/imports/logos/laikipiaheights.PNG";
-import logoLuxo from "@/imports/logos/Luxo.png";
-import logoPrestigeAFC from "@/imports/logos/prestigeafc.PNG";
-import logoSneakerama from "@/imports/logos/sneakerama.PNG";
-import logoTufahaResort from "@/imports/logos/tufaharesort.PNG";
+import logoAutismAllies from "../imports/autismallies.PNG";
+import logoCoffeeBench from "../imports/Coffeebench.png";
+import logoLaikipiaHeights from "../imports/laikipiaheights.PNG";
+import logoLuxo from "../imports/Luxo.png";
+import logoPrestigeAFC from "../imports/prestigeafc.PNG";
+import logoSneakerama from "../imports/sneakerama.PNG";
+import logoTufahaResort from "../imports/tufaharesort.PNG";
+
 import { useState, useEffect, useRef } from "react";
 
 import {
@@ -74,17 +75,7 @@ function SectionTag({ children }: { children: React.ReactNode }) {
   );
 }
 
-function CTABanner({
-  onDonate,
-  onInvolve,
-}: {
-  onDonate: () => void;
-  onInvolve: () => void;
-}) {
-  return null;
-}
-
-// ─── CAMPAIGN SLIDESHOW (Defined before usage) ───────────────────────────────
+// ─── CAMPAIGN SLIDESHOW ───────────────────────────────────────────────────────
 
 function CampaignSlideshow({
   images,
@@ -474,7 +465,7 @@ function DonateModal({
   );
 }
 
-// ─── Floating Non-Full-Bleed Navbar ──────────────────────────────────────────
+// ─── FLOATING PILL NAVBAR ───────────────────────────────────────────────────
 
 interface NavbarProps {
   current: Page;
@@ -616,7 +607,7 @@ function Navbar({ current, onNav, onOpenDonate }: NavbarProps) {
   );
 }
 
-// ─── Footer ──────────────────────────────────────────────────────────────────
+// ─── COMPACT EDITORIAL FOOTER ─────────────────────────────────────────────────
 
 function Footer({
   onNav,
@@ -635,7 +626,6 @@ function Footer({
       style={{ fontFamily: "'Montserrat', sans-serif" }}
     >
       <div className="max-w-6xl mx-auto px-6 py-6">
-        {/* Row 1: Brand & Social Header (Preserved Justified Alignment) */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-4 border-b border-[#1C3241] gap-3">
           <div className="flex items-center gap-3">
             <img
@@ -662,14 +652,12 @@ function Footer({
           </div>
         </div>
 
-        {/* Row 2: Inlined Compact Contact Strip */}
         <div className="py-4 border-b border-[#1C3241] text-center">
           <span className="inline-block text-[9px] font-extrabold tracking-widest text-[#1D95B8] uppercase mb-2">
             Contact Us
           </span>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-w-4xl mx-auto text-xs">
-            {/* Kenya HQ */}
             <div className="bg-[#162B38]/40 rounded-lg py-2.5 px-4 border border-[#1C3241] flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
               <span className="text-[10px] font-bold uppercase tracking-wider text-[#1D95B8]">
                 Kenya HQ:
@@ -688,7 +676,6 @@ function Footer({
               </span>
             </div>
 
-            {/* US Office */}
             <div className="bg-[#162B38]/40 rounded-lg py-2.5 px-4 border border-[#1C3241] flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
               <span className="text-[10px] font-bold uppercase tracking-wider text-[#1D95B8]">
                 US Office:
@@ -705,9 +692,8 @@ function Footer({
           </div>
         </div>
 
-        {/* Row 3: Centered Stacked Legal Info */}
         <div className="pt-3 flex flex-col items-center justify-center text-center text-[10px] text-[#5C6B72] gap-1">
-          <p>© 2026 Wahome Foundation. Registered Charitable Organization.</p>
+          <p>© 2026 Wahome Foundation. Registered NGO & 501(c)(3) Organization.</p>
           <button
             type="button"
             onClick={() => go("about")}
@@ -1144,6 +1130,103 @@ function PrizeGivingBanner({
   );
 }
 
+// ─── MEDIA ITEM DATA & CARD ───────────────────────────────────────────────────
+
+type MediaItem = {
+  type: "article" | "video" | "link";
+  title: string;
+  excerpt: string;
+  image: string;
+  url?: string;
+  videoEmbedUrl?: string;
+};
+
+const blogNewsItems: MediaItem[] = [
+  {
+    type: "video",
+    title: "Wahome Foundation Supports Primary School Learners in Laikipia County",
+    excerpt:
+      "KBC Channel 1 news coverage on how our school feeding program is helping primary school learners stay in class in Laikipia County.",
+    image: "https://img.youtube.com/vi/8zWCP9I1B6U/hqdefault.jpg",
+    videoEmbedUrl: "https://www.youtube.com/embed/8zWCP9I1B6U",
+  },
+  {
+    type: "article",
+    title: "Running with Purpose",
+    excerpt:
+      "Worcester State alumnus Wilson Kiriungi '10 completed the Boston Marathon to champion Kenya and raise scholarship funds through the Wahome Foundation.",
+    image:
+      "https://webcdn.worcester.edu/magazine/wp-content/uploads/sites/71/2026/06/IMG_0862-scaled.jpg.optimal.jpg",
+    url: "https://www.worcester.edu/magazine/2026/06/30/running-with-purpose/",
+  },
+];
+
+function MediaCard({
+  type,
+  title,
+  excerpt,
+  image,
+  url,
+  videoEmbedUrl,
+}: MediaItem) {
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  const typeMeta = {
+    article: { label: "Article", icon: FileText },
+    video: { label: "Video", icon: PlayCircle },
+    link: { label: "Link", icon: ExternalLink },
+  }[type];
+
+  const TypeIcon = typeMeta.icon;
+
+  return (
+    <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-[#EAF6FA]">
+      <div className="relative aspect-[3/2] bg-[#EAF6FA]">
+        {type === "video" && isPlaying ? (
+          <iframe
+            src={videoEmbedUrl}
+            title={title}
+            className="w-full h-full"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
+        ) : (
+          <>
+            <img src={image} alt={title} className="w-full h-full object-cover" />
+            {type === "video" && (
+              <button
+                onClick={() => setIsPlaying(true)}
+                className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/40 transition-colors"
+              >
+                <PlayCircle className="w-14 h-14 text-white" />
+              </button>
+            )}
+          </>
+        )}
+      </div>
+      <div className="p-6 text-left">
+        <div className="flex items-center gap-1.5 text-xs font-semibold text-[#1D95B8] mb-2">
+          <TypeIcon className="w-3.5 h-3.5" />
+          {typeMeta.label}
+        </div>
+        <h3 className="font-semibold text-[#10202B] mb-2">{title}</h3>
+        <p className="text-sm text-[#5C6B72] leading-relaxed mb-4">{excerpt}</p>
+        {type !== "video" && (
+          <a
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 text-sm font-semibold text-[#1D95B8] hover:text-[#10202B] transition-colors"
+          >
+            {type === "article" ? "Read More" : "Visit Link"}
+            <ExternalLink className="w-3.5 h-3.5" />
+          </a>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── HOME PAGE ────────────────────────────────────────────────────────────────
 
 function HomePage({
@@ -1365,13 +1448,14 @@ function HomePage({
   );
 }
 
-// ─── ABOUT PAGE ───────────────────────────────────────────────────────────────
+// ─── ABOUT PAGE (With Interactive Grayscale-to-Color Partner Logos) ───────────
 
 function AboutPage({ onNav }: { onNav: (p: Page) => void }) {
   const go = (p: Page) => {
     onNav(p);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
+
   return (
     <div>
       <PageHero
@@ -1381,7 +1465,7 @@ function AboutPage({ onNav }: { onNav: (p: Page) => void }) {
       />
 
       <section className="py-20 px-6 bg-white">
-        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
+        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center text-left">
           <div>
             <SectionTag>Our Story</SectionTag>
             <h2
@@ -1530,11 +1614,8 @@ function AboutPage({ onNav }: { onNav: (p: Page) => void }) {
         </div>
       </section>
 
+      {/* Powered By Partners Section with High-Res Brand Logos */}
       <section className="py-16 px-6 bg-white border-t border-[#EAF6FA]">
-        <div className="max-w-5xl mx-auto text-center">
-          <p className="text-sm uppercase tracking-wide text-[#5C6B72] mb-8">
-            Powered by our partners
-          <section className="py-16 px-6 bg-white border-t border-[#EAF6FA]">
         <div className="max-w-6xl mx-auto text-center">
           <p className="text-xs uppercase font-extrabold tracking-widest text-[#5C6B72] mb-10">
             Powered by our partners
@@ -1564,6 +1645,9 @@ function AboutPage({ onNav }: { onNav: (p: Page) => void }) {
           </div>
         </div>
       </section>
+    </div>
+  );
+}
 
 // ─── WELLS OF HOPE PAGE ──────────────────────────────────────────────────────
 
@@ -1586,7 +1670,7 @@ function WellsPage({
       />
 
       <section className="py-20 px-6 bg-white">
-        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
+        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center text-left">
           <div>
             <SectionTag>Why Water</SectionTag>
             <h2
@@ -1659,7 +1743,7 @@ function ScholarshipPage({
       />
 
       <section className="py-20 px-6 bg-white">
-        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
+        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center text-left">
           <div>
             <SectionTag>About the Scholarship</SectionTag>
             <h2
@@ -1776,7 +1860,7 @@ function ScholarshipPage({
             ].map((s) => (
               <div
                 key={s.name}
-                className="flex flex-col sm:flex-row bg-white rounded-2xl border border-[#D6E4EA] overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+                className="flex flex-col sm:flex-row bg-white rounded-2xl border border-[#D6E4EA] overflow-hidden shadow-sm hover:shadow-md transition-shadow text-left"
               >
                 <div className="w-full h-64 sm:w-60 sm:h-auto shrink-0 overflow-hidden bg-[#EAF6FA]">
                   <img
@@ -1881,7 +1965,7 @@ function PrizePage({
       />
 
       <section className="py-20 px-6 bg-white">
-        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
+        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center text-left">
           <div>
             <SectionTag>Annual Celebration</SectionTag>
             <h2
@@ -1981,7 +2065,7 @@ function PrizePage({
             </h2>
           </div>
 
-          <div className="bg-[#EAF6FA]/50 rounded-3xl p-8 md:p-12 border border-[#D6E4EA] shadow-sm grid md:grid-cols-2 gap-10 items-center">
+          <div className="bg-[#EAF6FA]/50 rounded-3xl p-8 md:p-12 border border-[#D6E4EA] shadow-sm grid md:grid-cols-2 gap-10 items-center text-left">
             <div>
               <h3 className="text-xl font-bold text-[#10202B] mb-6">Event Details</h3>
               <div className="space-y-4">
@@ -2063,7 +2147,7 @@ function MentorshipPage({
       />
 
       <section className="py-20 px-6 bg-white">
-        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
+        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center text-left">
           <div>
             <SectionTag>Get Involved</SectionTag>
             <h2
@@ -2142,7 +2226,7 @@ function MentorshipPage({
             ].map((m) => (
               <div
                 key={m.name}
-                className="grid md:grid-cols-[280px_1fr] gap-8 items-start bg-white p-6 rounded-2xl border border-[#D6E4EA] shadow-sm"
+                className="grid md:grid-cols-[280px_1fr] gap-8 items-start bg-white p-6 rounded-2xl border border-[#D6E4EA] shadow-sm text-left"
               >
                 <div className="w-full aspect-[3/4] rounded-xl overflow-hidden bg-[#B9D3DE]">
                   <img
@@ -2170,103 +2254,7 @@ function MentorshipPage({
   );
 }
 
-type MediaItem = {
-  type: "article" | "video" | "link";
-  title: string;
-  excerpt: string;
-  image: string;
-  url?: string;
-  videoEmbedUrl?: string;
-};
-
-const blogNewsItems: MediaItem[] = [
-  {
-    type: "video",
-    title: "Wahome Foundation Supports Primary School Learners in Laikipia County",
-    excerpt:
-      "KBC Channel 1 news coverage on how our school feeding program is helping primary school learners stay in class in Laikipia County.",
-    image: "https://img.youtube.com/vi/8zWCP9I1B6U/hqdefault.jpg",
-    videoEmbedUrl: "https://www.youtube.com/embed/8zWCP9I1B6U",
-  },
-  {
-    type: "article",
-    title: "Running with Purpose",
-    excerpt:
-      "Worcester State alumnus Wilson Kiriungi '10 completed the Boston Marathon to champion Kenya and raise scholarship funds through the Wahome Foundation.",
-    image:
-      "https://webcdn.worcester.edu/magazine/wp-content/uploads/sites/71/2026/06/IMG_0862-scaled.jpg.optimal.jpg",
-    url: "https://www.worcester.edu/magazine/2026/06/30/running-with-purpose/",
-  },
-];
-
-// ─── MEDIA ────────────────────────────────────────────────────
-function MediaCard({
-  type,
-  title,
-  excerpt,
-  image,
-  url,
-  videoEmbedUrl,
-}: MediaItem) {
-  const [isPlaying, setIsPlaying] = useState(false);
-
-  const typeMeta = {
-    article: { label: "Article", icon: FileText },
-    video: { label: "Video", icon: PlayCircle },
-    link: { label: "Link", icon: ExternalLink },
-  }[type];
-
-  const TypeIcon = typeMeta.icon;
-
-  return (
-    <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-[#EAF6FA]">
-      <div className="relative aspect-[3/2] bg-[#EAF6FA]">
-        {type === "video" && isPlaying ? (
-          <iframe
-            src={videoEmbedUrl}
-            title={title}
-            className="w-full h-full"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          />
-        ) : (
-          <>
-            <img src={image} alt={title} className="w-full h-full object-cover" />
-            {type === "video" && (
-              <button
-                onClick={() => setIsPlaying(true)}
-                className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/40 transition-colors"
-              >
-                <PlayCircle className="w-14 h-14 text-white" />
-              </button>
-            )}
-          </>
-        )}
-      </div>
-      <div className="p-6 text-left">
-        <div className="flex items-center gap-1.5 text-xs font-semibold text-[#1D95B8] mb-2">
-          <TypeIcon className="w-3.5 h-3.5" />
-          {typeMeta.label}
-        </div>
-        <h3 className="font-semibold text-[#10202B] mb-2">{title}</h3>
-        <p className="text-sm text-[#5C6B72] leading-relaxed mb-4">{excerpt}</p>
-        {type !== "video" && (
-          <a
-            href={url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-sm font-semibold text-[#1D95B8] hover:text-[#10202B] transition-colors"
-          >
-            {type === "article" ? "Read More" : "Visit Link"}
-            <ExternalLink className="w-3.5 h-3.5" />
-          </a>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ─── FLOATING DONATE WIDGET (Streamlined Copy) ───────────────────────────────
+// ─── FLOATING DONATE WIDGET ───────────────────────────────────────────────────
 
 function FloatingDonateButton({ onClick }: { onClick: () => void }) {
   return (
