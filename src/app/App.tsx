@@ -24,6 +24,13 @@ import marathon3 from "../imports/marathon3.jpg";
 import marathon4 from "../imports/marathon4.jpg";
 import marathon5 from "../imports/marathon5.jpg";
 import marathon6 from "../imports/marathon6.jpg";
+import logoAutismAllies from "../imports/logos/autismallies.PNG";
+import logoCoffeeBench from "../imports/logos/Coffeebench.png";
+import logoLaikipiaHeights from "../imports/logos/laikipiaheights.PNG";
+import logoLuxo from "../imports/logos/Luxo.png";
+import logoPrestigeAFC from "../imports/logos/prestigeafc.PNG";
+import logoSneakerama from "../imports/logos/sneakerama.PNG";
+import logoTufahaResort from "../imports/logos/tufaharesort.PNG";
 import { useState, useEffect, useRef } from "react";
 
 import {
@@ -1525,29 +1532,36 @@ function AboutPage({ onNav }: { onNav: (p: Page) => void }) {
         <div className="max-w-5xl mx-auto text-center">
           <p className="text-sm uppercase tracking-wide text-[#5C6B72] mb-8">
             Powered by our partners
+          <section className="py-16 px-6 bg-white border-t border-[#EAF6FA]">
+        <div className="max-w-6xl mx-auto text-center">
+          <p className="text-xs uppercase font-extrabold tracking-widest text-[#5C6B72] mb-10">
+            Powered by our partners
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-x-12 gap-y-6">
+
+          <div className="flex flex-wrap items-center justify-center gap-8 md:gap-12">
             {[
-              "Autism Allies",
-              "Tufaha Resort",
-              "Laikipia height",
-              "Prestige AFC",
-              "Coffee Bench",
-              "Sneakerama",
+              { name: "Autism Allies", src: logoAutismAllies },
+              { name: "Coffee Bench", src: logoCoffeeBench },
+              { name: "Laikipia Heights", src: logoLaikipiaHeights },
+              { name: "Luxo", src: logoLuxo },
+              { name: "Prestige AFC", src: logoPrestigeAFC },
+              { name: "Sneakerama", src: logoSneakerama },
+              { name: "Tufaha Resort", src: logoTufahaResort },
             ].map((partner) => (
-              <span
-                key={partner}
-                className="text-[#5C6B72] font-semibold text-lg opacity-70 hover:opacity-100 transition-opacity"
+              <div
+                key={partner.name}
+                className="group flex items-center justify-center p-3 rounded-xl transition-all duration-300 hover:bg-[#EAF6FA]/50"
               >
-                {partner}
-              </span>
+                <img
+                  src={partner.src}
+                  alt={partner.name}
+                  className="h-10 sm:h-12 w-auto object-contain grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-300 transform group-hover:scale-105"
+                />
+              </div>
             ))}
           </div>
         </div>
       </section>
-    </div>
-  );
-}
 
 // ─── WELLS OF HOPE PAGE ──────────────────────────────────────────────────────
 
