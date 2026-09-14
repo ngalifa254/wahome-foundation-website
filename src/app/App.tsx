@@ -26,13 +26,13 @@ import marathon5 from "../imports/marathon5.jpg";
 import marathon6 from "../imports/marathon6.jpg";
 
 // Partner Logos
-import logoAutismAllies from "../imports/autismallies.PNG";
-import logoCoffeeBench from "../imports/Coffeebench.png";
-import logoLaikipiaHeights from "../imports/laikipiaheights.PNG";
-import logoLuxo from "../imports/Luxo.png";
-import logoPrestigeAFC from "../imports/prestigeafc.PNG";
-import logoSneakerama from "../imports/sneakerama.PNG";
-import logoTufahaResort from "../imports/tufaharesort.PNG";
+import logoAutismAllies from "@/imports/logos/autismallies.PNG";
+import logoCoffeeBench from "@/imports/logos/Coffeebench.png";
+import logoLaikipiaHeights from "@/imports/logos/laikipiaheights.PNG";
+import logoLuxo from "@/imports/logos/Luxo.png";
+import logoPrestigeAFC from "@/imports/logos/prestigeafc.PNG";
+import logoSneakerama from "@/imports/logos/sneakerama.PNG";
+import logoTufahaResort from "@/imports/logos/tufaharesort.PNG";
 
 import { useState, useEffect, useRef } from "react";
 
@@ -1621,7 +1621,7 @@ function AboutPage({ onNav }: { onNav: (p: Page) => void }) {
             Powered by our partners
           </p>
 
-          <div className="flex flex-wrap items-center justify-center gap-8 md:gap-12">
+          <div className="flex flex-wrap items-center justify-center gap-8 sm:gap-12">
             {[
               { name: "Autism Allies", src: logoAutismAllies },
               { name: "Coffee Bench", src: logoCoffeeBench },
@@ -1633,21 +1633,18 @@ function AboutPage({ onNav }: { onNav: (p: Page) => void }) {
             ].map((partner) => (
               <div
                 key={partner.name}
-                className="group flex items-center justify-center p-3 rounded-xl transition-all duration-300 hover:bg-[#EAF6FA]/50"
+                className="group flex items-center justify-center p-3 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] shadow-sm hover:border-[#1D95B8] hover:bg-[#EAF6FA]/60 transition-all duration-300 min-w-[140px] h-20"
               >
                 <img
                   src={partner.src}
                   alt={partner.name}
-                  className="h-10 sm:h-12 w-auto object-contain grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-300 transform group-hover:scale-105"
+                  className="h-10 sm:h-12 w-auto max-w-[120px] object-contain filter grayscale opacity-70 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-300 transform group-hover:scale-105"
                 />
               </div>
             ))}
           </div>
         </div>
       </section>
-    </div>
-  );
-}
 
 // ─── WELLS OF HOPE PAGE ──────────────────────────────────────────────────────
 
