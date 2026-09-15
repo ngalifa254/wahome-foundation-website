@@ -1635,12 +1635,12 @@ function AboutPage({ onNav }: { onNav: (p: Page) => void }) {
             ].map((partner) => (
               <div
                 key={partner.name}
-                className="group flex items-center justify-center p-2 cursor-pointer transition-all duration-300"
+                className="flex items-center justify-center p-2 transition-transform duration-300 hover:scale-105"
               >
                 <img
                   src={partner.src}
                   alt={partner.name}
-                  className="h-10 sm:h-12 w-auto max-w-[140px] object-contain filter grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-300 transform group-hover:scale-105"
+                  className="h-10 sm:h-12 w-auto max-w-[140px] object-contain opacity-100"
                 />
               </div>
             ))}
