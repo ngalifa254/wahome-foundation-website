@@ -728,14 +728,10 @@ function PageHero({
   breadcrumb?: string;
 }) {
   return (
-    <div className="mb-4 max-w-6xl mx-auto px-4 sm:px-6">
+    <div className="pt-28 sm:pt-32 mb-4 max-w-6xl mx-auto px-4 sm:px-6">
       <div className="relative overflow-hidden rounded-[28px] bg-[#F4F8FA] border border-slate-200/80 p-6 sm:p-10 text-left shadow-sm">
-        {/* Subtle Decorative Background Glow */}
-        <div className="absolute -top-12 -right-12 w-48 h-48 bg-[#1D95B8]/10 rounded-full blur-2xl pointer-events-none" />
-
-        {/* Floating Category Pill */}
         {breadcrumb && (
-          <span className="inline-block text-[10px] font-extrabold tracking-[0.2em] uppercase text-[#1D95B8] bg-white px-3.5 py-1.5 rounded-full border border-slate-200/80 mb-3 shadow-xs">
+          <span className="inline-block text-[10px] font-extrabold tracking-[0.2em] uppercase text-[#1D95B8] bg-white px-3 py-1 rounded-full border border-slate-200/80 mb-3">
             {breadcrumb}
           </span>
         )}
@@ -756,6 +752,7 @@ function PageHero({
     </div>
   );
 }
+
 
 // ─── PORTFOLIO CAROUSEL ───────────────────────────────────────────────────────
 
@@ -1257,43 +1254,57 @@ function HomePage({
 
   return (
     <div className="bg-white">
-      {/* Hero Section */}
-      <section className="relative min-h-[90vh] flex items-center bg-[#10202B] overflow-hidden pt-20">
+      {/* Hero Section: Extends to top of screen behind floating pill navbar */}
+      <section className="relative min-h-[92vh] flex items-center bg-[#10202B] overflow-hidden rounded-b-[40px] pt-32 pb-20">
         <div className="absolute inset-0">
           <video
             autoPlay
             muted
             loop
             playsInline
-            className="w-full h-full object-cover opacity-90"
+            className="w-full h-full object-cover opacity-85 scale-105"
           >
             <source src={wahomeSlideshow} type="video/mp4" />
           </video>
-          <div className="absolute inset-0 bg-gradient-to-r from-[#10202B]/85 via-[#10202B]/60 to-transparent" />
+          {/* Glassmorphic Dark Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-r from-[#10202B]/90 via-[#10202B]/65 to-transparent backdrop-blur-[2px]" />
         </div>
-        <div className="relative max-w-6xl mx-auto px-6 py-28 text-left z-10 w-full">
+
+        <div className="relative max-w-6xl mx-auto px-6 text-left z-10 w-full">
           <div className="max-w-2xl">
-            <span className="inline-block text-xs font-bold tracking-[0.2em] uppercase text-[#1D95B8] mb-4">
+            {/* Dzianis-Style Pill Tag */}
+            <span className="inline-block text-[10px] font-extrabold tracking-[0.22em] uppercase text-[#38BDF8] mb-5 bg-white/10 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/20 shadow-sm">
               Wahome Foundation · Est. 2006
             </span>
+
             <h1
-              className="font-serif text-5xl sm:text-6xl font-bold text-white leading-[1.1] mb-6"
+              className="font-bold text-5xl sm:text-6xl text-white leading-[1.08] mb-6 tracking-tight"
               style={{ fontFamily: "'Montserrat', sans-serif" }}
             >
               Change lives <br />
-              <span className="text-[#1D95B8]">through</span> <br />
+              <span className="text-[#38BDF8]">through</span> <br />
               direct action
             </h1>
-            <p className="text-[#8FAFBC] text-base sm:text-lg leading-relaxed mb-8">
+
+            <p className="text-[#8FAFBC] text-sm sm:text-base leading-relaxed mb-8 max-w-lg font-normal">
               Your support today helps a bright child stay in school, access clean water, and chase their dreams.
             </p>
-            <div>
+
+            <div className="flex flex-wrap gap-4">
               <button
                 type="button"
                 onClick={() => go("about")}
-                className="px-8 py-3.5 rounded-full bg-white/10 text-white font-bold text-xs uppercase tracking-wider backdrop-blur border border-white/20 hover:bg-white/20 transition-all shadow-md"
+                className="px-8 py-3.5 rounded-full bg-white/10 text-white font-bold text-xs uppercase tracking-wider backdrop-blur-md border border-white/25 hover:bg-white/20 transition-all shadow-lg hover:scale-105"
               >
                 Learn More
+              </button>
+
+              <button
+                type="button"
+                onClick={onOpenDonate}
+                className="px-8 py-3.5 rounded-full bg-[#0EA5E9] hover:bg-[#0284C7] text-white font-bold text-xs uppercase tracking-wider transition-all shadow-lg hover:scale-105"
+              >
+                Make An Impact
               </button>
             </div>
           </div>
@@ -2328,17 +2339,18 @@ export default function App() {
 
   return (
     <div
-      className="min-h-screen bg-white text-[#10202B]"
-      style={{ fontFamily: "'Montserrat', sans-serif" }}
-    >
-      <Navbar current={page} onNav={setPage} onOpenDonate={openDonate} />
+    className="min-h-screen bg-white text-[#10202B]"
+    style={{ fontFamily: "'Montserrat', sans-serif" }}
+  >
+    <Navbar current={page} onNav={setPage} onOpenDonate={openDonate} />
 
-      <main className="pt-28 sm:pt-32">
-        {pages[page]}
-      </main>
+    {/* Removed top padding from main so Hero spans top-0 behind floating navbar */}
+    <main>
+      {pages[page]}
+    </main>
 
-      <Footer onNav={setPage} onOpenDonate={openDonate} />
-      <DonateModal isOpen={isDonateOpen} onClose={closeDonate} />
-    </div>
+    <Footer onNav={setPage} onOpenDonate={openDonate} />
+    <DonateModal isOpen={isDonateOpen} onClose={closeDonate} />
+  </div>
   );
 }
