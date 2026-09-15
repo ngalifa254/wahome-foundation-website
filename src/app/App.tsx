@@ -25,12 +25,12 @@ import marathon4 from "@/imports/marathon4.jpg";
 import marathon5 from "@/imports/marathon5.jpg";
 import marathon6 from "@/imports/marathon6.jpg";
 
-// Corrected Partner Logos Imports (Directly from src/imports/)
+// Corrected Partner Logos Imports (Exact file names)
 import logoAutismAllies from "@/imports/autismallies.PNG";
 import logoCoffeeBench from "@/imports/Coffeebench.png";
 import logoLaikipiaHeights from "@/imports/laikipiaheights.PNG";
 import logoLuxo from "@/imports/Luxo.png";
-import logolioness from "@/imports/Lioness.png";
+import logoLioness from "@/imports/lioness.png"; // Fixed lowercase l
 import logoPrestigeAFC from "@/imports/prestigeafc.PNG";
 import logoSneakerama from "@/imports/sneakerama.PNG";
 import logoTufahaResort from "@/imports/tufaharesort.PNG";
@@ -1635,7 +1635,7 @@ function AboutPage({ onNav }: { onNav: (p: Page) => void }) {
             ].map((partner) => (
               <div
                 key={partner.name}
-                className="group flex items-center justify-center p-4 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] shadow-sm hover:border-[#1D95B8] hover:bg-[#EAF6FA]/60 transition-all duration-300 min-w-[150px] h-20"
+                className="group flex items-center justify-center p-4 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] shadow-sm hover:border-[#1D95B8] hover:bg-[#EAF6FA]/60 transition-all duration-300 min-w-[150px] h-20 cursor-pointer"
               >
                 <img
                   src={partner.src}
