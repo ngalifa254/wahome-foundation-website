@@ -727,23 +727,24 @@ function PageHero({
   breadcrumb?: string;
 }) {
   return (
-    <div className="pt-28 sm:pt-32 mb-4 max-w-6xl mx-auto px-4 sm:px-6">
-      <div className="relative overflow-hidden rounded-[28px] bg-[#F4F8FA] border border-slate-200/80 p-6 sm:p-10 text-left shadow-sm">
-        {breadcrumb && (
-          <span className="inline-block text-[10px] font-extrabold tracking-[0.2em] uppercase text-[#1D95B8] bg-white px-3 py-1 rounded-full border border-slate-200/80 mb-3">
-            {breadcrumb}
-          </span>
-        )}
-
-        <h1
-          className="font-bold text-3xl sm:text-4xl text-[#10202B] leading-tight tracking-tight mb-2"
-          style={{ fontFamily: "'Montserrat', sans-serif" }}
-        >
-          {title}
-        </h1>
+    <div className="pt-24 sm:pt-26 mb-2 max-w-6xl mx-auto px-4 sm:px-6">
+      <div className="relative overflow-hidden rounded-2xl bg-[#F4F8FA] border border-slate-200/80 px-5 py-3 flex flex-wrap items-center justify-between gap-2 shadow-xs">
+        <div className="flex items-center gap-3">
+          {breadcrumb && (
+            <span className="text-[10px] font-extrabold tracking-[0.18em] uppercase text-[#1D95B8] bg-white px-2.5 py-0.5 rounded-full border border-slate-200/80 shrink-0">
+              {breadcrumb}
+            </span>
+          )}
+          <h1
+            className="text-base sm:text-lg font-extrabold text-[#10202B] tracking-tight leading-none"
+            style={{ fontFamily: "'Montserrat', sans-serif" }}
+          >
+            {title}
+          </h1>
+        </div>
 
         {subtitle && (
-          <p className="text-[#5C6B72] text-xs sm:text-sm leading-relaxed max-w-2xl font-normal">
+          <p className="text-[#5C6B72] text-[11px] font-medium truncate max-w-sm hidden md:block">
             {subtitle}
           </p>
         )}
@@ -751,7 +752,6 @@ function PageHero({
     </div>
   );
 }
-
 
 // ─── PORTFOLIO CAROUSEL ───────────────────────────────────────────────────────
 
@@ -1406,7 +1406,7 @@ function HomePage({
   );
 }
 
-// ─── ABOUT PAGE (With Interactive Grayscale-to-Color Partner Logos) ───────────
+// ─── ABOUT PAGE ───────────
 
 function AboutPage({ onNav }: { onNav: (p: Page) => void }) {
   const go = (p: Page) => {
@@ -1422,7 +1422,7 @@ function AboutPage({ onNav }: { onNav: (p: Page) => void }) {
         breadcrumb="About Us"
       />
 
-      <section className="py-20 px-6 bg-white">
+      <section className="py-6 sm:py-8 px-6 bg-white">
         <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center text-left">
           <div>
             <SectionTag>Our Story</SectionTag>
@@ -1524,7 +1524,7 @@ function AboutPage({ onNav }: { onNav: (p: Page) => void }) {
         </div>
       </section>
 
-      <section className="py-20 px-6 bg-white">
+      <section className="py-6 sm:py-8 px-6 bg-white">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
             <SectionTag>Our Team</SectionTag>
@@ -1628,7 +1628,7 @@ function WellsPage({
         breadcrumb="Wells of Hope"
       />
 
-      <section className="py-20 px-6 bg-white">
+      <section className="py-6 sm:py-8 px-6 bg-white">
         <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center text-left">
           <div>
             <SectionTag>Why Water</SectionTag>
@@ -1944,7 +1944,7 @@ function PrizePage({
         breadcrumb="Prize Giving"
       />
 
-      <section className="py-20 px-6 bg-white">
+      <section className="py-6 sm:py-8 px-6 bg-white">
         <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center text-left">
           <div>
             <SectionTag>Annual Celebration</SectionTag>
@@ -2033,7 +2033,7 @@ function PrizePage({
         </div>
       </section>
 
-      <section className="py-20 px-6 bg-white">
+      <section className="py-6 sm:py-8 px-6 bg-white">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-10">
             <SectionTag>Save The Date</SectionTag>
@@ -2126,7 +2126,7 @@ function MentorshipPage({
         breadcrumb="Mentorship"
       />
 
-      <section className="py-20 px-6 bg-white">
+      <section className="py-6 sm:py-8 px-6 bg-white">
         <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center text-left">
           <div>
             <SectionTag>Get Involved</SectionTag>
