@@ -1,38 +1,39 @@
-import image_mentorship_1 from "../imports/mentorship-1.jpg";
-import image_DSC_0332 from "../imports/DSC_0332.jpg";
-import image_DSC_0445 from "../imports/DSC_0445.jpg";
-import image_Prizegiving_What_we_do from "../imports/Prizegiving-What-we-do.png";
-import image_wells_of_hope from "../imports/wells_of_hope.jpg";
-import image_fundeducation from "../imports/fundeducation.jpg";
-import alexPhoto from "../imports/Alex.jpeg";
-import jedidahPhoto from "../imports/Jedidah.jpeg";
-import jamesPhoto from "../imports/James.jpeg";
-import newtonPhoto from "../imports/Newton.jpeg";
-import samuelPhoto from "../imports/Samuel.jpeg";
-import wahomeSlideshow from "../imports/wahome_foundation_slideshow.mp4";
-import thomasPhoto from "../imports/thomas.jpg";
-import wellsPhoto from "../imports/wells.jpg";
-import mentorshipPhoto from "../imports/mentorship.jpg";
-import dkPhoto from "../imports/dk.jpg";
-import cynthiaPhoto from "../imports/cynthia.jpeg";
-import georgePhoto from "../imports/george.jpg";
-import footerLogo from "../imports/wlogo.jfif";
-import mainLogo from "../imports/mainlogo.png";
-import marathon1 from "../imports/marathon1.jpg";
-import marathon2 from "../imports/marathon2.jpg";
-import marathon3 from "../imports/marathon3.jpg";
-import marathon4 from "../imports/marathon4.jpg";
-import marathon5 from "../imports/marathon5.jpg";
-import marathon6 from "../imports/marathon6.jpg";
+import image_mentorship_1 from "@/imports/mentorship-1.jpg";
+import image_DSC_0332 from "@/imports/DSC_0332.jpg";
+import image_DSC_0445 from "@/imports/DSC_0445.jpg";
+import image_Prizegiving_What_we_do from "@/imports/Prizegiving-What-we-do.png";
+import image_wells_of_hope from "@/imports/wells_of_hope.jpg";
+import image_fundeducation from "@/imports/fundeducation.jpg";
+import alexPhoto from "@/imports/Alex.jpeg";
+import jedidahPhoto from "@/imports/Jedidah.jpeg";
+import jamesPhoto from "@/imports/James.jpeg";
+import newtonPhoto from "@/imports/Newton.jpeg";
+import samuelPhoto from "@/imports/Samuel.jpeg";
+import wahomeSlideshow from "@/imports/wahome_foundation_slideshow.mp4";
+import thomasPhoto from "@/imports/thomas.jpg";
+import wellsPhoto from "@/imports/wells.jpg";
+import mentorshipPhoto from "@/imports/mentorship.jpg";
+import dkPhoto from "@/imports/dk.jpg";
+import cynthiaPhoto from "@/imports/cynthia.jpeg";
+import georgePhoto from "@/imports/george.jpg";
+import footerLogo from "@/imports/wlogo.jfif";
+import mainLogo from "@/imports/mainlogo.png";
+import marathon1 from "@/imports/marathon1.jpg";
+import marathon2 from "@/imports/marathon2.jpg";
+import marathon3 from "@/imports/marathon3.jpg";
+import marathon4 from "@/imports/marathon4.jpg";
+import marathon5 from "@/imports/marathon5.jpg";
+import marathon6 from "@/imports/marathon6.jpg";
 
-// Partner Logos
-import logoAutismAllies from "@/imports/logos/autismallies.PNG";
-import logoCoffeeBench from "@/imports/logos/Coffeebench.png";
-import logoLaikipiaHeights from "@/imports/logos/laikipiaheights.PNG";
-import logoLuxo from "@/imports/logos/Luxo.png";
-import logoPrestigeAFC from "@/imports/logos/prestigeafc.PNG";
-import logoSneakerama from "@/imports/logos/sneakerama.PNG";
-import logoTufahaResort from "@/imports/logos/tufaharesort.PNG";
+// Corrected Partner Logos Imports (Directly from src/imports/)
+import logoAutismAllies from "@/imports/autismallies.PNG";
+import logoCoffeeBench from "@/imports/Coffeebench.png";
+import logoLaikipiaHeights from "@/imports/laikipiaheights.PNG";
+import logoLuxo from "@/imports/Luxo.png";
+import logolioness from "@/imports/Lioness.png";
+import logoPrestigeAFC from "@/imports/prestigeafc.PNG";
+import logoSneakerama from "@/imports/sneakerama.PNG";
+import logoTufahaResort from "@/imports/tufaharesort.PNG";
 
 import { useState, useEffect, useRef } from "react";
 
@@ -1614,37 +1615,41 @@ function AboutPage({ onNav }: { onNav: (p: Page) => void }) {
         </div>
       </section>
 
-      {/* Powered By Partners Section with High-Res Brand Logos */}
+      {/* Powered By Partners Section (Interactive Grayscale Logo Cards) */}
       <section className="py-16 px-6 bg-white border-t border-[#EAF6FA]">
         <div className="max-w-6xl mx-auto text-center">
           <p className="text-xs uppercase font-extrabold tracking-widest text-[#5C6B72] mb-10">
             Powered by our partners
           </p>
 
-          <div className="flex flex-wrap items-center justify-center gap-8 sm:gap-12">
+          <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-8">
             {[
               { name: "Autism Allies", src: logoAutismAllies },
               { name: "Coffee Bench", src: logoCoffeeBench },
               { name: "Laikipia Heights", src: logoLaikipiaHeights },
               { name: "Luxo", src: logoLuxo },
+              { name: "Lioness", src: logoLioness },
               { name: "Prestige AFC", src: logoPrestigeAFC },
               { name: "Sneakerama", src: logoSneakerama },
               { name: "Tufaha Resort", src: logoTufahaResort },
             ].map((partner) => (
               <div
                 key={partner.name}
-                className="group flex items-center justify-center p-3 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] shadow-sm hover:border-[#1D95B8] hover:bg-[#EAF6FA]/60 transition-all duration-300 min-w-[140px] h-20"
+                className="group flex items-center justify-center p-4 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] shadow-sm hover:border-[#1D95B8] hover:bg-[#EAF6FA]/60 transition-all duration-300 min-w-[150px] h-20"
               >
                 <img
                   src={partner.src}
                   alt={partner.name}
-                  className="h-10 sm:h-12 w-auto max-w-[120px] object-contain filter grayscale opacity-70 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-300 transform group-hover:scale-105"
+                  className="h-10 sm:h-12 w-auto max-w-[130px] object-contain filter grayscale opacity-70 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-300 transform group-hover:scale-105"
                 />
               </div>
             ))}
           </div>
         </div>
       </section>
+    </div>
+  );
+}
 
 // ─── WELLS OF HOPE PAGE ──────────────────────────────────────────────────────
 
