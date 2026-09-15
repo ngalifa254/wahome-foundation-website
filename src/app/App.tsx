@@ -719,50 +719,27 @@ function Footer({
 function PageHero({
   title,
   subtitle,
-  breadcrumb,
 }: {
   title: string;
   subtitle?: string;
-  breadcrumb: string;
+  breadcrumb?: string;
 }) {
   return (
-    <section className="bg-white pt-28 pb-8 px-4 sm:px-6">
+    <section className="bg-white pt-28 pb-4 px-4 sm:px-6">
       <div className="max-w-6xl mx-auto">
-        {/* Sublime-Style Rounded Inset Card Container */}
-        <div className="relative rounded-[28px] sm:rounded-[36px] bg-[#F4F8FA] border border-slate-200/80 p-8 sm:p-12 md:p-14 overflow-hidden text-left shadow-sm">
-          {/* Subtle Ambient Background Gradients */}
-          <div className="absolute top-0 right-0 w-80 h-80 bg-[#1D95B8]/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-10 -left-10 w-72 h-72 bg-[#0EA5E9]/10 rounded-full blur-2xl pointer-events-none" />
+        <div className="relative rounded-2xl bg-[#F4F8FA] border border-slate-200/80 p-6 sm:p-8 text-left shadow-sm">
+          <h1
+            className="font-serif text-3xl sm:text-4xl font-bold text-slate-900 leading-tight tracking-tight mb-2"
+            style={{ fontFamily: "'Montserrat', sans-serif" }}
+          >
+            {title}
+          </h1>
 
-          <div className="relative z-10 max-w-3xl">
-            {/* Pill Badge Indicator */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-[#1D95B8]/30 text-[#1D95B8] text-[10px] font-extrabold uppercase tracking-widest mb-5 shadow-sm">
-              <span className="w-2 h-2 rounded-full bg-[#1D95B8] animate-pulse" />
-              Wahome Foundation · {breadcrumb}
-            </div>
-
-            {/* Breadcrumb Links */}
-            <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider mb-3 flex items-center gap-1">
-              <span>Home</span>
-              <ChevronRight className="w-3.5 h-3.5 text-[#1D95B8]" />
-              <span className="text-[#1D95B8] font-bold">{breadcrumb}</span>
+          {subtitle && (
+            <p className="text-slate-600 text-sm sm:text-base leading-relaxed font-normal max-w-2xl">
+              {subtitle}
             </p>
-
-            {/* Main Section Title */}
-            <h1
-              className="font-serif text-3xl sm:text-4xl md:text-5xl font-bold text-slate-900 leading-tight tracking-tight mb-4"
-              style={{ fontFamily: "'Montserrat', sans-serif" }}
-            >
-              {title}
-            </h1>
-
-            {/* Subtitle */}
-            {subtitle && (
-              <p className="text-slate-600 text-sm sm:text-base md:text-lg leading-relaxed font-normal max-w-2xl">
-                {subtitle}
-              </p>
-            )}
-          </div>
+          )}
         </div>
       </div>
     </section>
