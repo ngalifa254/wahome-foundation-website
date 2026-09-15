@@ -1616,13 +1616,13 @@ function AboutPage({ onNav }: { onNav: (p: Page) => void }) {
       </section>
 
       {/* Powered By Partners Section (Interactive Grayscale Logo Cards) */}
-      <section className="py-20 px-6 bg-white border-t border-[#EAF6FA]">
+      <section className="py-24 px-6 bg-white border-t border-[#EAF6FA]">
         <div className="max-w-6xl mx-auto text-center">
-          <p className="text-xs uppercase font-extrabold tracking-widest text-[#5C6B72] mb-12">
+          <p className="text-xs uppercase font-extrabold tracking-widest text-[#5C6B72] mb-14">
             Powered by our partners
           </p>
 
-          <div className="flex flex-wrap items-center justify-center gap-10 sm:gap-14 md:gap-16">
+          <div className="flex flex-wrap items-center justify-center gap-12 sm:gap-16 md:gap-20">
             {[
               { name: "Autism Allies", src: logoAutismAllies },
               { name: "Coffee Bench", src: logoCoffeeBench },
@@ -1640,7 +1640,7 @@ function AboutPage({ onNav }: { onNav: (p: Page) => void }) {
                 <img
                   src={partner.src}
                   alt={partner.name}
-                  className="h-10 sm:h-12 w-auto max-w-[140px] object-contain opacity-100"
+                  className="h-15 sm:h-18 w-auto max-w-[210px] object-contain opacity-100"
                 />
               </div>
             ))}
