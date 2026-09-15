@@ -561,7 +561,7 @@ function Navbar({ current, onNav, onOpenDonate }: NavbarProps) {
           ))}
         </nav>
 
-        {/* Updated Navbar Button Text */}
+        {/* Action Button */}
         <button
           onClick={onOpenDonate}
           className="hidden lg:flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#0EA5E9] hover:bg-[#0284C7] text-white text-xs font-bold tracking-wider uppercase transition-all duration-300 shadow-lg hover:scale-105 active:scale-95"
@@ -579,7 +579,7 @@ function Navbar({ current, onNav, onOpenDonate }: NavbarProps) {
         </button>
       </header>
 
-      {/* Mobile Drawer */}
+      {/* Mobile Menu */}
       {open && (
         <div className="lg:hidden mt-2 border border-white/20 bg-[#10202B]/95 backdrop-blur-md rounded-2xl p-4 flex flex-col gap-2 shadow-2xl">
           {navLinks.map((l) => (
@@ -609,7 +609,6 @@ function Navbar({ current, onNav, onOpenDonate }: NavbarProps) {
     </div>
   );
 }
-
 // ─── FOOTER ─────────────────────────────────────────────────
 
 function Footer({
@@ -1254,35 +1253,35 @@ function HomePage({
 
   return (
     <div className="bg-white">
-      {/* Hero Section: Extends to top of screen behind floating pill navbar */}
-      <section className="relative min-h-[92vh] flex items-center bg-[#10202B] overflow-hidden rounded-b-[40px] pt-32 pb-20">
+      {/* Hero Section: Full width, flat bottom, video starting at top-0 behind floating navbar */}
+      <section className="relative min-h-[90vh] flex items-center bg-[#10202B] overflow-hidden pt-28 pb-20">
         <div className="absolute inset-0">
           <video
             autoPlay
             muted
             loop
             playsInline
-            className="w-full h-full object-cover opacity-85 scale-105"
+            className="w-full h-full object-cover opacity-90 filter-none"
           >
             <source src={wahomeSlideshow} type="video/mp4" />
           </video>
-          {/* Glassmorphic Dark Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-r from-[#10202B]/90 via-[#10202B]/65 to-transparent backdrop-blur-[2px]" />
+          {/* Direct Dark Gradient Overlay for Maximum Readability */}
+          <div className="absolute inset-0 bg-gradient-to-r from-[#10202B]/85 via-[#10202B]/60 to-transparent" />
         </div>
 
         <div className="relative max-w-6xl mx-auto px-6 text-left z-10 w-full">
           <div className="max-w-2xl">
-            {/* Dzianis-Style Pill Tag */}
-            <span className="inline-block text-[10px] font-extrabold tracking-[0.22em] uppercase text-[#38BDF8] mb-5 bg-white/10 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/20 shadow-sm">
+            {/* Upper Category Tag */}
+            <span className="inline-block text-[11px] font-bold tracking-[0.2em] uppercase text-[#1D95B8] mb-4 bg-white/10 px-3.5 py-1 rounded-full border border-white/20">
               Wahome Foundation · Est. 2006
             </span>
 
             <h1
-              className="font-bold text-5xl sm:text-6xl text-white leading-[1.08] mb-6 tracking-tight"
+              className="font-bold text-5xl sm:text-6xl text-white leading-[1.1] mb-6 tracking-tight"
               style={{ fontFamily: "'Montserrat', sans-serif" }}
             >
               Change lives <br />
-              <span className="text-[#38BDF8]">through</span> <br />
+              <span className="text-[#1D95B8]">through</span> <br />
               direct action
             </h1>
 
@@ -1290,34 +1289,26 @@ function HomePage({
               Your support today helps a bright child stay in school, access clean water, and chase their dreams.
             </p>
 
-            <div className="flex flex-wrap gap-4">
+            <div>
               <button
                 type="button"
                 onClick={() => go("about")}
-                className="px-8 py-3.5 rounded-full bg-white/10 text-white font-bold text-xs uppercase tracking-wider backdrop-blur-md border border-white/25 hover:bg-white/20 transition-all shadow-lg hover:scale-105"
+                className="px-8 py-3.5 rounded-full bg-white/10 text-white font-bold text-xs uppercase tracking-wider backdrop-blur-md border border-white/20 hover:bg-white/20 transition-all shadow-md hover:scale-105"
               >
                 Learn More
-              </button>
-
-              <button
-                type="button"
-                onClick={onOpenDonate}
-                className="px-8 py-3.5 rounded-full bg-[#0EA5E9] hover:bg-[#0284C7] text-white font-bold text-xs uppercase tracking-wider transition-all shadow-lg hover:scale-105"
-              >
-                Make An Impact
               </button>
             </div>
           </div>
         </div>
       </section>
 
-      {/* 1. Who We Are [BG: White] */}
-      <section className="py-16 px-6 bg-white border-b border-[#EAF6FA]">
+      {/* 1. Who We Are */}
+      <section className="py-14 px-6 bg-white border-b border-[#EAF6FA]">
         <div className="max-w-6xl mx-auto grid lg:grid-cols-12 gap-10 items-center">
           <div className="lg:col-span-7 space-y-4 text-left">
             <SectionTag>Who We Are</SectionTag>
             <h2
-              className="font-serif text-3xl sm:text-4xl font-bold text-[#10202B] leading-tight"
+              className="text-3xl sm:text-4xl font-extrabold text-[#10202B] leading-tight"
               style={{ fontFamily: "'Montserrat', sans-serif" }}
             >
               Inspiring and empowering Kenya&apos;s next generation
@@ -1332,7 +1323,7 @@ function HomePage({
               Discover Our Story <ArrowRight className="w-4 h-4" />
             </button>
           </div>
-          <div className="lg:col-span-5 relative rounded-2xl overflow-hidden aspect-[4/3] bg-[#B9D3DE] shadow-md border border-[#D6E4EA]">
+          <div className="lg:col-span-5 relative rounded-[28px] overflow-hidden aspect-[4/3] bg-[#B9D3DE] shadow-sm border border-slate-200/80">
             <img
               src={image_fundeducation}
               alt="Community members gathered"
@@ -1355,16 +1346,16 @@ function HomePage({
         </div>
       </section>
 
-      {/* 2. Vibrant Banner: Prize Giving Day 2027 [BG: Sky Blue] */}
+      {/* 2. Prize Giving Banner */}
       <PrizeGivingBanner onNav={go} onOpenDonate={onOpenDonate} />
 
-      {/* 3. Surfaced Feature: Meet Our Scholars [BG: White] */}
-      <section className="py-16 px-6 bg-white border-b border-[#EAF6FA]">
+      {/* 3. Meet Our Scholars */}
+      <section className="py-14 px-6 bg-white border-b border-[#EAF6FA]">
         <div className="max-w-6xl mx-auto">
           <div className="text-center max-w-xl mx-auto mb-10">
             <SectionTag>MEET OUR SCHOLARS</SectionTag>
             <h2
-              className="font-serif text-2xl sm:text-3xl font-bold text-[#10202B]"
+              className="text-2xl sm:text-3xl font-extrabold text-[#10202B] tracking-tight"
               style={{ fontFamily: "'Montserrat', sans-serif" }}
             >
               The dreams your support makes possible
@@ -1372,11 +1363,11 @@ function HomePage({
           </div>
 
           <div className="grid md:grid-cols-2 gap-6">
-            <div className="bg-[#EAF6FA]/40 rounded-2xl border border-[#D6E4EA] p-5 flex gap-4 items-center shadow-sm hover:border-[#1D95B8]/40 transition-all text-left">
+            <div className="bg-[#F8FAFC] rounded-[24px] border border-slate-200/80 p-5 flex gap-4 items-center shadow-xs hover:border-[#1D95B8]/40 transition-all text-left">
               <img
                 src={alexPhoto}
                 alt="Alex Karani"
-                className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl object-cover shrink-0"
+                className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover shrink-0"
               />
               <div className="space-y-1">
                 <h4 className="font-bold text-[#10202B] text-base">Alex Karani</h4>
@@ -1387,11 +1378,11 @@ function HomePage({
               </div>
             </div>
 
-            <div className="bg-[#EAF6FA]/40 rounded-2xl border border-[#D6E4EA] p-5 flex gap-4 items-center shadow-sm hover:border-[#1D95B8]/40 transition-all text-left">
+            <div className="bg-[#F8FAFC] rounded-[24px] border border-slate-200/80 p-5 flex gap-4 items-center shadow-xs hover:border-[#1D95B8]/40 transition-all text-left">
               <img
                 src={jedidahPhoto}
                 alt="Jedidah Watetu"
-                className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl object-cover shrink-0"
+                className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover shrink-0"
               />
               <div className="space-y-1">
                 <h4 className="font-bold text-[#10202B] text-base">Jedidah Watetu</h4>
@@ -1402,71 +1393,13 @@ function HomePage({
               </div>
             </div>
           </div>
-
-          <div className="mt-8 text-center">
-            <button
-              onClick={() => go("scholarship")}
-              className="inline-flex items-center gap-2 text-[#1D95B8] font-bold text-xs uppercase tracking-wider hover:gap-3 transition-all"
-            >
-              View All Student Stories <ArrowRight className="w-4 h-4" />
-            </button>
-          </div>
         </div>
       </section>
 
-      {/* 4. Our Portfolios Spotlight Carousel [BG: Sky Blue] */}
-      <section className="py-16 px-6 bg-[#EAF6FA]">
+      {/* 4. Portfolios & Blog */}
+      <section className="py-14 px-6 bg-[#EAF6FA]">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-6">
-            <SectionTag>Our Portfolios</SectionTag>
-            <h2
-              className="font-serif text-2xl sm:text-3xl font-bold text-[#10202B]"
-              style={{ fontFamily: "'Montserrat', sans-serif" }}
-            >
-              Programmes that change lives
-            </h2>
-          </div>
           <PortfolioCarousel onNav={go} />
-        </div>
-      </section>
-
-      {/* 5. Past Campaigns Section [BG: White] */}
-      <section className="py-16 px-6 bg-white border-b border-[#EAF6FA]">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-6">
-            <SectionTag>Past Campaigns</SectionTag>
-            <h2
-              className="font-serif text-2xl sm:text-3xl font-bold text-[#10202B]"
-              style={{ fontFamily: "'Montserrat', sans-serif" }}
-            >
-              Every campaign, one goal
-            </h2>
-          </div>
-          <PastCampaignsShowcase onNav={go} />
-        </div>
-      </section>
-
-      {/* 6. Blog & News Media Updates [BG: Sky Blue] */}
-      <section className="py-16 px-6 bg-[#EAF6FA]">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center max-w-xl mx-auto mb-10">
-            <SectionTag>Blog & News</SectionTag>
-            <h2
-              className="font-serif text-2xl sm:text-3xl font-bold text-[#10202B] mb-2"
-              style={{ fontFamily: "'Montserrat', sans-serif" }}
-            >
-              Stories & updates
-            </h2>
-            <p className="text-xs text-[#5C6B72] leading-relaxed">
-              Articles, videos, and press coverage on our operations, partnerships, and impact.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-6">
-            {blogNewsItems.map((item, i) => (
-              <MediaCard key={i} {...item} />
-            ))}
-          </div>
         </div>
       </section>
     </div>
@@ -2339,18 +2272,19 @@ export default function App() {
 
   return (
     <div
-    className="min-h-screen bg-white text-[#10202B]"
-    style={{ fontFamily: "'Montserrat', sans-serif" }}
-  >
-    <Navbar current={page} onNav={setPage} onOpenDonate={openDonate} />
+      className="min-h-screen bg-white text-[#10202B]"
+      style={{ fontFamily: "'Montserrat', sans-serif" }}
+    >
+      <Navbar current={page} onNav={setPage} onOpenDonate={openDonate} />
 
-    {/* Removed top padding from main so Hero spans top-0 behind floating navbar */}
-    <main>
-      {pages[page]}
-    </main>
+      {/* Main container without top padding allows the hero video to span top-0 */}
+      <main>
+        {pages[page]}
+      </main>
 
-    <Footer onNav={setPage} onOpenDonate={openDonate} />
-    <DonateModal isOpen={isDonateOpen} onClose={closeDonate} />
-  </div>
+      <Footer onNav={setPage} onOpenDonate={openDonate} />
+      <DonateModal isOpen={isDonateOpen} onClose={closeDonate} />
+    </div>
   );
 }
+Step 3: Push to GitHub Pages
