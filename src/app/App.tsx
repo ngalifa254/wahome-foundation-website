@@ -1616,13 +1616,13 @@ function AboutPage({ onNav }: { onNav: (p: Page) => void }) {
       </section>
 
       {/* Powered By Partners Section (Interactive Grayscale Logo Cards) */}
-      <section className="py-16 px-6 bg-white border-t border-[#EAF6FA]">
+      <section className="py-20 px-6 bg-white border-t border-[#EAF6FA]">
         <div className="max-w-6xl mx-auto text-center">
-          <p className="text-xs uppercase font-extrabold tracking-widest text-[#5C6B72] mb-10">
+          <p className="text-xs uppercase font-extrabold tracking-widest text-[#5C6B72] mb-12">
             Powered by our partners
           </p>
 
-          <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-8">
+          <div className="flex flex-wrap items-center justify-center gap-10 sm:gap-14 md:gap-16">
             {[
               { name: "Autism Allies", src: logoAutismAllies },
               { name: "Coffee Bench", src: logoCoffeeBench },
@@ -1635,12 +1635,12 @@ function AboutPage({ onNav }: { onNav: (p: Page) => void }) {
             ].map((partner) => (
               <div
                 key={partner.name}
-                className="group flex items-center justify-center p-4 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] shadow-sm hover:border-[#1D95B8] hover:bg-[#EAF6FA]/60 transition-all duration-300 min-w-[150px] h-20 cursor-pointer"
+                className="group flex items-center justify-center p-2 cursor-pointer transition-all duration-300"
               >
                 <img
                   src={partner.src}
                   alt={partner.name}
-                  className="h-10 sm:h-12 w-auto max-w-[130px] object-contain filter grayscale opacity-70 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-300 transform group-hover:scale-105"
+                  className="h-10 sm:h-12 w-auto max-w-[140px] object-contain filter grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-300 transform group-hover:scale-105"
                 />
               </div>
             ))}
