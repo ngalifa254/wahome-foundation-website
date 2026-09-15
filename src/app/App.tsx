@@ -541,16 +541,16 @@ function Navbar({ current, onNav, onOpenDonate }: NavbarProps) {
           <img
             src={mainLogo}
             alt="Wahome Foundation Logo"
-            className="h-11 sm:h-12 w-auto object-contain transition-all hover:scale-105"
+            className="h-11 sm:h-12 w-auto object-contain transition-transform duration-300 hover:scale-105"
           />
         </button>
 
-        <nav className="hidden lg:flex items-center gap-1">
+        <nav className="hidden lg:flex items-center gap-1.5">
           {navLinks.map((l) => (
             <button
               key={l.page}
               onClick={() => go(l.page)}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all duration-150 ${
+              className={`px-4 py-2 rounded-full text-xs font-semibold transition-all duration-200 ${
                 current === l.page
                   ? "bg-[#1D95B8] text-white shadow-sm"
                   : "text-white/80 hover:text-white hover:bg-white/10"
@@ -561,10 +561,10 @@ function Navbar({ current, onNav, onOpenDonate }: NavbarProps) {
           ))}
         </nav>
 
-        {/* Updated Button Text to MAKE AN IMPACT */}
+        {/* Updated Navbar Button Text */}
         <button
           onClick={onOpenDonate}
-          className="hidden lg:flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#0EA5E9] hover:bg-[#0284C7] text-white text-xs font-bold tracking-wider uppercase transition-all duration-300 shadow-md hover:scale-105"
+          className="hidden lg:flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#0EA5E9] hover:bg-[#0284C7] text-white text-xs font-bold tracking-wider uppercase transition-all duration-300 shadow-lg hover:scale-105 active:scale-95"
         >
           <Heart className="w-3.5 h-3.5 fill-white" />
           Make An Impact
@@ -572,16 +572,16 @@ function Navbar({ current, onNav, onOpenDonate }: NavbarProps) {
 
         <button
           onClick={() => setOpen(!open)}
-          className="lg:hidden p-1.5 rounded-full text-white hover:bg-white/10 transition-colors"
+          className="lg:hidden p-2 rounded-full text-white hover:bg-white/10 transition-colors"
           aria-label="Toggle menu"
         >
           {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
       </header>
 
-      {/* Mobile Menu Dropdown */}
+      {/* Mobile Drawer */}
       {open && (
-        <div className="lg:hidden mt-2 border border-white/20 bg-[#10202B]/95 backdrop-blur-md rounded-2xl p-4 flex flex-col gap-1.5 shadow-2xl">
+        <div className="lg:hidden mt-2 border border-white/20 bg-[#10202B]/95 backdrop-blur-md rounded-2xl p-4 flex flex-col gap-2 shadow-2xl">
           {navLinks.map((l) => (
             <button
               key={l.page}
@@ -600,7 +600,7 @@ function Navbar({ current, onNav, onOpenDonate }: NavbarProps) {
               setOpen(false);
               onOpenDonate();
             }}
-            className="mt-2 w-full py-2.5 rounded-xl bg-[#0EA5E9] text-white text-xs font-bold uppercase tracking-wider hover:bg-[#0284C7] transition-colors"
+            className="mt-2 w-full py-3 rounded-xl bg-[#0EA5E9] text-white text-xs font-bold uppercase tracking-wider hover:bg-[#0284C7] transition-colors"
           >
             Make An Impact
           </button>
@@ -2301,5 +2301,44 @@ function FloatingDonateButton({ onClick }: { onClick: () => void }) {
       <Heart className="w-4 h-4 fill-white" />
       Support a Child
     </button>
+  );
+}
+
+// ─── ROOT APP (Clean, Error-Free Build Target) ─────────────────────────────
+
+export default function App() {
+  const [page, setPage] = useState<Page>("home");
+  const [isDonateOpen, setIsDonateOpen] = useState(false);
+
+  const openDonate = () => setIsDonateOpen(true);
+  const closeDonate = () => setIsDonateOpen(false);
+
+  const pages: Record<Page, React.ReactNode> = {
+    home: <HomePage onNav={setPage} onOpenDonate={openDonate} />,
+    about: <AboutPage onNav={setPage} />,
+    scholarship: (
+      <ScholarshipPage onNav={setPage} onOpenDonate={openDonate} />
+    ),
+    wells: <WellsPage onNav={setPage} onOpenDonate={openDonate} />,
+    prize: <PrizePage onNav={setPage} onOpenDonate={openDonate} />,
+    mentorship: (
+      <MentorshipPage onNav={setPage} onOpenDonate={openDonate} />
+    ),
+  };
+
+  return (
+    <div
+      className="min-h-screen bg-white text-[#10202B]"
+      style={{ fontFamily: "'Montserrat', sans-serif" }}
+    >
+      <Navbar current={page} onNav={setPage} onOpenDonate={openDonate} />
+
+      <main className="pt-28 sm:pt-32">
+        {pages[page]}
+      </main>
+
+      <Footer onNav={setPage} onOpenDonate={openDonate} />
+      <DonateModal isOpen={isDonateOpen} onClose={closeDonate} />
+    </div>
   );
 }
