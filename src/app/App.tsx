@@ -720,34 +720,44 @@ function PageHero({
   breadcrumb: string;
 }) {
   return (
-    <section className="relative bg-[#10202B] min-h-[320px] sm:min-h-[380px] flex items-center overflow-hidden pt-24 pb-16 px-6">
-      {/* Background Maasai Shuka Texture Overlay */}
-      <div className="absolute inset-0 z-0">
-        <img
-          src="https://images.unsplash.com/photo-1609102026400-3d026368d1a1?w=1600&fit=crop&auto=format"
-          alt="Maasai Shuka Cultural Pattern"
-          className="w-full h-full object-cover object-right opacity-40 mix-blend-luminosity scale-105 transition-transform duration-1000"
-        />
-        {/* Editorial Gradient Scaffolding */}
-        <div className="absolute inset-0 bg-gradient-to-r from-[#10202B] via-[#10202B]/90 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#10202B] via-transparent to-black/30" />
+    <section className="relative bg-[#0D1821] min-h-[340px] sm:min-h-[400px] flex items-center overflow-hidden pt-28 pb-16 px-6">
+      {/* 1. Ambient Dynamic Theme Color Glows */}
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#1D95B8]/25 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute -bottom-20 -left-20 w-[450px] h-[450px] bg-[#C68A3D]/20 rounded-full blur-[100px] pointer-events-none" />
+
+      {/* 2. Embedded Maasai Shuka Traditional Geometric Pattern Overlay (Pure SVG) */}
+      <div className="absolute inset-0 opacity-15 pointer-events-none mix-blend-overlay">
+        <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+          <defs>
+            <pattern id="maasaiShuka" width="60" height="60" patternUnits="userSpaceOnUse">
+              <path d="M 60 0 L 0 60 M 0 0 L 60 60" stroke="#1D95B8" strokeWidth="1.5" />
+              <rect x="0" y="0" width="30" height="30" fill="none" stroke="#C68A3D" strokeWidth="1" />
+              <rect x="30" y="30" width="30" height="30" fill="none" stroke="#E11D48" strokeWidth="1" />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#maasaiShuka)" />
+        </svg>
       </div>
 
-      {/* Hero Content Container */}
+      {/* 3. Soft Gradient Vignette */}
+      <div className="absolute inset-0 bg-gradient-to-r from-[#0D1821]/95 via-[#0D1821]/80 to-transparent z-0" />
+
+      {/* 4. Content Scaffolding */}
       <div className="relative z-10 max-w-6xl mx-auto w-full text-left">
-        {/* Cultural Heritage Badge */}
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#1D95B8]/20 border border-[#1D95B8]/40 text-[#38BDF8] text-[10px] font-extrabold uppercase tracking-widest mb-4 backdrop-blur-sm">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#38BDF8] animate-pulse" />
-          KENYAN HERITAGE · IMPACT DRIVEN
+        {/* Cultural Heritage Pill Badge */}
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#1D95B8]/20 border border-[#1D95B8]/40 text-[#38BDF8] text-[10px] font-extrabold uppercase tracking-widest mb-4 backdrop-blur-md">
+          <span className="w-2 h-2 rounded-full bg-[#38BDF8] animate-pulse" />
+          KENYAN HERITAGE · COMMUNITY FIRST
         </div>
 
-        {/* Breadcrumb Navigation */}
-        <p className="text-white/60 text-xs font-semibold uppercase tracking-wider mb-2">
-          Home <ChevronRight className="inline w-3 h-3 text-[#1D95B8] mx-1" />{" "}
+        {/* Breadcrumb Links */}
+        <p className="text-white/60 text-xs font-semibold uppercase tracking-wider mb-3 flex items-center gap-1">
+          <span>Home</span>
+          <ChevronRight className="w-3.5 h-3.5 text-[#1D95B8]" />
           <span className="text-[#38BDF8]">{breadcrumb}</span>
         </p>
 
-        {/* Hero Main Heading */}
+        {/* Hero Title */}
         <h1
           className="font-serif text-4xl sm:text-5xl md:text-6xl font-bold text-white leading-tight tracking-tight mb-4"
           style={{ fontFamily: "'Montserrat', sans-serif" }}
@@ -755,7 +765,7 @@ function PageHero({
           {title}
         </h1>
 
-        {/* Subtitle */}
+        {/* Hero Subtitle */}
         {subtitle && (
           <p className="text-[#8FAFBC] text-base sm:text-lg max-w-2xl leading-relaxed font-normal">
             {subtitle}
