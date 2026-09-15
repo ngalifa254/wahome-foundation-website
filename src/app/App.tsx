@@ -608,7 +608,7 @@ function Navbar({ current, onNav, onOpenDonate }: NavbarProps) {
   );
 }
 
-// ─── COMPACT EDITORIAL FOOTER ─────────────────────────────────────────────────
+// ─── FOOTER ─────────────────────────────────────────────────
 
 function Footer({
   onNav,
@@ -623,85 +623,91 @@ function Footer({
 
   return (
     <footer
-      className="bg-[#10202B] text-[#8FAFBC] border-t border-[#1C3241]"
+      className="bg-white text-slate-600 py-10 px-4 sm:px-6"
       style={{ fontFamily: "'Montserrat', sans-serif" }}
     >
-      <div className="max-w-6xl mx-auto px-6 py-6">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-4 border-b border-[#1C3241] gap-3">
-          <div className="flex items-center gap-3">
-            <img
-              src={footerLogo}
-              alt="Wahome Foundation Logo"
-              className="h-7 w-auto object-contain mix-blend-screen"
-            />
-            <div className="h-3.5 w-px bg-[#1C3241] hidden sm:block" />
-            <span className="text-[10px] tracking-widest uppercase text-[#1D95B8] font-bold">
-              Inspire & Empower · Est. 2006
+      <div className="max-w-6xl mx-auto">
+        {/* Soft Off-White Inset Rounded Shell (Sublime.app Aesthetic) */}
+        <div className="bg-[#F4F4F2] rounded-[32px] p-6 sm:p-10 border border-slate-200/80 shadow-sm">
+          {/* Top Brand & Social Header */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-6 border-b border-slate-300/60 gap-4">
+            <div className="flex items-center gap-3">
+              <img
+                src={footerLogo}
+                alt="Wahome Foundation Logo"
+                className="h-8 w-auto object-contain"
+              />
+              <div className="h-4 w-px bg-slate-300 hidden sm:block" />
+              <span className="text-[10px] tracking-widest uppercase text-[#1D95B8] font-bold">
+                Inspire & Empower · Est. 2006
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              {[Facebook, Instagram, Youtube].map((Icon, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-700 hover:border-[#1D95B8] hover:text-[#1D95B8] transition-all shadow-sm"
+                >
+                  <Icon className="w-3.5 h-3.5" />
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Centered Offices Contact Section */}
+          <div className="py-6 border-b border-slate-300/60 text-center">
+            <span className="inline-block text-[10px] font-extrabold tracking-widest text-[#1D95B8] uppercase mb-4">
+              Contact Us
             </span>
-          </div>
 
-          <div className="flex items-center gap-2">
-            {[Facebook, Instagram, Youtube].map((Icon, i) => (
-              <button
-                key={i}
-                type="button"
-                className="w-7 h-7 rounded-full bg-[#162B38] border border-[#1C3241] flex items-center justify-center hover:border-[#1D95B8] hover:text-white transition-all"
-              >
-                <Icon className="w-3 h-3" />
-              </button>
-            ))}
-          </div>
-        </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl mx-auto text-xs">
+              <div className="bg-white rounded-xl py-3 px-4 border border-slate-200/80 shadow-sm flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#1D95B8]">
+                  Kenya HQ:
+                </span>
+                <span className="flex items-center gap-1 text-slate-800 text-[11px]">
+                  <MapPin className="w-3 h-3 text-[#1D95B8] shrink-0" />
+                  69 Haile Salasie Rd, Nanyuki
+                </span>
+                <span className="flex items-center gap-1 text-slate-600 text-[11px]">
+                  <Phone className="w-3 h-3 text-[#1D95B8] shrink-0" />
+                  +254 700 000 000
+                </span>
+                <span className="flex items-center gap-1 text-slate-600 text-[11px]">
+                  <Mail className="w-3 h-3 text-[#1D95B8] shrink-0" />
+                  info@wahomefoundation.com
+                </span>
+              </div>
 
-        <div className="py-4 border-b border-[#1C3241] text-center">
-          <span className="inline-block text-[9px] font-extrabold tracking-widest text-[#1D95B8] uppercase mb-2">
-            Contact Us
-          </span>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-w-4xl mx-auto text-xs">
-            <div className="bg-[#162B38]/40 rounded-lg py-2.5 px-4 border border-[#1C3241] flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-[#1D95B8]">
-                Kenya HQ:
-              </span>
-              <span className="flex items-center gap-1 text-white/90 text-[11px]">
-                <MapPin className="w-3 h-3 text-[#1D95B8] shrink-0" />
-                69 Haile Salasie Rd, Nanyuki
-              </span>
-              <span className="flex items-center gap-1 text-[#8FAFBC] text-[11px]">
-                <Phone className="w-3 h-3 text-[#1D95B8] shrink-0" />
-                +254 700 000 000
-              </span>
-              <span className="flex items-center gap-1 text-[#8FAFBC] text-[11px]">
-                <Mail className="w-3 h-3 text-[#1D95B8] shrink-0" />
-                info@wahomefoundation.com
-              </span>
-            </div>
-
-            <div className="bg-[#162B38]/40 rounded-lg py-2.5 px-4 border border-[#1C3241] flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-[#1D95B8]">
-                US Office:
-              </span>
-              <span className="flex items-center gap-1 text-white/90 text-[11px]">
-                <MapPin className="w-3 h-3 text-[#1D95B8] shrink-0" />
-                560 Boston Turnpike, Shrewsbury, MA
-              </span>
-              <span className="flex items-center gap-1 text-[#8FAFBC] text-[11px]">
-                <Mail className="w-3 h-3 text-[#1D95B8] shrink-0" />
-                info@wahomefoundation.com
-              </span>
+              <div className="bg-white rounded-xl py-3 px-4 border border-slate-200/80 shadow-sm flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#1D95B8]">
+                  US Office:
+                </span>
+                <span className="flex items-center gap-1 text-slate-800 text-[11px]">
+                  <MapPin className="w-3 h-3 text-[#1D95B8] shrink-0" />
+                  560 Boston Turnpike, Shrewsbury, MA
+                </span>
+                <span className="flex items-center gap-1 text-slate-600 text-[11px]">
+                  <Mail className="w-3 h-3 text-[#1D95B8] shrink-0" />
+                  info@wahomefoundation.com
+                </span>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="pt-3 flex flex-col items-center justify-center text-center text-[10px] text-[#5C6B72] gap-1">
-          <p>© 2026 Wahome Foundation. Registered NGO & 501(c)(3) Organization.</p>
-          <button
-            type="button"
-            onClick={() => go("about")}
-            className="text-[#8FAFBC] hover:text-[#1D95B8] transition-colors font-medium hover:underline"
-          >
-            Privacy & Terms
-          </button>
+          {/* Bottom Legal & Stacked Links */}
+          <div className="pt-4 flex flex-col items-center justify-center text-center text-[11px] text-slate-500 gap-1">
+            <p>© 2026 Wahome Foundation. Registered NGO & 501(c)(3) Organization.</p>
+            <button
+              type="button"
+              onClick={() => go("about")}
+              className="text-slate-600 hover:text-[#1D95B8] transition-colors font-medium hover:underline"
+            >
+              Privacy & Terms
+            </button>
+          </div>
         </div>
       </div>
     </footer>
@@ -720,25 +726,44 @@ function PageHero({
   breadcrumb: string;
 }) {
   return (
-    <section className="bg-[#10202B] py-20 px-6 relative overflow-hidden pt-28">
-      <div
-        className="absolute inset-0 opacity-10"
-        style={{
-          backgroundImage:
-            "radial-gradient(circle at 20% 50%, #1D95B8 0%, transparent 60%), radial-gradient(circle at 80% 20%, #C68A3D 0%, transparent 50%)",
-        }}
-      />
-      <div className="relative max-w-5xl mx-auto">
-        <p className="text-[#5C6B72] text-sm mb-3">
-          Home <ChevronRight className="inline w-3 h-3" /> {breadcrumb}
-        </p>
-        <h1
-          className="font-serif text-4xl md:text-5xl font-bold text-white leading-tight mb-4"
-          style={{ fontFamily: "'Montserrat', sans-serif" }}
-        >
-          {title}
-        </h1>
-        {subtitle && <p className="text-[#8FAFBC] text-lg max-w-2xl">{subtitle}</p>}
+    <section className="bg-white pt-28 pb-8 px-4 sm:px-6">
+      <div className="max-w-6xl mx-auto">
+        {/* Sublime-Style Rounded Inset Card Container */}
+        <div className="relative rounded-[28px] sm:rounded-[36px] bg-[#F4F8FA] border border-slate-200/80 p-8 sm:p-12 md:p-14 overflow-hidden text-left shadow-sm">
+          {/* Subtle Ambient Background Gradients */}
+          <div className="absolute top-0 right-0 w-80 h-80 bg-[#1D95B8]/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-10 -left-10 w-72 h-72 bg-[#0EA5E9]/10 rounded-full blur-2xl pointer-events-none" />
+
+          <div className="relative z-10 max-w-3xl">
+            {/* Pill Badge Indicator */}
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-[#1D95B8]/30 text-[#1D95B8] text-[10px] font-extrabold uppercase tracking-widest mb-5 shadow-sm">
+              <span className="w-2 h-2 rounded-full bg-[#1D95B8] animate-pulse" />
+              Wahome Foundation · {breadcrumb}
+            </div>
+
+            {/* Breadcrumb Links */}
+            <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider mb-3 flex items-center gap-1">
+              <span>Home</span>
+              <ChevronRight className="w-3.5 h-3.5 text-[#1D95B8]" />
+              <span className="text-[#1D95B8] font-bold">{breadcrumb}</span>
+            </p>
+
+            {/* Main Section Title */}
+            <h1
+              className="font-serif text-3xl sm:text-4xl md:text-5xl font-bold text-slate-900 leading-tight tracking-tight mb-4"
+              style={{ fontFamily: "'Montserrat', sans-serif" }}
+            >
+              {title}
+            </h1>
+
+            {/* Subtitle */}
+            {subtitle && (
+              <p className="text-slate-600 text-sm sm:text-base md:text-lg leading-relaxed font-normal max-w-2xl">
+                {subtitle}
+              </p>
+            )}
+          </div>
+        </div>
       </div>
     </section>
   );
