@@ -720,25 +720,47 @@ function PageHero({
   breadcrumb: string;
 }) {
   return (
-    <section className="bg-[#10202B] py-20 px-6 relative overflow-hidden pt-28">
-      <div
-        className="absolute inset-0 opacity-10"
-        style={{
-          backgroundImage:
-            "radial-gradient(circle at 20% 50%, #1D95B8 0%, transparent 60%), radial-gradient(circle at 80% 20%, #C68A3D 0%, transparent 50%)",
-        }}
-      />
-      <div className="relative max-w-5xl mx-auto">
-        <p className="text-[#5C6B72] text-sm mb-3">
-          Home <ChevronRight className="inline w-3 h-3" /> {breadcrumb}
+    <section className="relative bg-[#10202B] min-h-[320px] sm:min-h-[380px] flex items-center overflow-hidden pt-24 pb-16 px-6">
+      {/* Background Maasai Shuka Texture Overlay */}
+      <div className="absolute inset-0 z-0">
+        <img
+          src="https://images.unsplash.com/photo-1609102026400-3d026368d1a1?w=1600&fit=crop&auto=format"
+          alt="Maasai Shuka Cultural Pattern"
+          className="w-full h-full object-cover object-right opacity-40 mix-blend-luminosity scale-105 transition-transform duration-1000"
+        />
+        {/* Editorial Gradient Scaffolding */}
+        <div className="absolute inset-0 bg-gradient-to-r from-[#10202B] via-[#10202B]/90 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#10202B] via-transparent to-black/30" />
+      </div>
+
+      {/* Hero Content Container */}
+      <div className="relative z-10 max-w-6xl mx-auto w-full text-left">
+        {/* Cultural Heritage Badge */}
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#1D95B8]/20 border border-[#1D95B8]/40 text-[#38BDF8] text-[10px] font-extrabold uppercase tracking-widest mb-4 backdrop-blur-sm">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#38BDF8] animate-pulse" />
+          KENYAN HERITAGE · IMPACT DRIVEN
+        </div>
+
+        {/* Breadcrumb Navigation */}
+        <p className="text-white/60 text-xs font-semibold uppercase tracking-wider mb-2">
+          Home <ChevronRight className="inline w-3 h-3 text-[#1D95B8] mx-1" />{" "}
+          <span className="text-[#38BDF8]">{breadcrumb}</span>
         </p>
+
+        {/* Hero Main Heading */}
         <h1
-          className="font-serif text-4xl md:text-5xl font-bold text-white leading-tight mb-4"
+          className="font-serif text-4xl sm:text-5xl md:text-6xl font-bold text-white leading-tight tracking-tight mb-4"
           style={{ fontFamily: "'Montserrat', sans-serif" }}
         >
           {title}
         </h1>
-        {subtitle && <p className="text-[#8FAFBC] text-lg max-w-2xl">{subtitle}</p>}
+
+        {/* Subtitle */}
+        {subtitle && (
+          <p className="text-[#8FAFBC] text-base sm:text-lg max-w-2xl leading-relaxed font-normal">
+            {subtitle}
+          </p>
+        )}
       </div>
     </section>
   );
