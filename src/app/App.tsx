@@ -456,7 +456,7 @@ function DonateModal({
               type="submit"
               className="w-full py-4 rounded-xl bg-[#0EA5E9] hover:bg-[#0284C7] text-white font-bold text-base transition-colors shadow-md"
             >
-              Support a Child ({currencySymbol}
+              Make An Impact ({currencySymbol}
               {amount || "0"})
             </button>
           </form>
@@ -533,7 +533,7 @@ function Navbar({ current, onNav, onOpenDonate }: NavbarProps) {
       <header
         className={`w-full rounded-full border transition-all duration-300 px-6 h-20 flex items-center justify-between ${
           scrolled
-            ? "bg-[#10202B]/95 backdrop-blur-md border-white/20 shadow-xl"
+            ? "bg-[#10202B]/95 backdrop-blur-md border-white/20 shadow-2xl"
             : "bg-[#10202B]/85 backdrop-blur-sm border-white/10 shadow-lg"
         }`}
       >
@@ -561,12 +561,13 @@ function Navbar({ current, onNav, onOpenDonate }: NavbarProps) {
           ))}
         </nav>
 
+        {/* Updated Button Text to MAKE AN IMPACT */}
         <button
           onClick={onOpenDonate}
-          className="hidden lg:flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#0EA5E9] hover:bg-[#0284C7] text-white text-xs font-bold tracking-wider uppercase transition-all shadow-md hover:scale-105"
+          className="hidden lg:flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#0EA5E9] hover:bg-[#0284C7] text-white text-xs font-bold tracking-wider uppercase transition-all duration-300 shadow-md hover:scale-105"
         >
           <Heart className="w-3.5 h-3.5 fill-white" />
-          Support a Child
+          Make An Impact
         </button>
 
         <button
@@ -578,6 +579,7 @@ function Navbar({ current, onNav, onOpenDonate }: NavbarProps) {
         </button>
       </header>
 
+      {/* Mobile Menu Dropdown */}
       {open && (
         <div className="lg:hidden mt-2 border border-white/20 bg-[#10202B]/95 backdrop-blur-md rounded-2xl p-4 flex flex-col gap-1.5 shadow-2xl">
           {navLinks.map((l) => (
@@ -600,7 +602,7 @@ function Navbar({ current, onNav, onOpenDonate }: NavbarProps) {
             }}
             className="mt-2 w-full py-2.5 rounded-xl bg-[#0EA5E9] text-white text-xs font-bold uppercase tracking-wider hover:bg-[#0284C7] transition-colors"
           >
-            Support a Child
+            Make An Impact
           </button>
         </div>
       )}
@@ -2299,46 +2301,5 @@ function FloatingDonateButton({ onClick }: { onClick: () => void }) {
       <Heart className="w-4 h-4 fill-white" />
       Support a Child
     </button>
-  );
-}
-
-// ─── ROOT APP ─────────────────────────────────────────────────────────────────
-
-export default function App() {
-  const [page, setPage] = useState<Page>("home");
-  const [isDonateOpen, setIsDonateOpen] = useState(false);
-
-  const openDonate = () => setIsDonateOpen(true);
-  const closeDonate = () => setIsDonateOpen(false);
-
-  const pages: Record<Page, React.ReactNode> = {
-    home: <HomePage onNav={setPage} onOpenDonate={openDonate} />,
-    about: <AboutPage onNav={setPage} />,
-    scholarship: (
-      <ScholarshipPage onNav={setPage} onOpenDonate={openDonate} />
-    ),
-    wells: <WellsPage onNav={setPage} onOpenDonate={openDonate} />,
-    prize: <PrizePage onNav={setPage} onOpenDonate={openDonate} />,
-    mentorship: (
-      <MentorshipPage onNav={setPage} onOpenDonate={openDonate} />
-    ),
-  };
-
-  return (
-    <div
-      className="min-h-screen bg-white text-[#10202B]"
-      style={{ fontFamily: "'Montserrat', sans-serif" }}
-    >
-      <Navbar current={page} onNav={setPage} onOpenDonate={openDonate} />
-
-      {/* ──── PASTE STEP 3 MAIN WRAPPER HERE ──── */}
-      <main className="pt-28 sm:pt-32">
-        {pages[page]}
-      </main>
-
-      <Footer onNav={setPage} onOpenDonate={openDonate} />
-      <FloatingDonateButton onClick={openDonate} />
-      <DonateModal isOpen={isDonateOpen} onClose={closeDonate} />
-    </div>
   );
 }
