@@ -641,7 +641,6 @@ function Footer({
               />
               <div className="h-4 w-px bg-slate-200/80 hidden sm:block" />
               <span className="text-[10px] font-extrabold tracking-[0.2em] uppercase text-[#1D95B8] bg-white px-3 py-1 rounded-full border border-slate-200/80 shadow-2xs">
-                Wahome Foundation
                 Inspire & Empower · Est. 2006
               </span>
             </div>
