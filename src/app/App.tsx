@@ -2287,4 +2287,3 @@ export default function App() {
     </div>
   );
 }
-Step 3: Push to GitHub Pages
