@@ -16,7 +16,7 @@ import mentorshipPhoto from "@/imports/mentorship.jpg";
 import dkPhoto from "@/imports/dk.jpg";
 import cynthiaPhoto from "@/imports/cynthia.jpeg";
 import georgePhoto from "@/imports/george.jpg";
-import footerLogo from "@/imports/wlogo.jfif";
+import footerLogo from "@/imports/footerlogo.png";
 import mainLogo from "@/imports/mainlogo.png";
 import marathon1 from "@/imports/marathon1.jpg";
 import marathon2 from "@/imports/marathon2.jpg";
@@ -628,87 +628,99 @@ function Footer({
       style={{ fontFamily: "'Montserrat', sans-serif" }}
     >
       <div className="max-w-6xl mx-auto">
-        {/* Soft Off-White Inset Rounded Shell (Sublime.app Aesthetic) */}
-        <div className="bg-[#F4F4F2] rounded-[32px] p-6 sm:p-10 border border-slate-200/80 shadow-sm">
-          {/* Top Brand & Social Header */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-6 border-b border-slate-300/60 gap-4">
+        {/* Inset Rounded Card Shell */}
+        <div className="bg-[#F8FAFC] rounded-[32px] p-6 sm:p-10 border border-slate-200/80 shadow-xs">
+          
+          {/* Header Bar: Logo + Social Buttons */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-6 border-b border-slate-200/80 gap-4">
             <div className="flex items-center gap-3">
               <img
                 src={footerLogo}
                 alt="Wahome Foundation Logo"
-                className="h-8 w-auto object-contain"
+                className="h-9 w-auto object-contain shrink-0"
               />
-              <div className="h-4 w-px bg-slate-300 hidden sm:block" />
-              <span className="text-[10px] tracking-widest uppercase text-[#1D95B8] font-bold">
+              <div className="h-4 w-px bg-slate-200/80 hidden sm:block" />
+              <span className="text-[10px] font-extrabold tracking-[0.2em] uppercase text-[#1D95B8] bg-white px-3 py-1 rounded-full border border-slate-200/80 shadow-2xs">
                 Inspire & Empower · Est. 2006
               </span>
             </div>
 
             <div className="flex items-center gap-2">
-              {[Facebook, Instagram, Youtube].map((Icon, i) => (
-                <button
+              {[
+                { Icon: Facebook, link: "https://facebook.com" },
+                { Icon: Instagram, link: "https://instagram.com" },
+                { Icon: Youtube, link: "https://youtube.com" },
+              ].map(({ Icon, link }, i) => (
+                <a
                   key={i}
-                  type="button"
-                  className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-700 hover:border-[#1D95B8] hover:text-[#1D95B8] transition-all shadow-sm"
+                  href={link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-9 h-9 rounded-full bg-white border border-slate-200/80 flex items-center justify-center text-slate-600 hover:border-[#1D95B8] hover:text-[#1D95B8] transition-all shadow-2xs active:scale-95"
                 >
-                  <Icon className="w-3.5 h-3.5" />
-                </button>
+                  <Icon className="w-4 h-4" />
+                </a>
               ))}
             </div>
           </div>
 
-          {/* Centered Offices Contact Section */}
-          <div className="py-6 border-b border-slate-300/60 text-center">
-            <span className="inline-block text-[10px] font-extrabold tracking-widest text-[#1D95B8] uppercase mb-4">
+          {/* Central Contact Cards Grid */}
+          <div className="py-6 border-b border-slate-200/80 text-center">
+            <span className="inline-block text-[10px] font-extrabold tracking-[0.2em] text-[#1D95B8] uppercase mb-4 bg-white px-3 py-1 rounded-full border border-slate-200/80 shadow-2xs">
               Contact Us
             </span>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl mx-auto text-xs">
-              <div className="bg-white rounded-xl py-3 px-4 border border-slate-200/80 shadow-sm flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#1D95B8]">
+              {/* Kenya HQ Card */}
+              <div className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-2xs flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 hover:border-[#1D95B8]/30 transition-all">
+                <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#1D95B8]">
                   Kenya HQ:
                 </span>
-                <span className="flex items-center gap-1 text-slate-800 text-[11px]">
-                  <MapPin className="w-3 h-3 text-[#1D95B8] shrink-0" />
+                <span className="flex items-center gap-1.5 text-slate-800 text-[11px] font-medium">
+                  <MapPin className="w-3.5 h-3.5 text-[#1D95B8] shrink-0" />
                   69 Haile Salasie Rd, Nanyuki
                 </span>
-                <span className="flex items-center gap-1 text-slate-600 text-[11px]">
-                  <Phone className="w-3 h-3 text-[#1D95B8] shrink-0" />
+                <span className="flex items-center gap-1.5 text-slate-600 text-[11px]">
+                  <Phone className="w-3.5 h-3.5 text-[#1D95B8] shrink-0" />
                   +254 700 000 000
                 </span>
-                <span className="flex items-center gap-1 text-slate-600 text-[11px]">
-                  <Mail className="w-3 h-3 text-[#1D95B8] shrink-0" />
+                <span className="flex items-center gap-1.5 text-slate-600 text-[11px]">
+                  <Mail className="w-3.5 h-3.5 text-[#1D95B8] shrink-0" />
                   info@wahomefoundation.com
                 </span>
               </div>
 
-              <div className="bg-white rounded-xl py-3 px-4 border border-slate-200/80 shadow-sm flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#1D95B8]">
+              {/* US Office Card */}
+              <div className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-2xs flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 hover:border-[#1D95B8]/30 transition-all">
+                <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#1D95B8]">
                   US Office:
                 </span>
-                <span className="flex items-center gap-1 text-slate-800 text-[11px]">
-                  <MapPin className="w-3 h-3 text-[#1D95B8] shrink-0" />
+                <span className="flex items-center gap-1.5 text-slate-800 text-[11px] font-medium">
+                  <MapPin className="w-3.5 h-3.5 text-[#1D95B8] shrink-0" />
                   560 Boston Turnpike, Shrewsbury, MA
                 </span>
-                <span className="flex items-center gap-1 text-slate-600 text-[11px]">
-                  <Mail className="w-3 h-3 text-[#1D95B8] shrink-0" />
+                <span className="flex items-center gap-1.5 text-slate-600 text-[11px]">
+                  <Mail className="w-3.5 h-3.5 text-[#1D95B8] shrink-0" />
                   info@wahomefoundation.com
                 </span>
               </div>
             </div>
           </div>
 
-          {/* Bottom Legal & Stacked Links */}
-          <div className="pt-4 flex flex-col items-center justify-center text-center text-[11px] text-slate-500 gap-1">
-            <p>© 2026 Wahome Foundation. Registered NGO & 501(c)(3) Organization.</p>
+          {/* Footer Copyright & Legal Links */}
+          <div className="pt-4 flex flex-col items-center justify-center text-center text-[11px] text-slate-500 gap-1.5">
+            <p className="font-medium">
+              © 2026 Wahome Foundation. Registered NGO & 501(c)(3) Organization.
+            </p>
             <button
               type="button"
               onClick={() => go("about")}
-              className="text-slate-600 hover:text-[#1D95B8] transition-colors font-medium hover:underline"
+              className="text-slate-600 hover:text-[#1D95B8] transition-colors font-semibold hover:underline"
             >
               Privacy & Terms
             </button>
           </div>
+
         </div>
       </div>
     </footer>
