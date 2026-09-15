@@ -719,23 +719,34 @@ function Footer({
 function PageHero({
   title,
   subtitle,
+  breadcrumb,
 }: {
   title: string;
   subtitle?: string;
   breadcrumb?: string;
 }) {
   return (
-    <div className="mb-8">
-      <div className="rounded-2xl bg-[#F4F8FA] border border-slate-200/80 p-6 sm:p-8 text-left shadow-sm">
+    <div className="mb-4 max-w-6xl mx-auto px-4 sm:px-6">
+      <div className="relative overflow-hidden rounded-[28px] bg-[#F4F8FA] border border-slate-200/80 p-6 sm:p-10 text-left shadow-sm">
+        {/* Subtle Decorative Background Glow */}
+        <div className="absolute -top-12 -right-12 w-48 h-48 bg-[#1D95B8]/10 rounded-full blur-2xl pointer-events-none" />
+
+        {/* Floating Category Pill */}
+        {breadcrumb && (
+          <span className="inline-block text-[10px] font-extrabold tracking-[0.2em] uppercase text-[#1D95B8] bg-white px-3.5 py-1.5 rounded-full border border-slate-200/80 mb-3 shadow-xs">
+            {breadcrumb}
+          </span>
+        )}
+
         <h1
-          className="font-serif text-2xl sm:text-3xl font-bold text-slate-900 leading-tight tracking-tight mb-1"
+          className="font-bold text-3xl sm:text-4xl text-[#10202B] leading-tight tracking-tight mb-2"
           style={{ fontFamily: "'Montserrat', sans-serif" }}
         >
           {title}
         </h1>
 
         {subtitle && (
-          <p className="text-slate-600 text-xs sm:text-sm leading-relaxed font-normal max-w-2xl">
+          <p className="text-[#5C6B72] text-xs sm:text-sm leading-relaxed max-w-2xl font-normal">
             {subtitle}
           </p>
         )}
@@ -1736,6 +1747,7 @@ function ScholarshipPage({
     onNav(p);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
+
   return (
     <div>
       <PageHero
@@ -1744,22 +1756,23 @@ function ScholarshipPage({
         breadcrumb="Scholarship"
       />
 
-      <section className="py-20 px-6 bg-white">
-        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center text-left">
+      {/* 1. About Section with Inset Dzianis-Style Stat Cards */}
+      <section className="py-12 px-6 bg-white">
+        <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-12 items-center text-left">
           <div>
             <SectionTag>About the Scholarship</SectionTag>
             <h2
-              className="font-serif text-3xl md:text-4xl font-bold text-[#10202B] mb-6"
+              className="text-3xl sm:text-4xl font-extrabold text-[#10202B] leading-tight mb-4"
               style={{ fontFamily: "'Montserrat', sans-serif" }}
             >
               Breaking financial barriers to education
             </h2>
-            <p className="text-[#5C6B72] leading-relaxed mb-4">
+            <p className="text-[#5C6B72] leading-relaxed text-xs sm:text-sm mb-4">
               The Thomas D.K. Wahome Scholarship is our flagship programme, providing comprehensive financial
               support for academically gifted students from low-income households in Kiambu County and
               beyond.
             </p>
-            <p className="text-[#5C6B72] leading-relaxed mb-6">
+            <p className="text-[#5C6B72] leading-relaxed text-xs sm:text-sm mb-6">
               Scholarship recipients receive full tuition cover, school supplies, examination fees, and
               ongoing pastoral support throughout their secondary education — giving them the freedom to
               focus entirely on learning.
@@ -1773,32 +1786,42 @@ function ScholarshipPage({
                 "University application guidance",
               ].map((item) => (
                 <div key={item} className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-[#1D95B8] shrink-0" />
-                  <span className="text-[#5C6B72] text-sm">{item}</span>
+                  <CheckCircle className="w-4 h-4 text-[#1D95B8] shrink-0" />
+                  <span className="text-[#5C6B72] text-xs sm:text-sm font-medium">{item}</span>
                 </div>
               ))}
             </div>
           </div>
+
           <div>
-            <img
-              src={dkPhoto}
-              alt="Scholarship students studying"
-              className="rounded-3xl w-full h-80 object-cover object-center shadow-sm"
-            />
-            <div className="grid grid-cols-3 gap-4 mt-4">
+            <div className="rounded-[28px] overflow-hidden shadow-sm border border-slate-200/80 bg-[#B9D3DE] aspect-[4/3]">
+              <img
+                src={dkPhoto}
+                alt="Scholarship students studying"
+                className="w-full h-full object-cover object-center"
+              />
+            </div>
+
+            {/* Dzianis-Style Floating Metric Cards Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
               {[
-                { n: "500+", l: "Total Scholars" },
-                { n: "94%", l: "Completion Rate" },
-                { n: "68%", l: "University Entry" },
-              ].map(({ n, l }) => (
-                <div key={l} className="bg-[#EAF6FA] rounded-xl p-4 text-center">
-                  <div
-                    className="text-2xl font-bold text-[#1D95B8]"
-                    style={{ fontFamily: "'Montserrat', sans-serif" }}
-                  >
-                    {n}
-                  </div>
-                  <div className="text-xs text-[#5C6B72] mt-1">{l}</div>
+                { number: "500+", label: "Total Scholars", tag: "Education" },
+                { number: "94%", label: "Completion Rate", tag: "Success" },
+                { number: "68%", label: "University Entry", tag: "Impact" },
+              ].map((stat, idx) => (
+                <div
+                  key={idx}
+                  className="bg-[#F8FAFC] rounded-2xl p-4 border border-slate-200/80 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 text-left"
+                >
+                  <span className="text-[9px] font-extrabold tracking-[0.18em] uppercase text-[#1D95B8] bg-[#EAF6FA] px-2 py-0.5 rounded-full border border-[#1D95B8]/15 inline-block mb-1.5">
+                    {stat.tag}
+                  </span>
+                  <h3 className="text-xl font-bold text-[#10202B] tracking-tight mb-0.5">
+                    {stat.number}
+                  </h3>
+                  <p className="text-[11px] text-[#5C6B72] font-medium leading-tight">
+                    {stat.label}
+                  </p>
                 </div>
               ))}
             </div>
@@ -1806,24 +1829,26 @@ function ScholarshipPage({
         </div>
       </section>
 
-      <section className="py-20 px-6 bg-[#EAF6FA]">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-12">
+      {/* 2. Meet Our Scholars (Bento-Inspired Testimonial Cards) */}
+      <section className="py-12 px-6 bg-[#EAF6FA]">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center max-w-xl mx-auto mb-10">
             <SectionTag>Meet Our Scholars</SectionTag>
             <h2
-              className="font-serif text-3xl font-bold text-[#10202B]"
+              className="text-2xl sm:text-3xl font-extrabold text-[#10202B] tracking-tight"
               style={{ fontFamily: "'Montserrat', sans-serif" }}
             >
               The dreams your support makes possible
             </h2>
           </div>
-          <div className="space-y-8">
+
+          <div className="space-y-4">
             {[
               {
                 name: "Alex Karani",
                 meta: "Grade 10 · Active Scholar",
                 message:
-                  "The Foundation came at a defining time when I was uncertain of my future education. They helped me join High School and gave me hope of pursuing career in Agriculture Engineer. I am grateful to the Foundation for this opportunity.",
+                  "The Foundation came at a defining time when I was uncertain of my future education. They helped me join High School and gave me hope of pursuing a career in Agricultural Engineering.",
                 photo: alexPhoto,
                 objectPosition: "object-[center_15%]",
               },
@@ -1831,7 +1856,7 @@ function ScholarshipPage({
                 name: "Jedidah Watetu",
                 meta: "Grade 10 · St Rita Kiaragana Girls",
                 message:
-                  "I got scholarship to join High School through the intervention of the Wahome Foundation, now I am in form 3 clearing Highschool next year. I am Aspiring to be a Doctor in the future. I am now able to chase my dreams thanks to the Wahome Foundation.",
+                  "I got a scholarship to join High School through the intervention of the Wahome Foundation. Now aspiring to be a Doctor in the future.",
                 photo: jedidahPhoto,
                 objectPosition: "object-[center_15%]",
               },
@@ -1839,7 +1864,7 @@ function ScholarshipPage({
                 name: "James Ndungu",
                 meta: "Grade 10 · Endarasha Boys",
                 message:
-                  "The Wahome Foundation offered me the Thomas D.K Wahome scholarship which enabled me to join Endarasha Senior school. I aspire to be a neurosurgeon in future.",
+                  "The Wahome Foundation offered me the Thomas D.K. Wahome scholarship which enabled me to join Endarasha Senior school. I aspire to be a neurosurgeon in the future.",
                 photo: jamesPhoto,
                 objectPosition: "object-[center_15%]",
               },
@@ -1847,7 +1872,7 @@ function ScholarshipPage({
                 name: "Newton Njenga",
                 meta: "Grade 10 · Kaheti Boys",
                 message:
-                  "The foundation Helped me join Highschool and now I can fulfill my aspiration of Joining the army as a Cadet officer in the future.",
+                  "The foundation helped me join Highschool and now I can fulfill my aspiration of joining the army as a Cadet officer in the future.",
                 photo: newtonPhoto,
                 objectPosition: "object-[center_15%]",
               },
@@ -1855,31 +1880,38 @@ function ScholarshipPage({
                 name: "Samuel Mutero",
                 meta: "Grade 10 · Naromuru Boys",
                 message:
-                  "I am truly Thankful to the Wahome Foundation for enabling me Join High school, their support have given me a chance to chase my dream of becoming a Biologist in the future.",
+                  "I am truly thankful to the Wahome Foundation for enabling me to join High school. Their support has given me a chance to chase my dream of becoming a Biologist.",
                 photo: samuelPhoto,
                 objectPosition: "object-[center_15%]",
               },
             ].map((s) => (
               <div
                 key={s.name}
-                className="flex flex-col sm:flex-row bg-white rounded-2xl border border-[#D6E4EA] overflow-hidden shadow-sm hover:shadow-md transition-shadow text-left"
+                className="group flex flex-col sm:flex-row bg-white rounded-[24px] border border-slate-200/80 overflow-hidden shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 text-left"
               >
-                <div className="w-full h-64 sm:w-60 sm:h-auto shrink-0 overflow-hidden bg-[#EAF6FA]">
+                <div className="w-full h-52 sm:w-52 sm:h-auto shrink-0 overflow-hidden bg-[#EAF6FA]">
                   <img
                     src={s.photo}
                     alt={s.name}
-                    className={`w-full h-full object-cover ${s.objectPosition}`}
+                    className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${s.objectPosition}`}
                   />
                 </div>
-                <div className="p-8 flex flex-col justify-center">
-                  <h3
-                    className="font-bold text-[#10202B] font-serif text-xl mb-1"
-                    style={{ fontFamily: "'Montserrat', sans-serif" }}
-                  >
-                    {s.name}
-                  </h3>
-                  <p className="text-sm text-[#1D95B8] font-medium mb-4">{s.meta}</p>
-                  <p className="text-[#5C6B72] leading-relaxed">{s.message}</p>
+                <div className="p-6 flex flex-col justify-center">
+                  <div className="flex items-center justify-between mb-1">
+                    <h3
+                      className="font-bold text-[#10202B] text-base"
+                      style={{ fontFamily: "'Montserrat', sans-serif" }}
+                    >
+                      {s.name}
+                    </h3>
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#1D95B8] bg-[#EAF6FA] px-2.5 py-0.5 rounded-full">
+                      Scholar
+                    </span>
+                  </div>
+                  <p className="text-xs text-[#1D95B8] font-semibold mb-2">{s.meta}</p>
+                  <p className="text-[#5C6B72] text-xs sm:text-sm leading-relaxed">
+                    “{s.message}”
+                  </p>
                 </div>
               </div>
             ))}
@@ -2294,11 +2326,16 @@ export default function App() {
 
   return (
     <div
-      className="min-h-screen bg-white"
+      className="min-h-screen bg-white text-[#10202B]"
       style={{ fontFamily: "'Montserrat', sans-serif" }}
     >
       <Navbar current={page} onNav={setPage} onOpenDonate={openDonate} />
-      <main>{pages[page]}</main>
+
+      {/* ──── PASTE STEP 3 MAIN WRAPPER HERE ──── */}
+      <main className="pt-28 sm:pt-32">
+        {pages[page]}
+      </main>
+
       <Footer onNav={setPage} onOpenDonate={openDonate} />
       <FloatingDonateButton onClick={openDonate} />
       <DonateModal isOpen={isDonateOpen} onClose={closeDonate} />
