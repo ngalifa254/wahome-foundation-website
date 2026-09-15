@@ -725,21 +725,23 @@ function PageHero({
   breadcrumb?: string;
 }) {
   return (
-    <section className="bg-white pt-28 pb-4 px-4 sm:px-6">
+    <section className="bg-white pt-20 pb-2 px-4 sm:px-6">
       <div className="max-w-6xl mx-auto">
-        <div className="relative rounded-2xl bg-[#F4F8FA] border border-slate-200/80 p-6 sm:p-8 text-left shadow-sm">
-          <h1
-            className="font-serif text-3xl sm:text-4xl font-bold text-slate-900 leading-tight tracking-tight mb-2"
-            style={{ fontFamily: "'Montserrat', sans-serif" }}
-          >
-            {title}
-          </h1>
+        <div className="relative rounded-xl bg-[#F4F8FA] border border-slate-200/80 py-3 px-5 sm:py-4 sm:px-6 text-left shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-4">
+          <div>
+            <h1
+              className="font-serif text-xl sm:text-2xl font-bold text-slate-900 leading-tight tracking-tight"
+              style={{ fontFamily: "'Montserrat', sans-serif" }}
+            >
+              {title}
+            </h1>
 
-          {subtitle && (
-            <p className="text-slate-600 text-sm sm:text-base leading-relaxed font-normal max-w-2xl">
-              {subtitle}
-            </p>
-          )}
+            {subtitle && (
+              <p className="text-slate-600 text-xs sm:text-sm leading-snug font-normal max-w-xl mt-0.5">
+                {subtitle}
+              </p>
+            )}
+          </div>
         </div>
       </div>
     </section>
