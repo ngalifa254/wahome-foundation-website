@@ -532,28 +532,24 @@ function Navbar({ current, onNav, onOpenDonate }: NavbarProps) {
     >
       <header className="w-full flex items-center justify-between gap-4">
         
-        {/* Left Floating Pill: Logo */}
+        {/* Left: Clean Enlarged Logo (No Background Pill) */}
         <button
           onClick={() => go("home")}
-          className={`pointer-events-auto flex items-center h-14 px-5 rounded-full border transition-all duration-300 ${
-            scrolled
-              ? "bg-[#10202B]/95 backdrop-blur-md border-white/20 shadow-2xl"
-              : "bg-[#10202B]/85 backdrop-blur-sm border-white/10 shadow-lg"
-          } hover:scale-105 active:scale-95`}
+          className="pointer-events-auto p-1 transition-transform duration-300 hover:scale-105 active:scale-95 drop-shadow-md"
         >
           <img
             src={mainLogo}
             alt="Wahome Foundation Logo"
-            className="h-9 w-auto object-contain"
+            className="h-16 sm:h-18 w-auto object-contain"
           />
         </button>
 
-        {/* Right Floating Pill: Nav Items & Action Button */}
+        {/* Right Pill: Compact Translucent Navigation Container */}
         <div
-          className={`pointer-events-auto flex items-center h-14 px-3 sm:px-4 rounded-full border transition-all duration-300 ${
+          className={`pointer-events-auto flex items-center h-12 px-3 sm:px-5 rounded-full border transition-all duration-300 ${
             scrolled
-              ? "bg-[#10202B]/95 backdrop-blur-md border-white/20 shadow-2xl"
-              : "bg-[#10202B]/85 backdrop-blur-sm border-white/10 shadow-lg"
+              ? "bg-[#10202B]/75 backdrop-blur-lg border-white/20 shadow-xl"
+              : "bg-[#10202B]/50 backdrop-blur-md border-white/15 shadow-md"
           }`}
         >
           {/* Desktop Nav Links */}
@@ -562,10 +558,10 @@ function Navbar({ current, onNav, onOpenDonate }: NavbarProps) {
               <button
                 key={l.page}
                 onClick={() => go(l.page)}
-                className={`px-4 py-2 rounded-full text-xs font-semibold tracking-wider uppercase transition-all duration-200 ${
+                className={`px-3.5 py-1.5 rounded-full text-[11px] font-bold tracking-wider uppercase transition-all duration-200 ${
                   current === l.page
                     ? "bg-[#1D95B8] text-white shadow-sm"
-                    : "text-white/80 hover:text-white hover:bg-white/10"
+                    : "text-white/85 hover:text-white hover:bg-white/10"
                 }`}
               >
                 {l.label}
@@ -573,19 +569,10 @@ function Navbar({ current, onNav, onOpenDonate }: NavbarProps) {
             ))}
           </nav>
 
-          {/* Action CTA Button */}
-          <button
-            onClick={onOpenDonate}
-            className="hidden lg:flex items-center gap-2 ml-2 px-5 py-2.5 rounded-full bg-[#0EA5E9] hover:bg-[#0284C7] text-white text-xs font-bold tracking-wider uppercase transition-all duration-300 shadow-lg hover:scale-105 active:scale-95"
-          >
-            <Heart className="w-3.5 h-3.5 fill-white" />
-            Make An Impact
-          </button>
-
           {/* Mobile Hamburger Toggle */}
           <button
             onClick={() => setOpen(!open)}
-            className="lg:hidden p-2 rounded-full text-white hover:bg-white/10 transition-colors"
+            className="lg:hidden p-1.5 rounded-full text-white hover:bg-white/10 transition-colors"
             aria-label="Toggle menu"
           >
             {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -596,7 +583,7 @@ function Navbar({ current, onNav, onOpenDonate }: NavbarProps) {
 
       {/* Mobile Menu Dropdown */}
       {open && (
-        <div className="pointer-events-auto lg:hidden mt-3 border border-white/20 bg-[#10202B]/95 backdrop-blur-md rounded-2xl p-4 flex flex-col gap-2 shadow-2xl">
+        <div className="pointer-events-auto lg:hidden mt-3 border border-white/20 bg-[#10202B]/90 backdrop-blur-lg rounded-2xl p-4 flex flex-col gap-2 shadow-2xl">
           {navLinks.map((l) => (
             <button
               key={l.page}
@@ -623,6 +610,20 @@ function Navbar({ current, onNav, onOpenDonate }: NavbarProps) {
         </div>
       )}
     </div>
+  );
+}
+
+// ─── FLOATING DONATE WIDGET (Bottom-Right Pin) ────────────────────────────────
+
+function FloatingDonateButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className="fixed bottom-6 right-6 z-40 px-5 py-3.5 rounded-full bg-[#0EA5E9] text-white font-bold text-xs uppercase tracking-wider shadow-2xl hover:bg-[#0284C7] transition-all duration-300 flex items-center gap-2 hover:scale-105 active:scale-95 border border-white/20"
+    >
+      <Heart className="w-4 h-4 fill-white" />
+      Make An Impact
+    </button>
   );
 }
 // ─── FOOTER ─────────────────────────────────────────────────
@@ -2580,13 +2581,16 @@ export default function App() {
     >
       <Navbar current={page} onNav={setPage} onOpenDonate={openDonate} />
 
-      {/* Main container without top padding allows the hero video to span top-0 */}
+      {/* Main container */}
       <main>
         {pages[page]}
       </main>
 
       <Footer onNav={setPage} onOpenDonate={openDonate} />
       <DonateModal isOpen={isDonateOpen} onClose={closeDonate} />
+      
+      {/* Floating Action CTA Widget */}
+      <FloatingDonateButton onClick={openDonate} />
     </div>
   );
 }
