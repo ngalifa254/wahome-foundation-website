@@ -491,7 +491,7 @@ function Navbar({ current, onNav, onOpenDonate }: NavbarProps) {
 
   useEffect(() => {
     const handleScroll = () => {
-      const isScrolled = window.scrollY > 10;
+      const isScrolled = window.scrollY > 20;
       setScrolled(isScrolled);
       setVisible(true);
 
@@ -524,66 +524,70 @@ function Navbar({ current, onNav, onOpenDonate }: NavbarProps) {
         if (timerRef.current) clearTimeout(timerRef.current);
       }}
       className={`fixed top-4 inset-x-0 z-50 max-w-7xl mx-auto px-4 sm:px-6 pointer-events-none transition-all duration-300 transform ${
-        visible
-          ? "translate-y-0 opacity-100"
-          : "-translate-y-20 opacity-0"
+        visible ? "translate-y-0 opacity-100" : "-translate-y-20 opacity-0"
       }`}
       style={{ fontFamily: "'Montserrat', sans-serif" }}
     >
       <header className="w-full flex items-center justify-between gap-4">
         
-        {/* Left: Clean Enlarged Logo (No Pill Container) */}
-<button
-  onClick={() => go("home")}
-  className="pointer-events-auto p-1 transition-transform duration-300 hover:scale-105 active:scale-95 drop-shadow-md"
->
-  <img
-    src={mainLogo}
-    alt="Wahome Foundation Logo"
-    className="h-16 sm:h-18 w-auto object-contain"
-  />
-</button>
+        {/* Left: Adaptive Logo (Shrinks & gains frosted glass pill on scroll to prevent text collision) */}
+        <button
+          onClick={() => go("home")}
+          className={`pointer-events-auto flex items-center transition-all duration-300 rounded-full ${
+            scrolled
+              ? "bg-[#10202B]/80 backdrop-blur-md px-4 py-1.5 border border-white/20 shadow-xl"
+              : "bg-transparent p-1"
+          } hover:scale-105 active:scale-95`}
+        >
+          <img
+            src={mainLogo}
+            alt="Wahome Foundation Logo"
+            className={`w-auto object-contain transition-all duration-300 ${
+              scrolled ? "h-9 sm:h-10" : "h-14 sm:h-16"
+            }`}
+          />
+        </button>
 
-        {/* Right Pill: Compact Translucent Navigation Container */}
-<div
-  className={`pointer-events-auto flex items-center h-12 px-3 sm:px-5 rounded-full border transition-all duration-300 ${
-    scrolled
-      ? "bg-[#10202B]/75 backdrop-blur-lg border-white/20 shadow-xl"
-      : "bg-[#10202B]/50 backdrop-blur-md border-white/15 shadow-md"
-  }`}
->
-  {/* Desktop Nav Links */}
-  <nav className="hidden lg:flex items-center gap-1">
-    {navLinks.map((l) => (
-      <button
-        key={l.page}
-        onClick={() => go(l.page)}
-        className={`px-3.5 py-1.5 rounded-full text-[11px] font-bold tracking-wider uppercase transition-all duration-200 ${
-          current === l.page
-            ? "bg-[#1D95B8] text-white shadow-sm"
-            : "text-white/85 hover:text-white hover:bg-white/10"
-        }`}
-      >
-        {l.label}
-      </button>
-    ))}
-  </nav>
+        {/* Right Pill: Ultra-Compact Translucent Navigation Container */}
+        <div
+          className={`pointer-events-auto flex items-center h-10 px-2 sm:px-3 rounded-full border transition-all duration-300 ${
+            scrolled
+              ? "bg-[#10202B]/85 backdrop-blur-lg border-white/20 shadow-xl"
+              : "bg-[#10202B]/60 backdrop-blur-md border-white/15 shadow-md"
+          }`}
+        >
+          {/* Desktop Nav Links (Tighter gaps & refined text size) */}
+          <nav className="hidden lg:flex items-center gap-0.5">
+            {navLinks.map((l) => (
+              <button
+                key={l.page}
+                onClick={() => go(l.page)}
+                className={`px-3 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase transition-all duration-200 ${
+                  current === l.page
+                    ? "bg-[#1D95B8] text-white shadow-sm"
+                    : "text-white/80 hover:text-white hover:bg-white/10"
+                }`}
+              >
+                {l.label}
+              </button>
+            ))}
+          </nav>
 
-  {/* Mobile Hamburger Toggle */}
-  <button
-    onClick={() => setOpen(!open)}
-    className="lg:hidden p-1.5 rounded-full text-white hover:bg-white/10 transition-colors"
-    aria-label="Toggle menu"
-  >
-    {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-  </button>
-</div>
+          {/* Mobile Hamburger Toggle */}
+          <button
+            onClick={() => setOpen(!open)}
+            className="lg:hidden p-1.5 rounded-full text-white hover:bg-white/10 transition-colors"
+            aria-label="Toggle menu"
+          >
+            {open ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+          </button>
+        </div>
 
       </header>
 
       {/* Mobile Menu Dropdown */}
       {open && (
-        <div className="pointer-events-auto lg:hidden mt-3 border border-white/20 bg-[#10202B]/90 backdrop-blur-lg rounded-2xl p-4 flex flex-col gap-2 shadow-2xl">
+        <div className="pointer-events-auto lg:hidden mt-3 border border-white/20 bg-[#10202B]/95 backdrop-blur-lg rounded-2xl p-4 flex flex-col gap-2 shadow-2xl">
           {navLinks.map((l) => (
             <button
               key={l.page}
