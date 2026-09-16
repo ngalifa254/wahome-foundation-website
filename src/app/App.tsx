@@ -613,18 +613,7 @@ function Navbar({ current, onNav, onOpenDonate }: NavbarProps) {
   );
 }
 
-// ─── FLOATING DONATE WIDGET (Bottom-Right Pinned CTA) ───────────────────────
 
-function FloatingDonateButton({ onClick }: { onClick: () => void }) {
-  return (
-    <button
-      onClick={onClick}
-      className="fixed bottom-6 right-6 z-40 px-5 py-3.5 rounded-full bg-[#0EA5E9] text-white font-bold text-xs uppercase tracking-wider shadow-2xl hover:bg-[#0284C7] transition-all duration-300 flex items-center gap-2 hover:scale-105 active:scale-95 border border-white/20"
-    >
-      <Heart className="w-4 h-4 fill-white" />
-      Make An Impact
-    </button>
-  )
 // ─── FOOTER ─────────────────────────────────────────────────
 
 function Footer({
