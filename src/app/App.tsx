@@ -532,17 +532,17 @@ function Navbar({ current, onNav, onOpenDonate }: NavbarProps) {
     >
       <header className="w-full flex items-center justify-between gap-4">
         
-        {/* Left: Clean Enlarged Logo (No Pill Container) */}
-<button
-  onClick={() => go("home")}
-  className="pointer-events-auto p-1 transition-transform duration-300 hover:scale-105 active:scale-95 drop-shadow-md"
->
-  <img
-    src={mainLogo}
-    alt="Wahome Foundation Logo"
-    className="h-16 sm:h-18 w-auto object-contain"
-  />
-</button>
+        {/* Left: Clear Glassmorphism Translucent Logo Pill */}
+        <button
+          onClick={() => go("home")}
+          className="pointer-events-auto flex items-center px-4 py-2 rounded-full bg-white/70 backdrop-blur-md border border-white/40 shadow-lg transition-all duration-300 hover:bg-white/85 hover:scale-105 active:scale-95"
+        >
+          <img
+            src={mainLogo}
+            alt="Wahome Foundation Logo"
+            className="h-10 sm:h-12 w-auto object-contain"
+          />
+        </button>
 
         {/* Right Pill: Compact Translucent Navigation Container */}
 <div
