@@ -2535,7 +2535,7 @@ function FloatingDonateButton({ onClick }: { onClick: () => void }) {
       className="fixed bottom-6 right-6 z-40 px-5 py-3.5 rounded-full bg-[#0EA5E9] text-white font-bold text-xs uppercase tracking-wider shadow-xl hover:bg-[#0284C7] transition-all duration-150 flex items-center gap-2 hover:scale-105"
     >
       <Heart className="w-4 h-4 fill-white" />
-      Support a Child
+      Make A Change
     </button>
   );
 }
