@@ -532,7 +532,7 @@ function Navbar({ current, onNav, onOpenDonate }: NavbarProps) {
     >
       <header className="w-full flex items-center justify-between gap-4">
         
-        {/* Left: Clean Enlarged Logo (No Background Pill) */}
+        {/* Left: Clean Enlarged Logo (No Dark Background Pill) */}
         <button
           onClick={() => go("home")}
           className="pointer-events-auto p-1 transition-transform duration-300 hover:scale-105 active:scale-95 drop-shadow-md"
@@ -2581,7 +2581,6 @@ export default function App() {
     >
       <Navbar current={page} onNav={setPage} onOpenDonate={openDonate} />
 
-      {/* Main container */}
       <main>
         {pages[page]}
       </main>
@@ -2589,7 +2588,7 @@ export default function App() {
       <Footer onNav={setPage} onOpenDonate={openDonate} />
       <DonateModal isOpen={isDonateOpen} onClose={closeDonate} />
       
-      {/* Floating Action CTA Widget */}
+      {/* Standalone Bottom Right Floating Button */}
       <FloatingDonateButton onClick={openDonate} />
     </div>
   );
