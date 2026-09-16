@@ -532,52 +532,52 @@ function Navbar({ current, onNav, onOpenDonate }: NavbarProps) {
     >
       <header className="w-full flex items-center justify-between gap-4">
         
-        {/* Left: Clean Enlarged Logo (No Dark Background Pill) */}
-        <button
-          onClick={() => go("home")}
-          className="pointer-events-auto p-1 transition-transform duration-300 hover:scale-105 active:scale-95 drop-shadow-md"
-        >
-          <img
-            src={mainLogo}
-            alt="Wahome Foundation Logo"
-            className="h-16 sm:h-18 w-auto object-contain"
-          />
-        </button>
+        {/* Left: Clean Enlarged Logo (No Pill Container) */}
+<button
+  onClick={() => go("home")}
+  className="pointer-events-auto p-1 transition-transform duration-300 hover:scale-105 active:scale-95 drop-shadow-md"
+>
+  <img
+    src={mainLogo}
+    alt="Wahome Foundation Logo"
+    className="h-16 sm:h-18 w-auto object-contain"
+  />
+</button>
 
         {/* Right Pill: Compact Translucent Navigation Container */}
-        <div
-          className={`pointer-events-auto flex items-center h-12 px-3 sm:px-5 rounded-full border transition-all duration-300 ${
-            scrolled
-              ? "bg-[#10202B]/75 backdrop-blur-lg border-white/20 shadow-xl"
-              : "bg-[#10202B]/50 backdrop-blur-md border-white/15 shadow-md"
-          }`}
-        >
-          {/* Desktop Nav Links */}
-          <nav className="hidden lg:flex items-center gap-1">
-            {navLinks.map((l) => (
-              <button
-                key={l.page}
-                onClick={() => go(l.page)}
-                className={`px-3.5 py-1.5 rounded-full text-[11px] font-bold tracking-wider uppercase transition-all duration-200 ${
-                  current === l.page
-                    ? "bg-[#1D95B8] text-white shadow-sm"
-                    : "text-white/85 hover:text-white hover:bg-white/10"
-                }`}
-              >
-                {l.label}
-              </button>
-            ))}
-          </nav>
+<div
+  className={`pointer-events-auto flex items-center h-12 px-3 sm:px-5 rounded-full border transition-all duration-300 ${
+    scrolled
+      ? "bg-[#10202B]/75 backdrop-blur-lg border-white/20 shadow-xl"
+      : "bg-[#10202B]/50 backdrop-blur-md border-white/15 shadow-md"
+  }`}
+>
+  {/* Desktop Nav Links */}
+  <nav className="hidden lg:flex items-center gap-1">
+    {navLinks.map((l) => (
+      <button
+        key={l.page}
+        onClick={() => go(l.page)}
+        className={`px-3.5 py-1.5 rounded-full text-[11px] font-bold tracking-wider uppercase transition-all duration-200 ${
+          current === l.page
+            ? "bg-[#1D95B8] text-white shadow-sm"
+            : "text-white/85 hover:text-white hover:bg-white/10"
+        }`}
+      >
+        {l.label}
+      </button>
+    ))}
+  </nav>
 
-          {/* Mobile Hamburger Toggle */}
-          <button
-            onClick={() => setOpen(!open)}
-            className="lg:hidden p-1.5 rounded-full text-white hover:bg-white/10 transition-colors"
-            aria-label="Toggle menu"
-          >
-            {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
-        </div>
+  {/* Mobile Hamburger Toggle */}
+  <button
+    onClick={() => setOpen(!open)}
+    className="lg:hidden p-1.5 rounded-full text-white hover:bg-white/10 transition-colors"
+    aria-label="Toggle menu"
+  >
+    {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+  </button>
+</div>
 
       </header>
 
@@ -613,7 +613,7 @@ function Navbar({ current, onNav, onOpenDonate }: NavbarProps) {
   );
 }
 
-// ─── FLOATING DONATE WIDGET (Bottom-Right Pin) ────────────────────────────────
+// ─── FLOATING DONATE WIDGET (Bottom-Right Pinned CTA) ───────────────────────
 
 function FloatingDonateButton({ onClick }: { onClick: () => void }) {
   return (
@@ -624,8 +624,7 @@ function FloatingDonateButton({ onClick }: { onClick: () => void }) {
       <Heart className="w-4 h-4 fill-white" />
       Make An Impact
     </button>
-  );
-}
+  )
 // ─── FOOTER ─────────────────────────────────────────────────
 
 function Footer({
