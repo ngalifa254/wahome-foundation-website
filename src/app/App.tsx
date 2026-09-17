@@ -2583,7 +2583,7 @@ function MentorshipPage({
       <section className="py-6 sm:py-8 px-6 bg-white">
         <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center text-left">
           <div>
-            <SectionTag>Get Involved</SectionTag>
+            <SectionTag>Mentorship Programme</SectionTag>
             <h2
               className="font-serif text-3xl md:text-4xl font-bold text-[#10202B] mb-6"
               style={{ fontFamily: "'Montserrat', sans-serif" }}
