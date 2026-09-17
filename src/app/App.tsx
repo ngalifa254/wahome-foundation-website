@@ -36,6 +36,24 @@ import logoSneakerama from "@/imports/sneakerama.PNG";
 import logoTufahaResort from "@/imports/tufaharesort.PNG";
 
 import { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from 'framer-motion';
+
+// Dynamically import all images inside src/imports/gallery
+const galleryImageModules = import.meta.glob<{ default: string }>('./imports/gallery/*.{png,jpg,jpeg,webp}', {
+  eager: true,
+});
+
+const galleryImages = Object.values(galleryImageModules).map((mod) => mod.default);
+
+// Utility function to shuffle array
+const shuffleArray = <T,>(array: T[]): T[] => {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+};
 
 import {
   Menu,
@@ -1157,6 +1175,97 @@ function PrizeGivingBanner({
   );
 }
 
+─── Slider Spectra Component ───────────────────────────────────────────────────
+
+
+const SliderSpectra = () => {
+  const [images, setImages] = useState<string[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    // Shuffle images on component mount
+    const randomized = shuffleArray(galleryImages);
+    setImages(randomized);
+  }, []);
+
+  if (images.length === 0) return null;
+
+  const handleNext = () => {
+    setCurrentIndex((prev) => (prev + 1) % images.length);
+  };
+
+  const handlePrev = () => {
+    setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
+  };
+
+  return (
+    <div className="relative w-full py-12 bg-[#0B0F17] rounded-3xl overflow-hidden flex flex-col items-center justify-center min-h-[500px]">
+      {/* 3D Stage Container */}
+      <div className="relative w-full max-w-4xl h-[340px] flex items-center justify-center perspective-[1000px]">
+        {images.map((imgSrc, index) => {
+          // Calculate relative position to current active card
+          let offset = index - currentIndex;
+          
+          // Handle wrap-around for smooth looping
+          if (offset < -2) offset += images.length;
+          if (offset > 2) offset -= images.length;
+
+          // Render only cards in visible range (-2 to +2)
+          if (Math.abs(offset) > 2) return null;
+
+          const isCenter = offset === 0;
+
+          return (
+            <motion.div
+              key={index}
+              onClick={() => setCurrentIndex(index)}
+              initial={false}
+              animate={{
+                x: offset * 140, // Horizontal spacing
+                scale: isCenter ? 1.05 : 0.8 - Math.abs(offset) * 0.1,
+                rotateY: offset * -25, // Fan / Coverflow angle
+                zIndex: 10 - Math.abs(offset),
+                opacity: Math.abs(offset) > 2 ? 0 : 1 - Math.abs(offset) * 0.3,
+              }}
+              transition={{ duration: 0.5, ease: [0.32, 0.72, 0, 1] }}
+              className={`absolute w-[240px] sm:w-[280px] h-[320px] rounded-2xl overflow-hidden cursor-pointer shadow-2xl transition-all duration-300 ${
+                isCenter ? 'ring-4 ring-cyan-500/50 shadow-[0_0_40px_rgba(6,182,212,0.4)]' : 'filter brightness-75'
+              }`}
+            >
+              <img
+                src={imgSrc}
+                alt={`Gallery slide ${index}`}
+                className="w-full h-full object-cover"
+              />
+            </motion.div>
+          );
+        })}
+      </div>
+
+      {/* Navigation Controls */}
+      <div className="flex items-center gap-6 mt-8 z-20">
+        <button
+          onClick={handlePrev}
+          className="p-3 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md transition-all active:scale-95"
+          aria-label="Previous image"
+        >
+          &#8592;
+        </button>
+        <span className="text-white/60 text-sm font-medium">
+          {currentIndex + 1} / {images.length}
+        </span>
+        <button
+          onClick={handleNext}
+          className="p-3 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md transition-all active:scale-95"
+          aria-label="Next image"
+        >
+          &#8594;
+        </button>
+      </div>
+    </div>
+  );
+};
+
 // ─── MEDIA ITEM DATA & CARD ───────────────────────────────────────────────────
 
 type MediaItem = {
@@ -2162,12 +2271,29 @@ function ScholarshipPage({
 
 // ─── PRIZE GIVING PAGE ────────────────────────────────────────────────────────
 
-function GalleryCarousel({
-  images,
-}: {
-  images: { src: string; caption: string }[];
-}) {
+// Dynamically import all images inside src/imports/gallery
+const galleryImageModules = import.meta.glob<{ default: string }>(
+  './imports/gallery/*.{png,jpg,jpeg,webp,PNG,JPG,JPEG}',
+  { eager: true }
+);
+
+const galleryImages = Object.values(galleryImageModules).map((mod) => mod.default);
+
+function SliderSpectra() {
+  const [images, setImages] = useState<string[]>([]);
   const [active, setActive] = useState(0);
+
+  useEffect(() => {
+    // Shuffle images on initial render
+    const shuffled = [...galleryImages];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    setImages(shuffled);
+  }, []);
+
+  if (images.length === 0) return null;
 
   const prevSlide = () => {
     setActive((curr) => (curr === 0 ? images.length - 1 : curr - 1));
@@ -2178,40 +2304,75 @@ function GalleryCarousel({
   };
 
   return (
-    <div className="relative flex items-center justify-center max-w-4xl mx-auto">
-      <button
-        type="button"
-        onClick={prevSlide}
-        aria-label="Previous image"
-        className="absolute -left-5 sm:-left-7 z-10 w-12 h-12 rounded-full bg-[#F4EFEA]/80 hover:bg-[#F4EFEA] text-[#10202B] flex items-center justify-center shadow-md transition-all hover:scale-105"
-      >
-        <ChevronLeft className="w-5 h-5" />
-      </button>
+    <div className="relative w-full py-12 px-4 bg-[#0B1015] rounded-3xl overflow-hidden shadow-2xl flex flex-col items-center">
+      {/* Background Ambient Glow */}
+      <div className="absolute inset-0 bg-gradient-to-b from-[#1D95B8]/10 via-transparent to-[#10202B]/80 pointer-events-none" />
 
-      <div className="relative w-full aspect-[16/10] sm:aspect-[16/9] rounded-3xl overflow-hidden bg-white shadow-xl border border-[#D6E4EA]">
-        {images.map((item, idx) => (
-          <div
-            key={idx}
-            className={`absolute inset-0 transition-opacity duration-500 ease-in-out ${
-              idx === active ? "opacity-100 z-0" : "opacity-0 pointer-events-none"
-            }`}
-          >
-            <img src={item.src} alt={`Gallery image ${idx + 1}`} className="w-full h-full object-cover" />
-            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent p-6 text-white text-sm font-medium">
-              {item.caption}
+      {/* 3D Stage Container */}
+      <div className="relative w-full max-w-4xl h-[320px] sm:h-[380px] flex items-center justify-center perspective-[1000px]">
+        {images.map((src, idx) => {
+          let offset = idx - active;
+
+          // Loop calculations for coverflow bounds
+          if (offset < -Math.floor(images.length / 2)) offset += images.length;
+          if (offset > Math.floor(images.length / 2)) offset -= images.length;
+
+          // Render only nearby cards for optimal rendering
+          if (Math.abs(offset) > 3) return null;
+
+          const isCenter = offset === 0;
+
+          return (
+            <div
+              key={idx}
+              onClick={() => setActive(idx)}
+              style={{
+                transform: `translateX(${offset * 120}px) scale(${
+                  isCenter ? 1.05 : 0.85 - Math.abs(offset) * 0.1
+                }) rotateY(${offset * -25}deg)`,
+                zIndex: 10 - Math.abs(offset),
+                opacity: Math.abs(offset) > 2 ? 0 : 1 - Math.abs(offset) * 0.25,
+              }}
+              className={`absolute w-[220px] sm:w-[280px] h-[280px] sm:h-[340px] rounded-2xl overflow-hidden cursor-pointer transition-all duration-500 ease-out shadow-2xl border ${
+                isCenter
+                  ? "border-[#1D95B8] shadow-[0_0_35px_rgba(29,149,184,0.45)] ring-2 ring-[#1D95B8]/50"
+                  : "border-white/10 filter brightness-75 hover:brightness-90"
+              }`}
+            >
+              <img
+                src={src}
+                alt={`Gallery image ${idx + 1}`}
+                className="w-full h-full object-cover"
+              />
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
-      <button
-        type="button"
-        onClick={nextSlide}
-        aria-label="Next image"
-        className="absolute -right-5 sm:-right-7 z-10 w-12 h-12 rounded-full bg-[#F4EFEA]/80 hover:bg-[#F4EFEA] text-[#10202B] flex items-center justify-center shadow-md transition-all hover:scale-105"
-      >
-        <ChevronRight className="w-5 h-5" />
-      </button>
+      {/* Interactive Controls */}
+      <div className="relative z-20 flex items-center gap-6 mt-6">
+        <button
+          type="button"
+          onClick={prevSlide}
+          aria-label="Previous image"
+          className="w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md border border-white/15 flex items-center justify-center transition-all hover:scale-105 active:scale-95"
+        >
+          <ChevronLeft className="w-5 h-5" />
+        </button>
+
+        <span className="text-white/70 text-xs font-semibold tracking-wider">
+          {active + 1} / {images.length}
+        </span>
+
+        <button
+          type="button"
+          onClick={nextSlide}
+          aria-label="Next image"
+          className="w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md border border-white/15 flex items-center justify-center transition-all hover:scale-105 active:scale-95"
+        >
+          <ChevronRight className="w-5 h-5" />
+        </button>
+      </div>
     </div>
   );
 }
@@ -2306,22 +2467,8 @@ function PrizePage({
             </p>
           </div>
 
-          <GalleryCarousel
-            images={[
-              {
-                src: image_Prizegiving_What_we_do,
-                caption: "Student winners receiving study materials and certificates.",
-              },
-              {
-                src: image_DSC_0445,
-                caption: "Parents and teachers gathering to celebrate scholar success.",
-              },
-              {
-                src: image_DSC_0332,
-                caption: "Community members cheering for the top performers of the year.",
-              },
-            ]}
-          />
+          {/* New Spectra Slider Component */}
+          <SliderSpectra />
         </div>
       </section>
 
