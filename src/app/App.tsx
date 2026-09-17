@@ -1695,23 +1695,12 @@ function HomePage({
 // ─── ABOUT PAGE ───────────
 
 function AboutPage({ onNav }: { onNav: (p: Page) => void }) {
-  const go = (p: Page) => {
-    onNav(p);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
   return (
-    <div>
-      <PageHero
-        title="About Wahome Foundation"
-        subtitle="Rooted in community. Driven by hope. Committed to Kenya's future."
-        breadcrumb="About Us"
-      />
-
+    <div className="pt-28 md:pt-32 min-h-screen bg-white">
       <section className="py-6 sm:py-8 px-6 bg-white">
         <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center text-left">
           <div>
-            <SectionTag>Our Story</SectionTag>
+            <SectionTag>OUR STORY</SectionTag>
             <h2
               className="font-serif text-3xl md:text-4xl font-bold text-[#10202B] mb-6"
               style={{ fontFamily: "'Montserrat', sans-serif" }}
@@ -1898,22 +1887,13 @@ function AboutPage({ onNav }: { onNav: (p: Page) => void }) {
 
 function WellsPage({
   onNav,
+  onOpenDonate,
 }: {
   onNav: (p: Page) => void;
   onOpenDonate: () => void;
 }) {
-  const go = (p: Page) => {
-    onNav(p);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
   return (
-    <div>
-      <PageHero
-        title="Wells of Hope"
-        subtitle="Clean, reliable water for the communities that need it most."
-        breadcrumb="Wells of Hope"
-      />
-
+    <div className="pt-28 md:pt-32 min-h-screen bg-white">
       <section className="py-6 sm:py-8 px-6 bg-white">
         <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center text-left">
           <div>
@@ -1975,22 +1955,10 @@ function ScholarshipPage({
   onNav: (p: Page) => void;
   onOpenDonate: () => void;
 }) {
-  const go = (p: Page) => {
-    onNav(p);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
   return (
-    <div>
-      <PageHero
-        title="Thomas D.K. Wahome Scholarship"
-        subtitle="Full tuition, materials, and exam fees for exceptional students who dare to dream."
-        breadcrumb="Scholarship"
-      />
-
-      {/* 1. About Section with Inset Dzianis-Style Stat Cards */}
-      <section className="py-12 px-6 bg-white">
-        <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-12 items-center text-left">
+    <div className="pt-28 md:pt-32 min-h-screen bg-white">
+      <section className="py-6 sm:py-8 px-6 bg-white">
+        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center text-left">
           <div>
             <SectionTag>About the Scholarship</SectionTag>
             <h2
@@ -2377,19 +2345,8 @@ function PrizePage({
   onNav: (p: Page) => void;
   onOpenDonate: () => void;
 }) {
-  const go = (p: Page) => {
-    onNav(p);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
   return (
-    <div>
-      <PageHero
-        title="Prize Giving Day"
-        subtitle="Celebrating academic excellence, resilience, and inspiring the next generation of Kenyan leaders."
-        breadcrumb="Prize Giving"
-      />
-
+    <div className="pt-28 md:pt-32 min-h-screen bg-white">
       <section className="py-6 sm:py-8 px-6 bg-white">
         <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center text-left">
           <div>
@@ -2545,19 +2502,8 @@ function MentorshipPage({
   onNav: (p: Page) => void;
   onOpenDonate: () => void;
 }) {
-  const go = (p: Page) => {
-    onNav(p);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
   return (
-    <div>
-      <PageHero
-        title="Mentorship Programme"
-        subtitle="Connecting skilled Kenyan professionals with U.S. employers for meaningful, fully remote work — no relocation required."
-        breadcrumb="Mentorship"
-      />
-
+    <div className="pt-28 md:pt-32 min-h-screen bg-white">
       <section className="py-6 sm:py-8 px-6 bg-white">
         <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center text-left">
           <div>
