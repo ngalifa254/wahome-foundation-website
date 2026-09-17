@@ -2205,7 +2205,6 @@ function SliderSpectra() {
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
-  // Load and shuffle images on mount
   useEffect(() => {
     if (allGalleryImages.length > 0) {
       const shuffled = [...allGalleryImages];
@@ -2217,40 +2216,31 @@ function SliderSpectra() {
     }
   }, []);
 
-  // Continuous Auto-Scroll Effect
   useEffect(() => {
     if (!isAutoPlaying || images.length === 0 || selectedImage !== null) return;
-
     const timer = setInterval(() => {
       setActive((curr) => (curr === images.length - 1 ? 0 : curr + 1));
-    }, 3500); // Transitions every 3.5 seconds
-
+    }, 3500);
     return () => clearInterval(timer);
   }, [isAutoPlaying, images.length, selectedImage]);
 
   if (images.length === 0) return null;
 
-  const prevSlide = () => {
-    setActive((curr) => (curr === 0 ? images.length - 1 : curr - 1));
-  };
-
-  const nextSlide = () => {
-    setActive((curr) => (curr === images.length - 1 ? 0 : curr + 1));
-  };
+  const prevSlide = () => setActive((curr) => (curr === 0 ? images.length - 1 : curr - 1));
+  const nextSlide = () => setActive((curr) => (curr === images.length - 1 ? 0 : curr + 1));
 
   return (
     <>
       <div 
-        className="relative w-full py-8 px-2 flex flex-col items-center"
+        className="relative w-full flex flex-col items-center"
         onMouseEnter={() => setIsAutoPlaying(false)}
         onMouseLeave={() => setIsAutoPlaying(true)}
       >
-        {/* 3D Coverflow Stage */}
-        <div className="relative w-full max-w-5xl h-[420px] sm:h-[480px] flex items-center justify-center perspective-[1200px]">
+        {/* Compact 3D Stage Height */}
+        <div className="relative w-full max-w-5xl h-[300px] sm:h-[340px] flex items-center justify-center perspective-[1000px]">
           {images.map((src, idx) => {
             let offset = idx - active;
 
-            // Continuous loop offset bounds
             if (offset < -Math.floor(images.length / 2)) offset += images.length;
             if (offset > Math.floor(images.length / 2)) offset -= images.length;
 
@@ -2261,78 +2251,65 @@ function SliderSpectra() {
             return (
               <div
                 key={idx}
-                onClick={() => {
-                  if (isCenter) {
-                    setSelectedImage(src);
-                  } else {
-                    setActive(idx);
-                  }
-                }}
+                onClick={() => (isCenter ? setSelectedImage(src) : setActive(idx))}
                 style={{
-                  transform: `translateX(${offset * 160}px) scale(${
-                    isCenter ? 1.1 : 0.88 - Math.abs(offset) * 0.08
-                  }) rotateY(${offset * -20}deg)`,
+                  transform: `translateX(${offset * 140}px) scale(${
+                    isCenter ? 1.05 : 0.85 - Math.abs(offset) * 0.08
+                  }) rotateY(${offset * -18}deg)`,
                   zIndex: 10 - Math.abs(offset),
                   opacity: Math.abs(offset) > 2 ? 0 : 1 - Math.abs(offset) * 0.25,
                 }}
-                className={`absolute w-[280px] sm:w-[360px] h-[360px] sm:h-[440px] rounded-3xl overflow-hidden cursor-pointer transition-all duration-500 ease-out shadow-xl border ${
+                className={`absolute w-[220px] sm:w-[270px] h-[270px] sm:h-[320px] rounded-2xl overflow-hidden cursor-pointer transition-all duration-500 ease-out shadow-lg border ${
                   isCenter
-                    ? "border-[#1D95B8] shadow-[0_15px_35px_rgba(29,149,184,0.3)] ring-4 ring-[#1D95B8]/30"
+                    ? "border-[#1D95B8] shadow-[0_10px_25px_rgba(29,149,184,0.3)] ring-2 ring-[#1D95B8]/30"
                     : "border-gray-200/50 filter brightness-90 hover:brightness-100"
                 }`}
               >
-                <img
-                  src={src}
-                  alt={`Gallery image ${idx + 1}`}
-                  className="w-full h-full object-cover"
-                />
+                <img src={src} alt={`Gallery image ${idx + 1}`} className="w-full h-full object-cover" />
               </div>
             );
           })}
         </div>
 
-        {/* Clean Controls (No Photo Numbering Counter) */}
-        <div className="relative z-20 flex items-center gap-4 mt-8">
+        {/* Compact Controls */}
+        <div className="relative z-20 flex items-center gap-4 mt-3">
           <button
             type="button"
             onClick={prevSlide}
             aria-label="Previous image"
-            className="w-12 h-12 rounded-full bg-white hover:bg-[#EAF6FA] text-[#10202B] border border-[#D6E4EA] shadow-md flex items-center justify-center transition-all hover:scale-105 active:scale-95"
+            className="w-10 h-10 rounded-full bg-white hover:bg-[#EAF6FA] text-[#10202B] border border-[#D6E4EA] shadow-md flex items-center justify-center transition-all hover:scale-105 active:scale-95"
           >
-            <ChevronLeft className="w-6 h-6" />
+            <ChevronLeft className="w-5 h-5" />
           </button>
-
           <button
             type="button"
             onClick={nextSlide}
             aria-label="Next image"
-            className="w-12 h-12 rounded-full bg-white hover:bg-[#EAF6FA] text-[#10202B] border border-[#D6E4EA] shadow-md flex items-center justify-center transition-all hover:scale-105 active:scale-95"
+            className="w-12 h-10 rounded-full bg-white hover:bg-[#EAF6FA] text-[#10202B] border border-[#D6E4EA] shadow-md flex items-center justify-center transition-all hover:scale-105 active:scale-95"
           >
-            <ChevronRight className="w-6 h-6" />
+            <ChevronRight className="w-5 h-5" />
           </button>
         </div>
       </div>
 
-      {/* Full Screen Image Modal */}
+      {/* Full Screen Modal */}
       {selectedImage && (
         <div
-          className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4 transition-opacity animate-fadeIn"
+          className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4"
           onClick={() => setSelectedImage(null)}
         >
           <button
             type="button"
             onClick={() => setSelectedImage(null)}
-            className="absolute top-6 right-6 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-all border border-white/20"
-            aria-label="Close full screen view"
+            className="absolute top-6 right-6 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center border border-white/20"
           >
             <X className="w-6 h-6" />
           </button>
-
           <img
             src={selectedImage}
             alt="Full screen view"
             className="max-w-full max-h-[90vh] object-contain rounded-2xl shadow-2xl"
-            onClick={(e) => e.stopPropagation()} // Prevent clicking image from closing modal
+            onClick={(e) => e.stopPropagation()}
           />
         </div>
       )}
