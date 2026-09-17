@@ -626,6 +626,20 @@ function Navbar({ current, onNav, onOpenDonate }: NavbarProps) {
   );
 }
 
+// ─── PAGE HERO COMPONENT ──────────────────────────────────────────────────────
+
+function PageHero({
+  title,
+  subtitle,
+  breadcrumb,
+}: {
+  title?: string;
+  subtitle?: string;
+  breadcrumb?: string;
+}) {
+  // Returning null strips the sub-banner section across all pages
+  return null;
+}
 
 // ─── FOOTER ─────────────────────────────────────────────────
 
