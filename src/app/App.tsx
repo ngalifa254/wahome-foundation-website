@@ -2178,39 +2178,62 @@ function ScholarshipPage({
 
 // ─── PRIZE GIVING PAGE ────────────────────────────────────────────────────────
 
-// Dynamically import gallery photos
+// 1. Dynamic glob import for Vite
 const galleryImageModules = import.meta.glob<{ default: string }>(
-  './imports/gallery/*.{png,jpg,jpeg,webp,PNG,JPG,JPEG}',
+  '../imports/gallery/*.{png,jpg,jpeg,webp,PNG,JPG,JPEG}',
   { eager: true }
 );
 
-const galleryImages = Object.values(galleryImageModules).map((mod) => mod.default);
+const dynamicImages = Object.values(galleryImageModules).map((mod) => mod.default);
 
+// 2. Fallback static imports matching files in your src/imports/gallery folder
+import img_0011 from "../imports/gallery/DSC_0011.jpg";
+import img_0019 from "../imports/gallery/DSC_0019.jpg";
+import img_0029 from "../imports/gallery/DSC_0029.jpg";
+import img_0030 from "../imports/gallery/DSC_0030.jpg";
+import img_0048 from "../imports/gallery/DSC_0048.jpg";
+import img_0067 from "../imports/gallery/DSC_0067.jpg";
 
+const fallbackImages = [img_0011, img_0019, img_0029, img_0030, img_0048, img_0067];
+
+// Combine dynamic glob results with fallbacks
+const allGalleryImages = dynamicImages.length > 0 ? dynamicImages : fallbackImages;
 
 function SliderSpectra() {
   const [images, setImages] = useState<string[]>([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [active, setActive] = useState(0);
 
   useEffect(() => {
-    setImages(shuffleArray(galleryImages));
+    // Fisher-Yates array shuffle on component mount
+    const shuffled = [...allGalleryImages];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    setImages(shuffled);
   }, []);
 
   if (images.length === 0) return null;
 
-  const handleNext = () => setCurrentIndex((prev) => (prev + 1) % images.length);
-  const handlePrev = () => setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
+  const prevSlide = () => {
+    setActive((curr) => (curr === 0 ? images.length - 1 : curr - 1));
+  };
+
+  const nextSlide = () => {
+    setActive((curr) => (curr === images.length - 1 ? 0 : curr + 1));
+  };
 
   return (
-    <div className="relative w-full py-12 px-4 bg-[#0B0F17] rounded-3xl overflow-hidden shadow-2xl flex flex-col items-center justify-center min-h-[460px]">
+    <div className="relative w-full py-12 px-4 bg-[#0B1015] rounded-3xl overflow-hidden shadow-2xl flex flex-col items-center">
       {/* Background Stage Ambient Glow */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[#1D95B8]/15 via-transparent to-[#10202B]/90 pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-b from-[#1D95B8]/20 via-transparent to-[#10202B]/90 pointer-events-none" />
 
-      {/* 3D Coverflow Container */}
-      <div className="relative w-full max-w-4xl h-[320px] sm:h-[360px] flex items-center justify-center perspective-[1000px]">
+      {/* 3D Coverflow Stage */}
+      <div className="relative w-full max-w-4xl h-[320px] sm:h-[380px] flex items-center justify-center perspective-[1000px]">
         {images.map((src, idx) => {
-          let offset = idx - currentIndex;
+          let offset = idx - active;
 
+          // Continuous loop calculations
           if (offset < -Math.floor(images.length / 2)) offset += images.length;
           if (offset > Math.floor(images.length / 2)) offset -= images.length;
 
@@ -2221,15 +2244,15 @@ function SliderSpectra() {
           return (
             <div
               key={idx}
-              onClick={() => setCurrentIndex(idx)}
+              onClick={() => setActive(idx)}
               style={{
-                transform: `translateX(${offset * 125}px) scale(${
-                  isCenter ? 1.05 : 0.85 - Math.abs(offset) * 0.1
+                transform: `translateX(${offset * 130}px) scale(${
+                  isCenter ? 1.08 : 0.85 - Math.abs(offset) * 0.08
                 }) rotateY(${offset * -22}deg)`,
                 zIndex: 10 - Math.abs(offset),
                 opacity: Math.abs(offset) > 2 ? 0 : 1 - Math.abs(offset) * 0.25,
               }}
-              className={`absolute w-[220px] sm:w-[270px] h-[280px] sm:h-[330px] rounded-2xl overflow-hidden cursor-pointer transition-all duration-500 ease-out shadow-2xl border ${
+              className={`absolute w-[220px] sm:w-[280px] h-[280px] sm:h-[340px] rounded-2xl overflow-hidden cursor-pointer transition-all duration-500 ease-out shadow-2xl border ${
                 isCenter
                   ? "border-[#1D95B8] shadow-[0_0_40px_rgba(29,149,184,0.45)] ring-2 ring-[#1D95B8]/50"
                   : "border-white/10 filter brightness-75 hover:brightness-90"
@@ -2246,10 +2269,10 @@ function SliderSpectra() {
       </div>
 
       {/* Navigation Controls */}
-      <div className="relative z-20 flex items-center gap-6 mt-8">
+      <div className="relative z-20 flex items-center gap-6 mt-6">
         <button
           type="button"
-          onClick={handlePrev}
+          onClick={prevSlide}
           aria-label="Previous image"
           className="w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md border border-white/15 flex items-center justify-center transition-all hover:scale-105 active:scale-95"
         >
@@ -2257,12 +2280,12 @@ function SliderSpectra() {
         </button>
 
         <span className="text-white/70 text-xs font-semibold tracking-wider">
-          {currentIndex + 1} / {images.length}
+          {active + 1} / {images.length}
         </span>
 
         <button
           type="button"
-          onClick={handleNext}
+          onClick={nextSlide}
           aria-label="Next image"
           className="w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md border border-white/15 flex items-center justify-center transition-all hover:scale-105 active:scale-95"
         >
@@ -2272,6 +2295,7 @@ function SliderSpectra() {
     </div>
   );
 }
+
 function PrizePage({
   onNav,
   onOpenDonate,
