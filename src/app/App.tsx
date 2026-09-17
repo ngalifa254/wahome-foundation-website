@@ -2203,7 +2203,7 @@ function SliderSpectra() {
   const [images, setImages] = useState<string[]>([]);
   const [active, setActive] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
 
   useEffect(() => {
     if (allGalleryImages.length > 0) {
@@ -2216,13 +2216,46 @@ function SliderSpectra() {
     }
   }, []);
 
+  // Continuous Auto-Scroll Effect (Paused when hovering or modal open)
   useEffect(() => {
-    if (!isAutoPlaying || images.length === 0 || selectedImage !== null) return;
+    if (!isAutoPlaying || images.length === 0 || selectedImageIndex !== null) return;
     const timer = setInterval(() => {
       setActive((curr) => (curr === images.length - 1 ? 0 : curr + 1));
     }, 3500);
     return () => clearInterval(timer);
-  }, [isAutoPlaying, images.length, selectedImage]);
+  }, [isAutoPlaying, images.length, selectedImageIndex]);
+
+  // Full-Screen Modal Keyboard Controls (Arrow Keys & Escape)
+  useEffect(() => {
+    if (selectedImageIndex === null) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "ArrowRight") {
+        setSelectedImageIndex((prev) => (prev !== null ? (prev + 1) % images.length : 0));
+      } else if (e.key === "ArrowLeft") {
+        setSelectedImageIndex((prev) =>
+          prev !== null ? (prev - 1 + images.length) % images.length : 0
+        );
+      } else if (e.key === "Escape") {
+        setSelectedImageIndex(null);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedImageIndex, images.length]);
+
+  // Full-Screen Modal Mouse Wheel Scroll Handler
+  const handleModalWheel = (e: React.WheelEvent) => {
+    if (selectedImageIndex === null) return;
+    if (e.deltaY > 0) {
+      setSelectedImageIndex((prev) => (prev !== null ? (prev + 1) % images.length : 0));
+    } else if (e.deltaY < 0) {
+      setSelectedImageIndex((prev) =>
+        prev !== null ? (prev - 1 + images.length) % images.length : 0
+      );
+    }
+  };
 
   if (images.length === 0) return null;
 
@@ -2236,7 +2269,7 @@ function SliderSpectra() {
         onMouseEnter={() => setIsAutoPlaying(false)}
         onMouseLeave={() => setIsAutoPlaying(true)}
       >
-        {/* Compact 3D Stage Height */}
+        {/* Compact 3D Coverflow Stage */}
         <div className="relative w-full max-w-5xl h-[300px] sm:h-[340px] flex items-center justify-center perspective-[1000px]">
           {images.map((src, idx) => {
             let offset = idx - active;
@@ -2251,7 +2284,13 @@ function SliderSpectra() {
             return (
               <div
                 key={idx}
-                onClick={() => (isCenter ? setSelectedImage(src) : setActive(idx))}
+                onClick={() => {
+                  if (isCenter) {
+                    setSelectedImageIndex(idx);
+                  } else {
+                    setActive(idx);
+                  }
+                }}
                 style={{
                   transform: `translateX(${offset * 140}px) scale(${
                     isCenter ? 1.05 : 0.85 - Math.abs(offset) * 0.08
@@ -2271,7 +2310,7 @@ function SliderSpectra() {
           })}
         </div>
 
-        {/* Compact Controls */}
+        {/* Navigation Buttons */}
         <div className="relative z-20 flex items-center gap-4 mt-3">
           <button
             type="button"
@@ -2285,32 +2324,68 @@ function SliderSpectra() {
             type="button"
             onClick={nextSlide}
             aria-label="Next image"
-            className="w-12 h-10 rounded-full bg-white hover:bg-[#EAF6FA] text-[#10202B] border border-[#D6E4EA] shadow-md flex items-center justify-center transition-all hover:scale-105 active:scale-95"
+            className="w-10 h-10 rounded-full bg-white hover:bg-[#EAF6FA] text-[#10202B] border border-[#D6E4EA] shadow-md flex items-center justify-center transition-all hover:scale-105 active:scale-95"
           >
             <ChevronRight className="w-5 h-5" />
           </button>
         </div>
       </div>
 
-      {/* Full Screen Modal */}
-      {selectedImage && (
+      {/* Interactive Full-Screen Lightbox Modal */}
+      {selectedImageIndex !== null && (
         <div
-          className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4"
-          onClick={() => setSelectedImage(null)}
+          className="fixed inset-0 z-50 bg-black/92 backdrop-blur-md flex items-center justify-center p-4 select-none"
+          onClick={() => setSelectedImageIndex(null)}
+          onWheel={handleModalWheel}
         >
+          {/* Close Button */}
           <button
             type="button"
-            onClick={() => setSelectedImage(null)}
-            className="absolute top-6 right-6 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center border border-white/20"
+            onClick={() => setSelectedImageIndex(null)}
+            className="absolute top-6 right-6 z-50 w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center border border-white/20 transition-all hover:scale-105"
+            aria-label="Close full screen view"
           >
             <X className="w-6 h-6" />
           </button>
+
+          {/* Full Screen Prev Arrow */}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setSelectedImageIndex((prev) => (prev !== null ? (prev - 1 + images.length) % images.length : 0));
+            }}
+            className="absolute left-6 z-50 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/20 flex items-center justify-center transition-all hover:scale-110 active:scale-95"
+            aria-label="Previous photo"
+          >
+            <ChevronLeft className="w-7 h-7" />
+          </button>
+
+          {/* Active Image */}
           <img
-            src={selectedImage}
-            alt="Full screen view"
-            className="max-w-full max-h-[90vh] object-contain rounded-2xl shadow-2xl"
+            src={images[selectedImageIndex]}
+            alt={`Full screen view ${selectedImageIndex + 1}`}
+            className="max-w-full max-h-[88vh] object-contain rounded-2xl shadow-2xl transition-all duration-300"
             onClick={(e) => e.stopPropagation()}
           />
+
+          {/* Full Screen Next Arrow */}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setSelectedImageIndex((prev) => (prev !== null ? (prev + 1) % images.length : 0));
+            }}
+            className="absolute right-6 z-50 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/20 flex items-center justify-center transition-all hover:scale-110 active:scale-95"
+            aria-label="Next photo"
+          >
+            <ChevronRight className="w-7 h-7" />
+          </button>
+
+          {/* Helper Instruction Prompt */}
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-white/50 text-xs font-medium tracking-wide bg-black/40 px-4 py-2 rounded-full border border-white/10">
+            Scroll mouse wheel or press ← / → to navigate • Esc to close
+          </div>
         </div>
       )}
     </>
