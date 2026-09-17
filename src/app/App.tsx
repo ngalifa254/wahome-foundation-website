@@ -2186,15 +2186,7 @@ const galleryImageModules = import.meta.glob<{ default: string }>(
 
 const galleryImages = Object.values(galleryImageModules).map((mod) => mod.default);
 
-// Fisher-Yates shuffle
-const shuffleArray = <T,>(array: T[]): T[] => {
-  const shuffled = [...array];
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-  }
-  return shuffled;
-};
+
 
 function SliderSpectra() {
   const [images, setImages] = useState<string[]>([]);
