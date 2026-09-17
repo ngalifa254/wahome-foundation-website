@@ -2204,13 +2204,14 @@ function SliderSpectra() {
   const [active, setActive] = useState(0);
 
   useEffect(() => {
-    // Fisher-Yates array shuffle on component mount
-    const shuffled = [...allGalleryImages];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    if (allGalleryImages.length > 0) {
+      const shuffled = [...allGalleryImages];
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+      setImages(shuffled);
     }
-    setImages(shuffled);
   }, []);
 
   if (images.length === 0) return null;
@@ -2224,12 +2225,9 @@ function SliderSpectra() {
   };
 
   return (
-    <div className="relative w-full py-12 px-4 bg-[#0B1015] rounded-3xl overflow-hidden shadow-2xl flex flex-col items-center">
-      {/* Background Stage Ambient Glow */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[#1D95B8]/20 via-transparent to-[#10202B]/90 pointer-events-none" />
-
+    <div className="relative w-full py-8 px-2 flex flex-col items-center">
       {/* 3D Coverflow Stage */}
-      <div className="relative w-full max-w-4xl h-[320px] sm:h-[380px] flex items-center justify-center perspective-[1000px]">
+      <div className="relative w-full max-w-5xl h-[420px] sm:h-[480px] flex items-center justify-center perspective-[1200px]">
         {images.map((src, idx) => {
           let offset = idx - active;
 
@@ -2246,16 +2244,16 @@ function SliderSpectra() {
               key={idx}
               onClick={() => setActive(idx)}
               style={{
-                transform: `translateX(${offset * 130}px) scale(${
-                  isCenter ? 1.08 : 0.85 - Math.abs(offset) * 0.08
-                }) rotateY(${offset * -22}deg)`,
+                transform: `translateX(${offset * 160}px) scale(${
+                  isCenter ? 1.1 : 0.88 - Math.abs(offset) * 0.08
+                }) rotateY(${offset * -20}deg)`,
                 zIndex: 10 - Math.abs(offset),
                 opacity: Math.abs(offset) > 2 ? 0 : 1 - Math.abs(offset) * 0.25,
               }}
-              className={`absolute w-[220px] sm:w-[280px] h-[280px] sm:h-[340px] rounded-2xl overflow-hidden cursor-pointer transition-all duration-500 ease-out shadow-2xl border ${
+              className={`absolute w-[280px] sm:w-[360px] h-[360px] sm:h-[440px] rounded-3xl overflow-hidden cursor-pointer transition-all duration-500 ease-out shadow-xl border ${
                 isCenter
-                  ? "border-[#1D95B8] shadow-[0_0_40px_rgba(29,149,184,0.45)] ring-2 ring-[#1D95B8]/50"
-                  : "border-white/10 filter brightness-75 hover:brightness-90"
+                  ? "border-[#1D95B8] shadow-[0_15px_35px_rgba(29,149,184,0.3)] ring-4 ring-[#1D95B8]/30"
+                  : "border-gray-200/50 filter brightness-90 hover:brightness-100"
               }`}
             >
               <img
@@ -2268,28 +2266,24 @@ function SliderSpectra() {
         })}
       </div>
 
-      {/* Navigation Controls */}
-      <div className="relative z-20 flex items-center gap-6 mt-6">
+      {/* Navigation Buttons Only */}
+      <div className="relative z-20 flex items-center gap-4 mt-8">
         <button
           type="button"
           onClick={prevSlide}
           aria-label="Previous image"
-          className="w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md border border-white/15 flex items-center justify-center transition-all hover:scale-105 active:scale-95"
+          className="w-12 h-12 rounded-full bg-white hover:bg-[#EAF6FA] text-[#10202B] border border-[#D6E4EA] shadow-md flex items-center justify-center transition-all hover:scale-105 active:scale-95"
         >
-          <ChevronLeft className="w-5 h-5" />
+          <ChevronLeft className="w-6 h-6" />
         </button>
-
-        <span className="text-white/70 text-xs font-semibold tracking-wider">
-          {active + 1} / {images.length}
-        </span>
 
         <button
           type="button"
           onClick={nextSlide}
           aria-label="Next image"
-          className="w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md border border-white/15 flex items-center justify-center transition-all hover:scale-105 active:scale-95"
+          className="w-12 h-12 rounded-full bg-white hover:bg-[#EAF6FA] text-[#10202B] border border-[#D6E4EA] shadow-md flex items-center justify-center transition-all hover:scale-105 active:scale-95"
         >
-          <ChevronRight className="w-5 h-5" />
+          <ChevronRight className="w-6 h-6" />
         </button>
       </div>
     </div>
