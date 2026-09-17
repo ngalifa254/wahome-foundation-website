@@ -2178,7 +2178,7 @@ function ScholarshipPage({
 
 // ─── PRIZE GIVING PAGE ────────────────────────────────────────────────────────
 
-// Dynamically import all images inside src/imports/gallery
+// Dynamically import gallery photos
 const galleryImageModules = import.meta.glob<{ default: string }>(
   './imports/gallery/*.{png,jpg,jpeg,webp,PNG,JPG,JPEG}',
   { eager: true }
@@ -2186,45 +2186,42 @@ const galleryImageModules = import.meta.glob<{ default: string }>(
 
 const galleryImages = Object.values(galleryImageModules).map((mod) => mod.default);
 
+// Fisher-Yates shuffle
+const shuffleArray = <T,>(array: T[]): T[] => {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+};
+
 function SliderSpectra() {
   const [images, setImages] = useState<string[]>([]);
-  const [active, setActive] = useState(0);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
-    // Shuffle images on initial render
-    const shuffled = [...galleryImages];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-    setImages(shuffled);
+    setImages(shuffleArray(galleryImages));
   }, []);
 
   if (images.length === 0) return null;
 
-  const prevSlide = () => {
-    setActive((curr) => (curr === 0 ? images.length - 1 : curr - 1));
-  };
-
-  const nextSlide = () => {
-    setActive((curr) => (curr === images.length - 1 ? 0 : curr + 1));
-  };
+  const handleNext = () => setCurrentIndex((prev) => (prev + 1) % images.length);
+  const handlePrev = () => setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
 
   return (
-    <div className="relative w-full py-12 px-4 bg-[#0B1015] rounded-3xl overflow-hidden shadow-2xl flex flex-col items-center">
-      {/* Background Ambient Glow */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[#1D95B8]/10 via-transparent to-[#10202B]/80 pointer-events-none" />
+    <div className="relative w-full py-12 px-4 bg-[#0B0F17] rounded-3xl overflow-hidden shadow-2xl flex flex-col items-center justify-center min-h-[460px]">
+      {/* Background Stage Ambient Glow */}
+      <div className="absolute inset-0 bg-gradient-to-b from-[#1D95B8]/15 via-transparent to-[#10202B]/90 pointer-events-none" />
 
-      {/* 3D Stage Container */}
-      <div className="relative w-full max-w-4xl h-[320px] sm:h-[380px] flex items-center justify-center perspective-[1000px]">
+      {/* 3D Coverflow Container */}
+      <div className="relative w-full max-w-4xl h-[320px] sm:h-[360px] flex items-center justify-center perspective-[1000px]">
         {images.map((src, idx) => {
-          let offset = idx - active;
+          let offset = idx - currentIndex;
 
-          // Loop calculations for coverflow bounds
           if (offset < -Math.floor(images.length / 2)) offset += images.length;
           if (offset > Math.floor(images.length / 2)) offset -= images.length;
 
-          // Render only nearby cards for optimal rendering
           if (Math.abs(offset) > 3) return null;
 
           const isCenter = offset === 0;
@@ -2232,17 +2229,17 @@ function SliderSpectra() {
           return (
             <div
               key={idx}
-              onClick={() => setActive(idx)}
+              onClick={() => setCurrentIndex(idx)}
               style={{
-                transform: `translateX(${offset * 120}px) scale(${
+                transform: `translateX(${offset * 125}px) scale(${
                   isCenter ? 1.05 : 0.85 - Math.abs(offset) * 0.1
-                }) rotateY(${offset * -25}deg)`,
+                }) rotateY(${offset * -22}deg)`,
                 zIndex: 10 - Math.abs(offset),
                 opacity: Math.abs(offset) > 2 ? 0 : 1 - Math.abs(offset) * 0.25,
               }}
-              className={`absolute w-[220px] sm:w-[280px] h-[280px] sm:h-[340px] rounded-2xl overflow-hidden cursor-pointer transition-all duration-500 ease-out shadow-2xl border ${
+              className={`absolute w-[220px] sm:w-[270px] h-[280px] sm:h-[330px] rounded-2xl overflow-hidden cursor-pointer transition-all duration-500 ease-out shadow-2xl border ${
                 isCenter
-                  ? "border-[#1D95B8] shadow-[0_0_35px_rgba(29,149,184,0.45)] ring-2 ring-[#1D95B8]/50"
+                  ? "border-[#1D95B8] shadow-[0_0_40px_rgba(29,149,184,0.45)] ring-2 ring-[#1D95B8]/50"
                   : "border-white/10 filter brightness-75 hover:brightness-90"
               }`}
             >
@@ -2256,11 +2253,11 @@ function SliderSpectra() {
         })}
       </div>
 
-      {/* Interactive Controls */}
-      <div className="relative z-20 flex items-center gap-6 mt-6">
+      {/* Navigation Controls */}
+      <div className="relative z-20 flex items-center gap-6 mt-8">
         <button
           type="button"
-          onClick={prevSlide}
+          onClick={handlePrev}
           aria-label="Previous image"
           className="w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md border border-white/15 flex items-center justify-center transition-all hover:scale-105 active:scale-95"
         >
@@ -2268,12 +2265,12 @@ function SliderSpectra() {
         </button>
 
         <span className="text-white/70 text-xs font-semibold tracking-wider">
-          {active + 1} / {images.length}
+          {currentIndex + 1} / {images.length}
         </span>
 
         <button
           type="button"
-          onClick={nextSlide}
+          onClick={handleNext}
           aria-label="Next image"
           className="w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md border border-white/15 flex items-center justify-center transition-all hover:scale-105 active:scale-95"
         >
@@ -2283,7 +2280,6 @@ function SliderSpectra() {
     </div>
   );
 }
-
 function PrizePage({
   onNav,
   onOpenDonate,
