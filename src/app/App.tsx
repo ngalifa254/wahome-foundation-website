@@ -479,7 +479,7 @@ function DonateModal({
   );
 }
 
-// ─── FLOATING SPLIT PILL NAVBAR (IntegratedBio Inspired) ────────────────────
+// ─── FLOATING SPLIT PILL NAVBAR ────────────────────
 
 interface NavbarProps {
   current: Page;
@@ -745,43 +745,7 @@ function Footer({
   );
 }
 
-// ─── Inner page hero ─────────────────────────────────────────────────────────
 
-function PageHero({
-  title,
-  subtitle,
-  breadcrumb,
-}: {
-  title: string;
-  subtitle?: string;
-  breadcrumb?: string;
-}) {
-  return (
-    <div className="pt-24 sm:pt-26 mb-2 max-w-6xl mx-auto px-4 sm:px-6">
-      <div className="relative overflow-hidden rounded-2xl bg-[#F4F8FA] border border-slate-200/80 px-5 py-3 flex flex-wrap items-center justify-between gap-2 shadow-xs">
-        <div className="flex items-center gap-3">
-          {breadcrumb && (
-            <span className="text-[10px] font-extrabold tracking-[0.18em] uppercase text-[#1D95B8] bg-white px-2.5 py-0.5 rounded-full border border-slate-200/80 shrink-0">
-              {breadcrumb}
-            </span>
-          )}
-          <h1
-            className="text-base sm:text-lg font-extrabold text-[#10202B] tracking-tight leading-none"
-            style={{ fontFamily: "'Montserrat', sans-serif" }}
-          >
-            {title}
-          </h1>
-        </div>
-
-        {subtitle && (
-          <p className="text-[#5C6B72] text-[11px] font-medium truncate max-w-sm hidden md:block">
-            {subtitle}
-          </p>
-        )}
-      </div>
-    </div>
-  );
-}
 
 // ─── PORTFOLIO CAROUSEL ───────────────────────────────────────────────────────
 
@@ -1741,7 +1705,7 @@ function AboutPage({ onNav }: { onNav: (p: Page) => void }) {
               Founded in 2006 with a single promise
             </h2>
             <p className="text-[#5C6B72] leading-relaxed mb-4">
-              Wahome Foundation was established in Kiambu County to address a clear and urgent need:
+              Wahome Foundation was established in Laikipia County to address a clear and urgent need:
               too many brilliant children were being left behind by poverty, lack of water, and absence
               of role models. From the beginning, our approach has been direct and transparent — get
               resources where they matter most.
