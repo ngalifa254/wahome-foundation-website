@@ -1109,43 +1109,38 @@ function MediaCard({
   );
 }
 
-// ─── HERO DONATE CARD ───────────────────────────────────────────────────────
+// ─── HERO CTA SECTION (Replaces HeroDonateCard) ──────────────────────────────
 
-function HeroDonateCard({ onOpenDonate }: { onOpenDonate: (amount?: number) => void }) {
-  const amounts = [25, 50, 100, 250];
-  const [selected, setSelected] = useState(50);
-  const [custom, setCustom] = useState("");
+interface HeroStoryCTAProps {
+  onOpenStory?: () => void;
+}
+
+export function HeroDonateCard({ onOpenStory }: HeroStoryCTAProps) {
   return (
-    <div className="hero-donate-card">
-      <span className="eyebrow">Give directly</span>
-      <h3>Send support to people who need it most</h3>
-      <div className="hero-donate-amounts">
-        {amounts.map(value => (
-          <button
-            key={value}
-            type="button"
-            aria-pressed={selected === value && !custom}
-            onClick={() => { setSelected(value); setCustom(""); }}
-          >
-            ${value}
-          </button>
-        ))}
-        <input
-          type="text"
-          inputMode="numeric"
-          placeholder="Custom"
-          value={custom}
-          onChange={event => setCustom(event.target.value.replace(/[^0-9]/g, ""))}
-          aria-label="Custom donation amount"
-        />
-      </div>
-      <button className="button button-green hero-donate-submit" onClick={() => onOpenDonate(Number(custom || selected))}>
-        Make a change ${custom || selected} <Heart size={17} />
+    <div className="hero-story-cta flex items-center pt-4">
+      <button
+        type="button"
+        onClick={onOpenStory}
+        className="group relative inline-flex items-center gap-3 overflow-hidden rounded-full bg-white px-8 py-4 font-semibold text-slate-900 shadow-xl transition-all duration-300 hover:bg-emerald-400 hover:text-slate-950 hover:shadow-2xl hover:shadow-emerald-500/20 active:scale-95"
+      >
+        <span className="text-base font-medium tracking-wide">Our Story</span>
+        <svg
+          className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2}
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M17 8l4 4m0 0l-4 4m4-4H3"
+          />
+        </svg>
       </button>
     </div>
   );
 }
-
 // ─── HOME PAGE ────────────────────────────────────────────────────────────────
 
 function HomePage({ onNav, onOpenDonate }: { onNav: (p: Page) => void; onOpenDonate: (amount?: number) => void }) {
