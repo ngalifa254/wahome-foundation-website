@@ -1109,14 +1109,19 @@ function MediaCard({
   );
 }
 
-// ─── HERO CTA SECTION (Replaces Donation Card) ─────────────────────────────
+// ─── HERO CTA SECTION ───────────────────────────────────────────────────────
 
-export function HeroDonateCard({ onOpenStory }: { onOpenStory?: () => void }) {
+interface HeroDonateCardProps {
+  onOpenDonate?: (amount?: number) => void;
+  onOpenStory?: () => void;
+}
+
+export function HeroDonateCard({ onOpenDonate, onOpenStory }: HeroDonateCardProps) {
   return (
     <div className="hero-story-cta pt-6">
       <button
         type="button"
-        onClick={onOpenStory}
+        onClick={onOpenStory || (() => onOpenDonate?.())}
         className="group inline-flex items-center gap-3 rounded-full bg-white px-8 py-4 text-base font-semibold text-slate-900 shadow-2xl transition-all duration-300 hover:bg-emerald-400 hover:text-slate-950 hover:gap-4 active:scale-95"
       >
         <span>Our story</span>
@@ -1176,13 +1181,10 @@ function HomePage({ onNav, onOpenDonate }: { onNav: (p: Page) => void; onOpenDon
           <source src={wahomeSlideshow} type="video/mp4" />
         </video>
 
-        {/* Soft dark vignette for high contrast text readability */}
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-slate-950/40 z-0 pointer-events-none" />
-
-        {/* Main Content Area - Centered Vertically in Screen */}
+        {/* Hero Content Panel — Centered Vertically */}
         <div className="layout hero relative z-10 my-auto flex flex-col items-start px-6 sm:px-12 max-w-7xl mx-auto w-full">
           <div className="hero-panel max-w-2xl space-y-4">
-            <h1 className="text-5xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-white leading-[1.1]">
+            <h1 className="text-5xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-white leading-tight">
               People, purpose, <em className="not-italic text-emerald-400">possibility.</em>
             </h1>
             <p className="text-lg sm:text-xl text-slate-200 leading-relaxed max-w-xl">
@@ -1190,17 +1192,16 @@ function HomePage({ onNav, onOpenDonate }: { onNav: (p: Page) => void; onOpenDon
             </p>
           </div>
 
-          {/* Replacement CTA: Our Story Button */}
-          <HeroDonateCard onOpenStory={() => onNav("who-we-are")} />
+          {/* Render CTA Button */}
+          <HeroDonateCard 
+            onOpenDonate={onOpenDonate} 
+            onOpenStory={() => onNav("who-we-are")} 
+          />
         </div>
 
-        {/* Bottom Bar: Fixed to Bottom Edge */}
+        {/* Bottom Bar Controls */}
         <div className="hero-controls relative z-10 flex w-full max-w-7xl mx-auto items-center justify-between px-6 sm:px-12 py-6 text-xs text-slate-300">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span>Our community. Our shared future.</span>
-          </div>
-
+          <span>Our community. Our shared future.</span>
           <button 
             type="button" 
             onClick={() => {
