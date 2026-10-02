@@ -1142,11 +1142,13 @@ export function HeroDonateCard({ onOpenDonate, onOpenStory }: HeroDonateCardProp
     </div>
   );
 }
-// ─── HOME PAGE ────────────────────────────────────────────────────────────────
+
+// ─── HOME PAGE ──────────────────────────────────────────────────────────────
 
 function HomePage({ onNav, onOpenDonate }: { onNav: (p: Page) => void; onOpenDonate: (amount?: number) => void }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [playing, setPlaying] = useState(false);
+
   useEffect(() => {
     const preference = window.matchMedia("(prefers-reduced-motion: reduce)");
     const update = () => {
@@ -1157,19 +1159,20 @@ function HomePage({ onNav, onOpenDonate }: { onNav: (p: Page) => void; onOpenDon
     preference.addEventListener("change", update);
     return () => preference.removeEventListener("change", update);
   }, []);
+
   const programmes = [
-    { title: "Thomas D.K. Wahome Scholarship", category: "Education", description: "Opening the classroom door for bright students through tuition support, learning materials, and the encouragement to dream bigger.", image: image_fundeducation, page: "scholarship" as Page },
-    { title: "Wells of Hope", category: "Clean water", description: "Bringing reliable water closer to home, so communities can build healthier, more resilient futures.", image: image_wells_of_hope, page: "wells" as Page },
-    { title: "Mentorship Programme", category: "Opportunity", description: "Connecting Kenyan talent with practical skills, professional guidance, and global career opportunities.", image: image_mentorship_1, page: "mentorship" as Page },
+    { title: "Thomas D.K. Wahome Scholarship", category: "Education", description: "Opening doors to higher learning for bright students in need." },
+    { title: "Wells of Hope", category: "Clean water", description: "Bringing reliable water solutions to rural schools and villages." },
+    { title: "Mentorship Programme", category: "Opportunity", description: "Connecting Kenyan youth with guidance, skills, and future pathways." },
   ];
 
-  <div className="home-page w-full">
-      {/* ─── FULLSCREEN HERO SECTION ────────────────────────────────────────── */}
+  return (
+    <div className="home-page w-full min-h-screen bg-slate-950">
+      {/* ─── 1. FULLSCREEN HERO SECTION ───────────────────────────────────── */}
       <section 
         className="eden-hero relative h-screen min-h-[100dvh] w-full flex flex-col justify-between overflow-hidden bg-slate-950 text-white" 
         aria-label="Welcome to Wahome Foundation"
       >
-        {/* Background Video */}
         <video 
           ref={videoRef} 
           muted 
@@ -1182,7 +1185,8 @@ function HomePage({ onNav, onOpenDonate }: { onNav: (p: Page) => void; onOpenDon
           <source src={wahomeSlideshow} type="video/mp4" />
         </video>
 
-        {/* Hero Content Panel — Centered Vertically */}
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-slate-950/40 z-0 pointer-events-none" />
+
         <div className="layout hero relative z-10 my-auto flex flex-col items-start px-6 sm:px-12 max-w-7xl mx-auto w-full">
           <div className="hero-panel max-w-2xl space-y-4">
             <h1 className="text-5xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-white leading-tight">
@@ -1193,16 +1197,18 @@ function HomePage({ onNav, onOpenDonate }: { onNav: (p: Page) => void; onOpenDon
             </p>
           </div>
 
-          {/* Render CTA Component */}
           <HeroDonateCard 
             onOpenDonate={onOpenDonate} 
             onOpenStory={() => onNav("who-we-are")} 
           />
         </div>
 
-        {/* Bottom Bar Controls */}
         <div className="hero-controls relative z-10 flex w-full max-w-7xl mx-auto items-center justify-between px-6 sm:px-12 py-6 text-xs text-slate-300">
-          <span>Our community. Our shared future.</span>
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span>Our community. Our shared future.</span>
+          </div>
+
           <button 
             type="button" 
             onClick={() => {
