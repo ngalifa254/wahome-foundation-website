@@ -1115,21 +1115,21 @@ interface HeroStoryCTAProps {
   onOpenStory?: () => void;
 }
 
-export function HeroDonateCard({ onOpenStory }: HeroStoryCTAProps) {
+export function HeroDonateCard({ onOpenStory }: { onOpenStory?: () => void }) {
   return (
-    <div className="hero-story-cta flex items-center pt-4">
+    <div className="hero-story-cta pt-6">
       <button
         type="button"
         onClick={onOpenStory}
-        className="group relative inline-flex items-center gap-3 overflow-hidden rounded-full bg-white px-8 py-4 font-semibold text-slate-900 shadow-xl transition-all duration-300 hover:bg-emerald-400 hover:text-slate-950 hover:shadow-2xl hover:shadow-emerald-500/20 active:scale-95"
+        className="group inline-flex items-center gap-3 rounded-full bg-white px-8 py-4 text-base font-semibold text-slate-900 shadow-2xl transition-all duration-300 hover:bg-emerald-400 hover:text-slate-950 hover:gap-4 hover:shadow-emerald-400/30 active:scale-95"
       >
-        <span className="text-base font-medium tracking-wide">Our Story</span>
+        <span className="tracking-wide">Our story</span>
         <svg
           className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
-          strokeWidth={2}
+          strokeWidth={2.5}
         >
           <path
             strokeLinecap="round"
@@ -1163,7 +1163,7 @@ function HomePage({ onNav, onOpenDonate }: { onNav: (p: Page) => void; onOpenDon
   ];
   return (
     <div className="home-page">
-      <section className="eden-hero" aria-label="Welcome to Wahome Foundation">
+      <section className="eden-hero relative min-h-screen min-h-[100dvh] w-full flex flex-col justify-between overflow-hidden bg-slate-950 text-white" aria-label="Welcome to Wahome Foundation">
         <video ref={videoRef} muted loop playsInline preload="metadata" poster={image_DSC_0332} onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)} aria-hidden="true">
           <source src={wahomeSlideshow} type="video/mp4" />
         </video>
