@@ -1122,7 +1122,7 @@ export function HeroDonateCard({ onOpenDonate, onOpenStory }: HeroDonateCardProp
       <button
         type="button"
         onClick={onOpenStory || (() => onOpenDonate?.())}
-        className="group inline-flex items-center gap-3 rounded-full bg-white px-8 py-4 text-base font-semibold text-slate-900 shadow-2xl transition-all duration-300 hover:bg-emerald-400 hover:text-slate-950 hover:gap-4 active:scale-95"
+        className="group inline-flex items-center gap-3 rounded-full bg-white px-8 py-4 text-base font-semibold text-slate-900 shadow-2xl transition-all duration-300 hover:bg-emerald-400 hover:text-slate-950 hover:gap-4 active:scale-95 cursor-pointer"
       >
         <span>Our story</span>
         <svg
@@ -1163,14 +1163,13 @@ function HomePage({ onNav, onOpenDonate }: { onNav: (p: Page) => void; onOpenDon
     { title: "Mentorship Programme", category: "Opportunity", description: "Connecting Kenyan talent with practical skills, professional guidance, and global career opportunities.", image: image_mentorship_1, page: "mentorship" as Page },
   ];
 
-  return (
-    <div className="home-page w-full">
+  <div className="home-page w-full">
       {/* ─── FULLSCREEN HERO SECTION ────────────────────────────────────────── */}
       <section 
         className="eden-hero relative h-screen min-h-[100dvh] w-full flex flex-col justify-between overflow-hidden bg-slate-950 text-white" 
         aria-label="Welcome to Wahome Foundation"
       >
-        {/* Background Video / Image */}
+        {/* Background Video */}
         <video 
           ref={videoRef} 
           muted 
@@ -1194,7 +1193,7 @@ function HomePage({ onNav, onOpenDonate }: { onNav: (p: Page) => void; onOpenDon
             </p>
           </div>
 
-          {/* Render CTA Button */}
+          {/* Render CTA Component */}
           <HeroDonateCard 
             onOpenDonate={onOpenDonate} 
             onOpenStory={() => onNav("who-we-are")} 
@@ -1212,7 +1211,7 @@ function HomePage({ onNav, onOpenDonate }: { onNav: (p: Page) => void; onOpenDon
                 setPlaying(!playing);
               }
             }}
-            className="rounded-full bg-slate-900/60 border border-white/20 backdrop-blur-md px-4 py-1.5 text-white hover:bg-slate-800 transition-all"
+            className="rounded-full bg-slate-900/60 border border-white/20 backdrop-blur-md px-4 py-1.5 text-white hover:bg-slate-800 transition-all cursor-pointer"
           >
             {playing ? "Pause" : "Play"}
           </button>
