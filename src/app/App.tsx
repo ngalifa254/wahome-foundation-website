@@ -1109,11 +1109,7 @@ function MediaCard({
   );
 }
 
-// ─── HERO CTA SECTION (Replaces HeroDonateCard) ──────────────────────────────
-
-interface HeroStoryCTAProps {
-  onOpenStory?: () => void;
-}
+// ─── HERO CTA SECTION (Replaces Donation Card) ─────────────────────────────
 
 export function HeroDonateCard({ onOpenStory }: { onOpenStory?: () => void }) {
   return (
@@ -1121,9 +1117,9 @@ export function HeroDonateCard({ onOpenStory }: { onOpenStory?: () => void }) {
       <button
         type="button"
         onClick={onOpenStory}
-        className="group inline-flex items-center gap-3 rounded-full bg-white px-8 py-4 text-base font-semibold text-slate-900 shadow-2xl transition-all duration-300 hover:bg-emerald-400 hover:text-slate-950 hover:gap-4 hover:shadow-emerald-400/30 active:scale-95"
+        className="group inline-flex items-center gap-3 rounded-full bg-white px-8 py-4 text-base font-semibold text-slate-900 shadow-2xl transition-all duration-300 hover:bg-emerald-400 hover:text-slate-950 hover:gap-4 active:scale-95"
       >
-        <span className="tracking-wide">Our story</span>
+        <span>Our story</span>
         <svg
           className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1"
           fill="none"
@@ -1161,20 +1157,63 @@ function HomePage({ onNav, onOpenDonate }: { onNav: (p: Page) => void; onOpenDon
     { title: "Wells of Hope", category: "Clean water", description: "Bringing reliable water closer to home, so communities can build healthier, more resilient futures.", image: image_wells_of_hope, page: "wells" as Page },
     { title: "Mentorship Programme", category: "Opportunity", description: "Connecting Kenyan talent with practical skills, professional guidance, and global career opportunities.", image: image_mentorship_1, page: "mentorship" as Page },
   ];
-  return (
-    <div className="home-page">
-      <section className="eden-hero relative min-h-screen min-h-[100dvh] w-full flex flex-col justify-between overflow-hidden bg-slate-950 text-white" aria-label="Welcome to Wahome Foundation">
-        <video ref={videoRef} muted loop playsInline preload="metadata" poster={image_DSC_0332} onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)} aria-hidden="true">
+ <div className="home-page w-full">
+      {/* ─── FULLSCREEN HERO SECTION ────────────────────────────────────────── */}
+      <section 
+        className="eden-hero relative h-screen min-h-[100dvh] w-full flex flex-col justify-between overflow-hidden bg-slate-950 text-white" 
+        aria-label="Welcome to Wahome Foundation"
+      >
+        {/* Background Video / Image */}
+        <video 
+          ref={videoRef} 
+          muted 
+          loop 
+          playsInline 
+          preload="metadata" 
+          poster={image_DSC_03}
+          className="absolute inset-0 w-full h-full object-cover z-0 opacity-60 pointer-events-none"
+        >
           <source src={wahomeSlideshow} type="video/mp4" />
         </video>
-        <div className="layout hero-layout hero-layout-split">
-          <div className="hero-panel">
-            <h1>People, purpose, <em>possibility.</em></h1>
-            <p>Education, clean water, and guidance for the next generation. Together with communities in Kenya, we turn opportunity into lasting change.</p>
+
+        {/* Soft dark vignette for high contrast text readability */}
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-slate-950/40 z-0 pointer-events-none" />
+
+        {/* Main Content Area - Centered Vertically in Screen */}
+        <div className="layout hero relative z-10 my-auto flex flex-col items-start px-6 sm:px-12 max-w-7xl mx-auto w-full">
+          <div className="hero-panel max-w-2xl space-y-4">
+            <h1 className="text-5xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-white leading-[1.1]">
+              People, purpose, <em className="not-italic text-emerald-400">possibility.</em>
+            </h1>
+            <p className="text-lg sm:text-xl text-slate-200 leading-relaxed max-w-xl">
+              Education, clean water, and guidance for the next generation. Together with communities in Kenya, we turn opportunity into lasting change.
+            </p>
           </div>
-          <HeroDonateCard onOpenDonate={onOpenDonate} />
+
+          {/* Replacement CTA: Our Story Button */}
+          <HeroDonateCard onOpenStory={() => onNav("who-we-are")} />
         </div>
-        <div className="hero-controls"><span>Our community. Our shared future.</span><button onClick={() => { if (playing) videoRef.current?.pause(); else videoRef.current?.play().catch(() => setPlaying(false)); }} aria-label={playing ? "Pause background video" : "Play background video"}>{playing ? <><span aria-hidden="true">Ⅱ</span> Pause</> : <><PlayCircle size={16} /> Play</>}</button></div>
+
+        {/* Bottom Bar: Fixed to Bottom Edge */}
+        <div className="hero-controls relative z-10 flex w-full max-w-7xl mx-auto items-center justify-between px-6 sm:px-12 py-6 text-xs text-slate-300">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span>Our community. Our shared future.</span>
+          </div>
+
+          <button 
+            type="button" 
+            onClick={() => {
+              if (videoRef.current) {
+                playing ? videoRef.current.pause() : videoRef.current.play();
+                setPlaying(!playing);
+              }
+            }}
+            className="rounded-full bg-slate-900/60 border border-white/20 backdrop-blur-md px-4 py-1.5 text-white hover:bg-slate-800 transition-all"
+          >
+            {playing ? "Pause" : "Play"}
+          </button>
+        </div>
       </section>
 
       <section className="partner-section partner-section-under-hero" aria-label="Our partners"><div className="layout"><span className="eyebrow">Trusted by supporters, funders, and newsletters</span><div className="partner-logos">{[{name:"Autism Allies",src:logoAutismAllies},{name:"Coffee Bench",src:logoCoffeeBench},{name:"Laikipia Heights",src:logoLaikipiaHeights},{name:"Luxo",src:logoLuxo},{name:"Tufaha Resort",src:logoTufahaResort}].map(partner => <div key={partner.name}><img src={partner.src} alt={partner.name} loading="lazy" /></div>)}</div><button className="text-link" onClick={() => onNav("about")}>Meet our community of partners <ArrowRight size={17} /></button></div></section>
