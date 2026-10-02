@@ -1162,7 +1162,9 @@ function HomePage({ onNav, onOpenDonate }: { onNav: (p: Page) => void; onOpenDon
     { title: "Wells of Hope", category: "Clean water", description: "Bringing reliable water closer to home, so communities can build healthier, more resilient futures.", image: image_wells_of_hope, page: "wells" as Page },
     { title: "Mentorship Programme", category: "Opportunity", description: "Connecting Kenyan talent with practical skills, professional guidance, and global career opportunities.", image: image_mentorship_1, page: "mentorship" as Page },
   ];
- <div className="home-page w-full">
+
+  return (
+    <div className="home-page w-full">
       {/* ─── FULLSCREEN HERO SECTION ────────────────────────────────────────── */}
       <section 
         className="eden-hero relative h-screen min-h-[100dvh] w-full flex flex-col justify-between overflow-hidden bg-slate-950 text-white" 
