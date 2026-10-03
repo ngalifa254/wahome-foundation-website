@@ -35,7 +35,7 @@ import logoSneakerama from "@/imports/sneakerama.PNG";
 import logoTufahaResort from "@/imports/tufaharesort.PNG";
 
 import { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 
 
 
