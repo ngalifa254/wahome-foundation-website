@@ -2,7 +2,7 @@ name: Deploy Vite PNPM Project to GitHub Pages
 
 on:
   push:
-    branches: ["main"]
+    branches: ["main", "v2"]
 
 permissions:
   contents: read
@@ -20,8 +20,17 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
+      - name: Checkout main
         uses: actions/checkout@v4
+        with:
+          ref: main
+          path: main
+
+      - name: Checkout v2
+        uses: actions/checkout@v4
+        with:
+          ref: v2
+          path: v2
 
       - name: Install pnpm
         uses: pnpm/action-setup@v3
@@ -33,17 +42,39 @@ jobs:
         with:
           node-version: 20
           cache: 'pnpm'
+          cache-dependency-path: |
+            main/pnpm-lock.yaml
+            v2/pnpm-lock.yaml
 
-      - name: Install dependencies
+      - name: Install main dependencies
+        working-directory: main
         run: pnpm install --no-frozen-lockfile
 
-      - name: Build project
+      - name: Build main
+        working-directory: main
         run: pnpm run build
+
+      - name: Install v2 dependencies
+        working-directory: v2
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Build v2
+        working-directory: v2
+        env:
+          VITE_BASE_PATH: /wahome-foundation-website/v2/
+        run: pnpm run build
+
+      - name: Combine builds
+        run: |
+          mkdir -p site
+          cp -r main/dist/. site/
+          mkdir -p site/v2
+          cp -r v2/dist/. site/v2/
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './dist'
+          path: './site'
 
       - name: Deploy to GitHub Pages
         id: deployment
