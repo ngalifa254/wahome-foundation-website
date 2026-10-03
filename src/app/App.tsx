@@ -1113,11 +1113,8 @@ function MediaCard({
 
 function HeroStoryCTA({ onNav }: { onNav: (page: Page) => void }) {
   return (
-    <div className="hero-donate-card" style={{ minHeight: 350, display: "flex", flexDirection: "column", justifyContent: "center" }}>
-      <span className="eyebrow">Our story</span>
-      <h3>Get to know Wahome Foundation</h3>
-      <p>Learn about the people, purpose, and community behind our work.</p>
-      <button className="button button-green hero-donate-submit" onClick={() => onNav("about")}>
+    <div className="hero-story-cta">
+      <button className="hero-story-link" onClick={() => onNav("about")}>
         Our Story <ArrowRight size={17} />
       </button>
     </div>
