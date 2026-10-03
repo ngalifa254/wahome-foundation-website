@@ -595,7 +595,14 @@ function Footer({ onNav, onOpenDonate }: { onNav: (p: Page) => void; onOpenDonat
   return <footer className="site-footer">
     <div className="layout footer-grid">
       <div className="footer-intro">
-        <button className="footer-brand" onClick={() => onNav("home")} aria-label="Wahome Foundation home"><img src={mainLogo} alt="Wahome Foundation" /></button>
+        <div className="footer-brand-row">
+          <button className="footer-brand" onClick={() => onNav("home")} aria-label="Wahome Foundation home"><img src={mainLogo} alt="Wahome Foundation" /></button>
+          <div className="footer-social">
+            <a href="#" aria-label="Facebook"><Facebook size={16} /></a>
+            <a href="#" aria-label="Instagram"><Instagram size={16} /></a>
+            <a href="#" aria-label="YouTube"><Youtube size={16} /></a>
+          </div>
+        </div>
         <a className="footer-email" href="mailto:info@wahomefoundation.com"><Mail size={14} /> info@wahomefoundation.com</a>
         <button className="footer-support" onClick={() => onOpenDonate()}>Support our work <ArrowRight size={17} /></button>
       </div>
@@ -1102,46 +1109,48 @@ function MediaCard({
   );
 }
 
-// ─── HERO CTA SECTION ───────────────────────────────────────────────────────
+// ─── HERO DONATE CARD ───────────────────────────────────────────────────────
 
-interface HeroDonateCardProps {
-  onOpenDonate?: (amount?: number) => void;
-  onOpenStory?: () => void;
-}
-
-export function HeroDonateCard({ onOpenDonate, onOpenStory }: HeroDonateCardProps) {
+function HeroDonateCard({ onOpenDonate }: { onOpenDonate: (amount?: number) => void }) {
+  const amounts = [25, 50, 100, 250];
+  const [selected, setSelected] = useState(50);
+  const [custom, setCustom] = useState("");
   return (
-    <div className="hero-story-cta pt-6">
-      <button
-        type="button"
-        onClick={onOpenStory || (() => onOpenDonate?.())}
-        className="group inline-flex items-center gap-3 rounded-full bg-white px-8 py-4 text-base font-semibold text-slate-900 shadow-2xl transition-all duration-300 hover:bg-emerald-400 hover:text-slate-950 hover:gap-4 active:scale-95 cursor-pointer"
-      >
-        <span>Our story</span>
-        <svg
-          className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={2.5}
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M17 8l4 4m0 0l-4 4m4-4H3"
-          />
-        </svg>
+    <div className="hero-donate-card">
+      <span className="eyebrow">Give directly</span>
+      <h3>Send support to people who need it most</h3>
+      <div className="hero-donate-amounts">
+        {amounts.map(value => (
+          <button
+            key={value}
+            type="button"
+            aria-pressed={selected === value && !custom}
+            onClick={() => { setSelected(value); setCustom(""); }}
+          >
+            ${value}
+          </button>
+        ))}
+        <input
+          type="text"
+          inputMode="numeric"
+          placeholder="Custom"
+          value={custom}
+          onChange={event => setCustom(event.target.value.replace(/[^0-9]/g, ""))}
+          aria-label="Custom donation amount"
+        />
+      </div>
+      <button className="button button-green hero-donate-submit" onClick={() => onOpenDonate(Number(custom || selected))}>
+        Make a change ${custom || selected} <Heart size={17} />
       </button>
     </div>
   );
 }
 
-// ─── HOME PAGE ──────────────────────────────────────────────────────────────
+// ─── HOME PAGE ────────────────────────────────────────────────────────────────
 
 function HomePage({ onNav, onOpenDonate }: { onNav: (p: Page) => void; onOpenDonate: (amount?: number) => void }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [playing, setPlaying] = useState(false);
-
   useEffect(() => {
     const preference = window.matchMedia("(prefers-reduced-motion: reduce)");
     const update = () => {
@@ -1152,69 +1161,25 @@ function HomePage({ onNav, onOpenDonate }: { onNav: (p: Page) => void; onOpenDon
     preference.addEventListener("change", update);
     return () => preference.removeEventListener("change", update);
   }, []);
-
   const programmes = [
-    { title: "Thomas D.K. Wahome Scholarship", category: "Education", description: "Opening doors to higher learning for bright students in need." },
-    { title: "Wells of Hope", category: "Clean water", description: "Bringing reliable water solutions to rural schools and villages." },
-    { title: "Mentorship Programme", category: "Opportunity", description: "Connecting Kenyan youth with guidance, skills, and future pathways." },
+    { title: "Thomas D.K. Wahome Scholarship", category: "Education", description: "Opening the classroom door for bright students through tuition support, learning materials, and the encouragement to dream bigger.", image: image_fundeducation, page: "scholarship" as Page },
+    { title: "Wells of Hope", category: "Clean water", description: "Bringing reliable water closer to home, so communities can build healthier, more resilient futures.", image: image_wells_of_hope, page: "wells" as Page },
+    { title: "Mentorship Programme", category: "Opportunity", description: "Connecting Kenyan talent with practical skills, professional guidance, and global career opportunities.", image: image_mentorship_1, page: "mentorship" as Page },
   ];
-
   return (
-    <div className="home-page w-full min-h-screen bg-slate-950">
-      {/* ─── 1. FULLSCREEN HERO SECTION ───────────────────────────────────── */}
-      <section 
-        className="eden-hero relative h-screen min-h-[100dvh] w-full flex flex-col justify-between overflow-hidden bg-slate-950 text-white" 
-        aria-label="Welcome to Wahome Foundation"
-      >
-        <video 
-          ref={videoRef} 
-          muted 
-          loop 
-          playsInline 
-          preload="metadata" 
-          poster={image_DSC_03}
-          className="absolute inset-0 w-full h-full object-cover z-0 opacity-60 pointer-events-none"
-        >
+    <div className="home-page">
+      <section className="eden-hero" aria-label="Welcome to Wahome Foundation">
+        <video ref={videoRef} muted loop playsInline preload="metadata" poster={image_DSC_0332} onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)} aria-hidden="true">
           <source src={wahomeSlideshow} type="video/mp4" />
         </video>
-
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-slate-950/40 z-0 pointer-events-none" />
-
-        <div className="layout hero relative z-10 my-auto flex flex-col items-start px-6 sm:px-12 max-w-7xl mx-auto w-full">
-          <div className="hero-panel max-w-2xl space-y-4">
-            <h1 className="text-5xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-white leading-tight">
-              People, purpose, <em className="not-italic text-emerald-400">possibility.</em>
-            </h1>
-            <p className="text-lg sm:text-xl text-slate-200 leading-relaxed max-w-xl">
-              Education, clean water, and guidance for the next generation. Together with communities in Kenya, we turn opportunity into lasting change.
-            </p>
+        <div className="layout hero-layout hero-layout-split">
+          <div className="hero-panel">
+            <h1>People, purpose, <em>possibility.</em></h1>
+            <p>Education, clean water, and guidance for the next generation. Together with communities in Kenya, we turn opportunity into lasting change.</p>
           </div>
-
-          <HeroDonateCard 
-            onOpenDonate={onOpenDonate} 
-            onOpenStory={() => onNav("who-we-are")} 
-          />
+          <HeroDonateCard onOpenDonate={onOpenDonate} />
         </div>
-
-        <div className="hero-controls relative z-10 flex w-full max-w-7xl mx-auto items-center justify-between px-6 sm:px-12 py-6 text-xs text-slate-300">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span>Our community. Our shared future.</span>
-          </div>
-
-          <button 
-            type="button" 
-            onClick={() => {
-              if (videoRef.current) {
-                playing ? videoRef.current.pause() : videoRef.current.play();
-                setPlaying(!playing);
-              }
-            }}
-            className="rounded-full bg-slate-900/60 border border-white/20 backdrop-blur-md px-4 py-1.5 text-white hover:bg-slate-800 transition-all cursor-pointer"
-          >
-            {playing ? "Pause" : "Play"}
-          </button>
-        </div>
+        <div className="hero-controls"><span>Our community. Our shared future.</span><button onClick={() => { if (playing) videoRef.current?.pause(); else videoRef.current?.play().catch(() => setPlaying(false)); }} aria-label={playing ? "Pause background video" : "Play background video"}>{playing ? <><span aria-hidden="true">Ⅱ</span> Pause</> : <><PlayCircle size={16} /> Play</>}</button></div>
       </section>
 
       <section className="partner-section partner-section-under-hero" aria-label="Our partners"><div className="layout"><span className="eyebrow">Trusted by supporters, funders, and newsletters</span><div className="partner-logos">{[{name:"Autism Allies",src:logoAutismAllies},{name:"Coffee Bench",src:logoCoffeeBench},{name:"Laikipia Heights",src:logoLaikipiaHeights},{name:"Luxo",src:logoLuxo},{name:"Tufaha Resort",src:logoTufahaResort}].map(partner => <div key={partner.name}><img src={partner.src} alt={partner.name} loading="lazy" /></div>)}</div><button className="text-link" onClick={() => onNav("about")}>Meet our community of partners <ArrowRight size={17} /></button></div></section>
