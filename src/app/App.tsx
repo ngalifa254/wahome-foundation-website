@@ -1109,38 +1109,16 @@ function MediaCard({
   );
 }
 
-// ─── HERO DONATE CARD ───────────────────────────────────────────────────────
+// ─── HERO STORY CTA ──────────────────────────────────────────────────────────
 
-function HeroDonateCard({ onOpenDonate }: { onOpenDonate: (amount?: number) => void }) {
-  const amounts = [25, 50, 100, 250];
-  const [selected, setSelected] = useState(50);
-  const [custom, setCustom] = useState("");
+function HeroStoryCTA({ onNav }: { onNav: (page: Page) => void }) {
   return (
-    <div className="hero-donate-card">
-      <span className="eyebrow">Give directly</span>
-      <h3>Send support to people who need it most</h3>
-      <div className="hero-donate-amounts">
-        {amounts.map(value => (
-          <button
-            key={value}
-            type="button"
-            aria-pressed={selected === value && !custom}
-            onClick={() => { setSelected(value); setCustom(""); }}
-          >
-            ${value}
-          </button>
-        ))}
-        <input
-          type="text"
-          inputMode="numeric"
-          placeholder="Custom"
-          value={custom}
-          onChange={event => setCustom(event.target.value.replace(/[^0-9]/g, ""))}
-          aria-label="Custom donation amount"
-        />
-      </div>
-      <button className="button button-green hero-donate-submit" onClick={() => onOpenDonate(Number(custom || selected))}>
-        Make a change ${custom || selected} <Heart size={17} />
+    <div className="hero-donate-card" style={{ minHeight: 350, display: "flex", flexDirection: "column", justifyContent: "center" }}>
+      <span className="eyebrow">Our story</span>
+      <h3>Get to know Wahome Foundation</h3>
+      <p>Learn about the people, purpose, and community behind our work.</p>
+      <button className="button button-green hero-donate-submit" onClick={() => onNav("about")}>
+        Our Story <ArrowRight size={17} />
       </button>
     </div>
   );
@@ -1148,7 +1126,7 @@ function HeroDonateCard({ onOpenDonate }: { onOpenDonate: (amount?: number) => v
 
 // ─── HOME PAGE ────────────────────────────────────────────────────────────────
 
-function HomePage({ onNav, onOpenDonate }: { onNav: (p: Page) => void; onOpenDonate: (amount?: number) => void }) {
+function HomePage({ onNav }: { onNav: (p: Page) => void }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [playing, setPlaying] = useState(false);
   useEffect(() => {
@@ -1177,7 +1155,7 @@ function HomePage({ onNav, onOpenDonate }: { onNav: (p: Page) => void; onOpenDon
             <h1>People, purpose, <em>possibility.</em></h1>
             <p>Education, clean water, and guidance for the next generation. Together with communities in Kenya, we turn opportunity into lasting change.</p>
           </div>
-          <HeroDonateCard onOpenDonate={onOpenDonate} />
+          <HeroStoryCTA onNav={onNav} />
         </div>
         <div className="hero-controls"><span>Our community. Our shared future.</span><button onClick={() => { if (playing) videoRef.current?.pause(); else videoRef.current?.play().catch(() => setPlaying(false)); }} aria-label={playing ? "Pause background video" : "Play background video"}>{playing ? <><span aria-hidden="true">Ⅱ</span> Pause</> : <><PlayCircle size={16} /> Play</>}</button></div>
       </section>
@@ -2156,7 +2134,7 @@ export default function App() {
   const closeDonate = () => setIsDonateOpen(false);
 
   const pages: Record<Page, React.ReactNode> = {
-    home: <HomePage onNav={setPage} onOpenDonate={openDonate} />,
+    home: <HomePage onNav={setPage} />,
     about: <AboutPage onNav={setPage} />,
     scholarship: (
       <ScholarshipPage onNav={setPage} onOpenDonate={openDonate} />
