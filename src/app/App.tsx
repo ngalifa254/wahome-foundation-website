@@ -595,14 +595,7 @@ function Footer({ onNav, onOpenDonate }: { onNav: (p: Page) => void; onOpenDonat
   return <footer className="site-footer">
     <div className="layout footer-grid">
       <div className="footer-intro">
-        <div className="footer-brand-row">
-          <button className="footer-brand" onClick={() => onNav("home")} aria-label="Wahome Foundation home"><img src={mainLogo} alt="Wahome Foundation" /></button>
-          <div className="footer-social">
-            <a href="#" aria-label="Facebook"><Facebook size={16} /></a>
-            <a href="#" aria-label="Instagram"><Instagram size={16} /></a>
-            <a href="#" aria-label="YouTube"><Youtube size={16} /></a>
-          </div>
-        </div>
+        <button className="footer-brand" onClick={() => onNav("home")} aria-label="Wahome Foundation home"><img src={mainLogo} alt="Wahome Foundation" /></button>
         <a className="footer-email" href="mailto:info@wahomefoundation.com"><Mail size={14} /> info@wahomefoundation.com</a>
         <button className="footer-support" onClick={() => onOpenDonate()}>Support our work <ArrowRight size={17} /></button>
       </div>

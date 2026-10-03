@@ -122,10 +122,6 @@ button:focus-visible,a:focus-visible { outline:3px solid #bd9135; outline-offset
 .footer-email:hover { color:var(--sky-accent); }
 .footer-grid h3 { font-size:11px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; margin:0 0 8px; }
 .footer-support { display:inline-flex; align-items:center; gap:18px; margin-top:10px; padding:6px 0; font-size:13px; font-weight:600; color:var(--sky-accent); }
-.footer-brand-row { display:flex; align-items:center; gap:16px; }
-.footer-social { display:flex; gap:8px; }
-.footer-social a { display:flex; align-items:center; justify-content:center; width:32px; height:32px; border-radius:50%; border:1px solid var(--line); color:var(--quiet); }
-.footer-social a:hover { border-color:var(--sky-accent); color:var(--sky-accent); }
 .footer-office address { display:flex; gap:7px; font-style:normal; color:var(--quiet); font-size:12px; line-height:1.9; }
 .footer-office address svg { flex-shrink:0; margin-top:3px; color:var(--sky-accent); }
 .footer-grid a:hover,.footer-grid button:hover { color:var(--sky-accent); }
