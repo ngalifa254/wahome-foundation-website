@@ -1181,7 +1181,7 @@ function HomePage({ onNav }: { onNav: (p: Page) => void }) {
               <h2 id="run-promo-title">Miles for Minds: The Wahome Foundation Run</h2>
               <div className="run-promo-facts"><span>Saturday, January 9, 2027</span><span>7:00 AM · Mugumo Center</span></div>
               <p>Every step supports children’s education through the Thomas D.K. Wahome Scholarship Program.</p>
-              <div className="run-promo-actions"><a className="button button-green" href="#/miles-for-minds/registration">Register <ArrowRight size={17} /></a><a className="button button-run-outline" href="#/miles-for-minds/sponsor">Become a Sponsor <ArrowRight size={17} /></a></div>
+              <div className="run-promo-actions"><button type="button" className="button button-green" onClick={() => { onNav("event"); window.setTimeout(() => document.getElementById("participant-registration")?.scrollIntoView({ behavior: "smooth", block: "start" }), 100); }}>Register <ArrowRight size={17} /></button><button type="button" className="button button-run-outline" onClick={() => { onNav("event"); window.setTimeout(() => document.getElementById("sponsor-inquiry")?.scrollIntoView({ behavior: "smooth", block: "start" }), 100); }}>Become a Sponsor <ArrowRight size={17} /></button></div>
             </div>
           </div>
         </div>
