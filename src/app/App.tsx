@@ -1169,14 +1169,17 @@ function HomePage({ onNav }: { onNav: (p: Page) => void }) {
         </div>
       </section>
 
-      <section className="layout run-promo" aria-labelledby="run-promo-title">
-        <div className="run-promo-photo" role="img" aria-label="Runners taking part in a community run" style={{ backgroundImage: `url(${marathon1})` }} />
-        <div className="run-promo-content">
-          <span className="eyebrow">Run for a brighter future</span>
-          <h2 id="run-promo-title">Miles for Minds: The Wahome Foundation Run</h2>
-          <div className="run-promo-facts"><span>Saturday, January 9, 2027</span><span>7:00 AM · Mugumo Center</span></div>
-          <p>Every step supports children’s education through the Thomas D.K. Wahome Scholarship Program.</p>
-          <div className="run-promo-actions"><button className="button button-green" onClick={() => onNav("event")}>Register <ArrowRight size={17} /></button><button className="button button-run-outline" onClick={() => { onNav("event"); window.setTimeout(() => document.getElementById("sponsor-inquiry")?.scrollIntoView({behavior:"smooth",block:"start"}), 100); }}>Become a Sponsor <ArrowRight size={17} /></button></div>
+      <section className="layout run-promo-section" aria-labelledby="run-promo-section-title">
+        <h2 className="run-promo-section-title" id="run-promo-section-title">The Wahome Foundation Run</h2>
+        <div className="run-promo" aria-labelledby="run-promo-title">
+          <div className="run-promo-photo" role="img" aria-label="Runners taking part in a community run" style={{ backgroundImage: `url(${marathon1})` }} />
+          <div className="run-promo-content">
+            <span className="eyebrow">Run for a brighter future</span>
+            <h2 id="run-promo-title">Miles for Minds: The Wahome Foundation Run</h2>
+            <div className="run-promo-facts"><span>Saturday, January 9, 2027</span><span>7:00 AM · Mugumo Center</span></div>
+            <p>Every step supports children’s education through the Thomas D.K. Wahome Scholarship Program.</p>
+            <div className="run-promo-actions"><button className="button button-green" onClick={() => onNav("event")}>Register <ArrowRight size={17} /></button><button className="button button-run-outline" onClick={() => { onNav("event"); window.setTimeout(() => document.getElementById("sponsor-inquiry")?.scrollIntoView({behavior:"smooth",block:"start"}), 100); }}>Become a Sponsor <ArrowRight size={17} /></button></div>
+          </div>
         </div>
       </section>
 

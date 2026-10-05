@@ -1,103 +1,13 @@
 import { useEffect, useState } from "react";
 import { ArrowDownToLine, ArrowRight, CalendarDays, Clock3, MapPin, HeartHandshake } from "lucide-react";
-import runPhoto from "@/imports/marathon1.jpg";
-import foundationLogo from "@/imports/mainlogo.png";
+import posterImage from "@/imports/wahome-run-poster.png.jpg";
 
 type Category = "21K" | "10K" | "Children's 5K";
 
 const fieldClass = "run-field";
 
 function PosterDownload() {
-  const [message, setMessage] = useState("");
-
-  const download = async () => {
-    setMessage("");
-    try {
-      const [photo, logo] = await Promise.all([runPhoto, foundationLogo].map((src) => new Promise<HTMLImageElement>((resolve, reject) => {
-        const image = new Image();
-        image.onload = () => resolve(image);
-        image.onerror = () => reject(new Error("Poster artwork could not be loaded."));
-        image.src = src;
-      })));
-      const canvas = document.createElement("canvas");
-      canvas.width = 1080;
-      canvas.height = 1350;
-      const ctx = canvas.getContext("2d");
-      if (!ctx) throw new Error("Poster image could not be created.");
-
-      ctx.fillStyle = "#F1F4F7";
-      ctx.fillRect(0, 0, 1080, 1350);
-      const imageHeight = 520;
-      const scale = Math.max(1080 / photo.width, imageHeight / photo.height);
-      const sw = 1080 / scale;
-      const sh = imageHeight / scale;
-      ctx.drawImage(photo, (photo.width - sw) / 2, (photo.height - sh) / 2, sw, sh, 0, 0, 1080, imageHeight);
-      const shade = ctx.createLinearGradient(0, 0, 0, imageHeight);
-      shade.addColorStop(0, "rgba(16,32,47,.2)");
-      shade.addColorStop(1, "rgba(16,32,47,.86)");
-      ctx.fillStyle = shade;
-      ctx.fillRect(0, 0, 1080, imageHeight);
-      ctx.fillStyle = "#ffffff";
-      ctx.fillRect(64, 52, 270, 94);
-      ctx.drawImage(logo, 80, 61, 238, 77);
-      ctx.fillStyle = "#E8C67D";
-      ctx.font = "600 25px Montserrat, Arial, sans-serif";
-      ctx.fillText("RUN FOR A BRIGHTER FUTURE", 74, 367);
-      ctx.fillStyle = "#ffffff";
-      ctx.font = "600 61px Montserrat, Arial, sans-serif";
-      ctx.fillText("Miles for Minds:", 72, 435);
-      ctx.font = "500 40px Montserrat, Arial, sans-serif";
-      ctx.fillText("The Wahome Foundation Run", 74, 488);
-
-      ctx.fillStyle = "#2C6E9E";
-      ctx.fillRect(0, imageHeight, 1080, 830);
-      ctx.fillStyle = "#ffffff";
-      ctx.font = "600 32px Montserrat, Arial, sans-serif";
-      ctx.fillText("SATURDAY, JANUARY 9, 2027", 72, 604);
-      ctx.font = "500 28px Montserrat, Arial, sans-serif";
-      ctx.fillText("7:00 AM  ·  MUGUMO CENTER", 72, 658);
-      ctx.fillStyle = "#E8C67D";
-      ctx.font = "700 26px Montserrat, Arial, sans-serif";
-      ctx.fillText("CHOOSE YOUR DISTANCE", 72, 738);
-      ctx.fillStyle = "#ffffff";
-      ctx.font = "600 43px Montserrat, Arial, sans-serif";
-      ctx.fillText("21K   ·   10K   ·   CHILDREN'S 5K", 72, 801);
-      ctx.fillStyle = "#16324A";
-      ctx.fillRect(72, 846, 360, 78);
-      ctx.fillStyle = "#ffffff";
-      ctx.font = "700 34px Montserrat, Arial, sans-serif";
-      ctx.fillText("KSh 1,000 per participant", 91, 897);
-      ctx.fillStyle = "#E8C67D";
-      ctx.font = "600 23px Montserrat, Arial, sans-serif";
-      ctx.fillText("EVERY STEP SUPPORTS EDUCATION", 72, 1010);
-      ctx.fillStyle = "#ffffff";
-      ctx.font = "500 29px Montserrat, Arial, sans-serif";
-      ctx.fillText("Supporting children through the", 72, 1072);
-      ctx.font = "600 29px Montserrat, Arial, sans-serif";
-      ctx.fillText("Thomas D.K. Wahome Scholarship Program", 72, 1115);
-      ctx.fillStyle = "#dce6ee";
-      ctx.font = "500 22px Montserrat, Arial, sans-serif";
-      ctx.fillText("Open to everyone · Children’s 5K registrations by a parent or guardian", 72, 1210);
-      ctx.fillStyle = "#16324A";
-      ctx.fillRect(0, 1290, 1080, 60);
-      ctx.fillStyle = "#ffffff";
-      ctx.font = "500 19px Montserrat, Arial, sans-serif";
-      ctx.fillText("WAHOME FOUNDATION", 72, 1328);
-
-      const blob = await new Promise<Blob>((resolve, reject) => canvas.toBlob((value) => value ? resolve(value) : reject(new Error("Poster image could not be downloaded.")), "image/png"));
-      const url = URL.createObjectURL(blob);
-      const anchor = document.createElement("a");
-      anchor.href = url;
-      anchor.download = "miles-for-minds-wahome-foundation-run.png";
-      anchor.click();
-      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-      setMessage("Poster downloaded as a PNG image.");
-    } catch {
-      setMessage("The poster could not be created. Please try again.");
-    }
-  };
-
-  return <div className="run-poster-action"><button type="button" className="button button-green" onClick={download}><ArrowDownToLine size={17} /> Download event poster</button><span aria-live="polite">{message}</span></div>;
+  return <div className="run-poster-action"><a className="button button-green" href={posterImage} download="miles-for-minds-wahome-foundation-run.jpg"><ArrowDownToLine size={17} /> Download event poster</a></div>;
 }
 
 function FormField({ id, label, type = "text", required = true, min, autoComplete }: { id: string; label: string; type?: string; required?: boolean; min?: number; autoComplete?: string }) {
@@ -167,7 +77,7 @@ export function EventPage() {
     <section className="layout run-details-section"><div className="run-purpose"><span className="eyebrow">Every mile makes a difference</span><h2>Run for the next generation</h2><p>Funds raised support children’s education through the Thomas D.K. Wahome Scholarship Program. Registration is open to everyone. There is no minimum age for the 21K or 10K categories.</p></div><div className="run-category-grid"><article><span>01</span><h3>21K</h3><p>Open to everyone</p><strong>KSh 1,000</strong></article><article><span>02</span><h3>10K</h3><p>Open to everyone</p><strong>KSh 1,000</strong></article><article><span>03</span><h3>Children&apos;s 5K</h3><p>Parent or guardian registers the child</p><strong>KSh 1,000</strong></article></div></section>
     <section className="run-info-band"><div className="layout run-info-grid"><div><span className="eyebrow">Event information</span><h2>Details to follow</h2><p>We’ll share more information when it is confirmed.</p></div><dl><div><dt>Route</dt><dd>To be announced</dd></div><div><dt>Registration deadline</dt><dd>To be announced</dd></div><div><dt>Participant capacity</dt><dd>To be announced</dd></div><div><dt>Event-day guidance</dt><dd>To be announced</dd></div></dl></div></section>
     <section className="layout run-registration-section" id="participant-registration"><RegistrationForm /><aside className="run-payment-note"><span className="eyebrow">Payment & confirmation</span><h2>Secure registration is being set up</h2><p>The existing website has no server-side registration, payment, or verification service. This form will not create a registration or request payment until a secure backend is connected.</p><p>After setup, registration should stay pending until M-Pesa confirms the exact KSh 1,000 payment for that participant. Confirmation messages will follow verified payment only.</p></aside></section>
-    <section className="run-poster-section"><div className="layout run-poster-grid"><div><span className="eyebrow">Share the date</span><h2>Invite someone to run with you</h2><p>Download the event poster to share the confirmed event details.</p><PosterDownload /></div><div className="run-poster-preview" aria-label="Event poster preview"><div className="run-poster-photo" style={{ backgroundImage: `linear-gradient(0deg, #10202fe0, transparent 80%), url(${runPhoto})` }}><img src={foundationLogo} alt="Wahome Foundation" /><div><span>Run for a brighter future</span><strong>Miles for Minds:</strong><b>The Wahome Foundation Run</b></div></div><div className="run-poster-copy"><strong>Saturday, January 9, 2027 · 7:00 AM</strong><span>Mugumo Center</span><b>21K · 10K · Children’s 5K</b><b>KSh 1,000 per participant</b><p>Supporting children’s education through the Thomas D.K. Wahome Scholarship Program.</p></div></div></div></section>
+    <section className="run-poster-section"><div className="layout run-poster-grid"><div><span className="eyebrow">Share the date</span><h2>Invite someone to run with you</h2><p>Download the event poster to share the confirmed event details.</p><PosterDownload /></div><div className="run-poster-preview"><img src={posterImage} alt="Miles for Minds: The Wahome Foundation Run event poster, Saturday January 9, 2027 at Mugumo Center." /></div></div></section>
     <section className="layout run-sponsor-section"><SponsorForm /></section>
   </div>;
 }
