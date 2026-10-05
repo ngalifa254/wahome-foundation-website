@@ -23,6 +23,7 @@ import marathon3 from "@/imports/marathon3.jpg";
 import marathon4 from "@/imports/marathon4.jpg";
 import marathon5 from "@/imports/marathon5.jpg";
 import marathon6 from "@/imports/marathon6.jpg";
+import { EventPage } from "./EventPage";
 
 // Corrected Partner Logos Imports (Exact file names)
 import logoAutismAllies from "@/imports/autismallies.PNG";
@@ -79,7 +80,8 @@ type Page =
   | "scholarship"
   | "wells"
   | "prize"
-  | "mentorship";
+  | "mentorship"
+  | "event";
 
 // ─── Shared primitives ────────────────────────────────────────────────────────
 
@@ -502,6 +504,7 @@ const navLinks: { label: string; page: Page }[] = [
   { label: "Wells of Hope", page: "wells" },
   { label: "Prize Giving", page: "prize" },
   { label: "Mentorship", page: "mentorship" },
+  { label: "Miles for Minds Run", page: "event" },
 ];
 
 function Navbar({ current, onNav, onOpenDonate }: NavbarProps) {
@@ -511,7 +514,7 @@ function Navbar({ current, onNav, onOpenDonate }: NavbarProps) {
   const [programmesOpen, setProgrammesOpen] = useState(false);
   const [scholarsOpen, setScholarsOpen] = useState(false);
   const [eventsOpen, setEventsOpen] = useState(false);
-  const programmes = navLinks.filter(link => !["home", "about", "scholarship", "prize"].includes(link.page));
+  const programmes = navLinks.filter(link => !["home", "about", "scholarship", "prize", "event"].includes(link.page));
   const programmeActive = programmes.some(link => link.page === current);
   useEffect(() => {
     const closeOnEscape = (event: KeyboardEvent) => {
@@ -560,8 +563,8 @@ function Navbar({ current, onNav, onOpenDonate }: NavbarProps) {
             {scholarsOpen && <div id="scholarship-menu" className="programme-dropdown"><button onClick={() => goToSection("scholarship", "meet-our-scholars")} aria-current={current === "scholarship" ? "page" : undefined}>Meet Our Scholars <ArrowRight size={15} /></button></div>}
           </div>
           <div className="programme-nav" onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) setEventsOpen(false); }}>
-            <button aria-expanded={eventsOpen} data-active={current === "prize"} aria-controls="events-menu" onClick={() => { setEventsOpen(!eventsOpen); setProgrammesOpen(false); setScholarsOpen(false); }}>Community & events <ChevronRight size={13} className={eventsOpen ? "chevron-open" : "chevron-down"} /></button>
-            {eventsOpen && <div id="events-menu" className="programme-dropdown"><button onClick={() => goToSection("prize", "save-the-date")} aria-current={current === "prize" ? "page" : undefined}>Save The Date <ArrowRight size={15} /></button></div>}
+            <button aria-expanded={eventsOpen} data-active={current === "prize" || current === "event"} aria-controls="events-menu" onClick={() => { setEventsOpen(!eventsOpen); setProgrammesOpen(false); setScholarsOpen(false); }}>Community & events <ChevronRight size={13} className={eventsOpen ? "chevron-open" : "chevron-down"} /></button>
+            {eventsOpen && <div id="events-menu" className="programme-dropdown"><button onClick={() => goToSection("prize", "save-the-date")} aria-current={current === "prize" ? "page" : undefined}>Save The Date <ArrowRight size={15} /></button><button onClick={() => go("event")} aria-current={current === "event" ? "page" : undefined}>Miles for Minds Run <ArrowRight size={15} /></button></div>}
           </div>
         </nav>
         <div className="header-actions">
@@ -1166,6 +1169,16 @@ function HomePage({ onNav }: { onNav: (p: Page) => void }) {
         </div>
       </section>
 
+      <section className="layout run-promo" aria-labelledby="run-promo-title">
+        <div className="run-promo-photo" role="img" aria-label="Runners taking part in a community run" style={{ backgroundImage: `url(${marathon1})` }} />
+        <div className="run-promo-content">
+          <span className="eyebrow">Run for a brighter future</span>
+          <h2 id="run-promo-title">Miles for Minds: The Wahome Foundation Run</h2>
+          <div className="run-promo-facts"><span>Saturday, January 9, 2027</span><span>7:00 AM · Mugumo Center</span></div>
+          <p>Every step supports children’s education through the Thomas D.K. Wahome Scholarship Program.</p>
+          <div className="run-promo-actions"><button className="button button-green" onClick={() => onNav("event")}>Register <ArrowRight size={17} /></button><button className="button button-run-outline" onClick={() => { onNav("event"); window.setTimeout(() => document.getElementById("sponsor-inquiry")?.scrollIntoView({behavior:"smooth",block:"start"}), 100); }}>Become a Sponsor <ArrowRight size={17} /></button></div>
+        </div>
+      </section>
 
       <section className="layout programmes-section" id="our-work"><div className="section-heading"><div><span className="eyebrow">How we make a difference</span><h2>Our programmes</h2></div><p>Education, clean water, and mentorship.<br />Connected pathways to a brighter future.</p></div><div className="programme-grid">{programmes.map(programme => <article className="programme-card" key={programme.page}><button className="programme-image" onClick={() => onNav(programme.page)} aria-label={`Explore ${programme.title}`}><img src={programme.image} alt={programme.title} loading="lazy" /></button><div className="programme-body"><span className="eyebrow">{programme.category}</span><h3>{programme.title}</h3><p>{programme.description}</p><button className="text-link" onClick={() => onNav(programme.page)}>Explore programme <ArrowRight size={17} /></button></div></article>)}</div></section>
 
@@ -2118,11 +2131,25 @@ function FloatingDonateButton({ onClick }: { onClick: () => void }) {
 // ─── ROOT APP (Clean, Error-Free Build Target) ─────────────────────────────
 
 export default function App() {
-  const [page, setPage] = useState<Page>("home");
+  const [page, setPage] = useState<Page>(() => window.location.hash === "#/miles-for-minds" ? "event" : "home");
   const [isDonateOpen, setIsDonateOpen] = useState(false);
   const [donateAmount, setDonateAmount] = useState<number | undefined>(undefined);
 
   useEffect(() => { window.scrollTo({ top: 0, behavior: "instant" }); }, [page]);
+  useEffect(() => {
+    const syncRoute = () => setPage(window.location.hash === "#/miles-for-minds" ? "event" : "home");
+    window.addEventListener("hashchange", syncRoute);
+    return () => window.removeEventListener("hashchange", syncRoute);
+  }, []);
+
+  const navigate = (next: Page) => {
+    if (next === "event") {
+      if (window.location.hash !== "#/miles-for-minds") window.location.hash = "/miles-for-minds";
+    } else if (window.location.hash) {
+      window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
+    }
+    setPage(next);
+  };
 
   const openDonate = (amount?: number) => {
     if (typeof amount === "number") setDonateAmount(amount);
@@ -2131,16 +2158,17 @@ export default function App() {
   const closeDonate = () => setIsDonateOpen(false);
 
   const pages: Record<Page, React.ReactNode> = {
-    home: <HomePage onNav={setPage} />,
-    about: <AboutPage onNav={setPage} />,
+    home: <HomePage onNav={navigate} />,
+    about: <AboutPage onNav={navigate} />,
     scholarship: (
-      <ScholarshipPage onNav={setPage} onOpenDonate={openDonate} />
+      <ScholarshipPage onNav={navigate} onOpenDonate={openDonate} />
     ),
-    wells: <WellsPage onNav={setPage} onOpenDonate={openDonate} />,
-    prize: <PrizePage onNav={setPage} onOpenDonate={openDonate} />,
+    wells: <WellsPage onNav={navigate} onOpenDonate={openDonate} />,
+    prize: <PrizePage onNav={navigate} onOpenDonate={openDonate} />,
     mentorship: (
-      <MentorshipPage onNav={setPage} onOpenDonate={openDonate} />
+      <MentorshipPage onNav={navigate} onOpenDonate={openDonate} />
     ),
+    event: <EventPage />,
   };
 
   return (
@@ -2149,13 +2177,13 @@ export default function App() {
       style={{ fontFamily: "'Montserrat', Arial, sans-serif" }}
     >
       <a className="skip-link" href="#main-content">Skip to content</a>
-      <Navbar current={page} onNav={setPage} onOpenDonate={openDonate} />
+      <Navbar current={page} onNav={navigate} onOpenDonate={openDonate} />
 
       <main id="main-content" className={page === "home" ? "" : "inner-page"}>
         {pages[page]}
       </main>
 
-      <Footer onNav={setPage} onOpenDonate={openDonate} />
+      <Footer onNav={navigate} onOpenDonate={openDonate} />
       <DonateModal isOpen={isDonateOpen} onClose={closeDonate} initialAmount={donateAmount} />
       
     </div>
