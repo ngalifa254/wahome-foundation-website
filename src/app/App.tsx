@@ -1171,14 +1171,19 @@ function HomePage({ onNav }: { onNav: (p: Page) => void }) {
         </div>
       </section>
 
-      <section className="layout run-promo" aria-labelledby="run-promo-title">
-        <div className="run-promo-photo" role="img" aria-label="Runners taking part in a community run" style={{ backgroundImage: `url(${marathon1})` }} />
-        <div className="run-promo-content">
-          <span className="eyebrow">Run for a brighter future</span>
-          <h2 id="run-promo-title">Miles for Minds: The Wahome Foundation Run</h2>
-          <div className="run-promo-facts"><span>Saturday, January 9, 2027</span><span>7:00 AM · Mugumo Center</span></div>
-          <p>Every step supports children’s education through the Thomas D.K. Wahome Scholarship Program.</p>
-          <div className="run-promo-actions"><a className="button button-green" href="#/miles-for-minds/registration">Register <ArrowRight size={17} /></a><a className="button button-run-outline" href="#/miles-for-minds/sponsor">Become a Sponsor <ArrowRight size={17} /></a></div>
+      <section className="run-promo-section" aria-labelledby="run-promo-section-title">
+        <div className="layout">
+          <h2 className="run-promo-section-title" id="run-promo-section-title">Miles for Minds</h2>
+          <div className="run-promo" aria-labelledby="run-promo-title">
+            <div className="run-promo-photo" role="img" aria-label="Runners taking part in a community run" style={{ backgroundImage: `url(${marathon1})` }} />
+            <div className="run-promo-content">
+              <span className="eyebrow">Run for a brighter future</span>
+              <h2 id="run-promo-title">Miles for Minds: The Wahome Foundation Run</h2>
+              <div className="run-promo-facts"><span>Saturday, January 9, 2027</span><span>7:00 AM · Mugumo Center</span></div>
+              <p>Every step supports children’s education through the Thomas D.K. Wahome Scholarship Program.</p>
+              <div className="run-promo-actions"><a className="button button-green" href="#/miles-for-minds/registration">Register <ArrowRight size={17} /></a><a className="button button-run-outline" href="#/miles-for-minds/sponsor">Become a Sponsor <ArrowRight size={17} /></a></div>
+            </div>
+          </div>
         </div>
       </section>
 

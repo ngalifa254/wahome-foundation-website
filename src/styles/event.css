@@ -1,5 +1,5 @@
 .run-promo-section { margin-block:22px 62px; }
-.run-promo-section-title { margin:0 0 14px; color:var(--ink); font-size:clamp(21px,2.2vw,28px); line-height:1.2; }
+.run-promo-section-title { margin:0 0 18px; color:var(--ink); font-family:'Montserrat',Arial,sans-serif; font-size:clamp(32px,3vw,45px); font-weight:600; line-height:1.13; letter-spacing:-.025em; }
 .run-promo { display:grid; grid-template-columns:.9fr 1.1fr; min-height:365px; margin:0; background:var(--dark); color:#fff; }
 .run-promo-photo { min-height:320px; background-size:cover; background-position:center; }
 .run-promo-content { padding:clamp(28px,5vw,66px); align-self:center; }
@@ -79,7 +79,7 @@
 }
 @media(max-width:640px) {
   .run-promo-section { margin-block:22px 40px; }
-  .run-promo-section-title { font-size:22px; margin-bottom:12px; }
+  .run-promo-section .run-promo-section-title { font-size:30px; margin-bottom:12px; }
   .run-promo { width:100%; grid-template-columns:1fr; margin:0; }
   .run-promo-photo { min-height:210px; }
   .run-promo-content { padding:26px 23px 30px; }
