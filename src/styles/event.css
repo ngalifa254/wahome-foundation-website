@@ -6,7 +6,6 @@
 .run-promo-content p { color:#e3e7ea; max-width:570px; margin:14px 0 23px; }
 .run-promo-facts { display:flex; flex-wrap:wrap; gap:9px 20px; font-size:13px; font-weight:600; color:#fff; }
 .run-promo-actions { display:flex; flex-wrap:wrap; gap:12px; }
-.run-promo-actions a,.run-hero-actions a { text-decoration:none; }
 .button-run-outline { border:1px solid #ffffffbd; color:#fff; }
 .button-run-outline:hover { background:#fff; color:var(--dark); }
 .run-page { color:var(--ink); }
@@ -49,17 +48,6 @@
 .run-field input,.run-field select,.run-field textarea { width:100%; min-height:46px; border:1px solid #b9c7d0; border-radius:3px; padding:11px 12px; background:#fff; color:var(--ink); font:400 13px 'Montserrat',Arial,sans-serif; }
 .run-field textarea { min-height:125px; resize:vertical; }
 .run-field input:focus,.run-field select:focus,.run-field textarea:focus { outline:2px solid var(--green); outline-offset:1px; }
-.run-field [aria-invalid="true"],.run-consent input[aria-invalid="true"] { border-color:#a83232; }
-.run-field-error { color:#9b2929; font-size:11px; line-height:1.5; margin:0; }
-.run-registration-review { display:grid; grid-template-columns:1fr auto auto; align-items:center; gap:17px; margin-top:23px; padding:16px 18px; border:1px solid var(--line); border-left:3px solid var(--green); background:var(--paper); }
-.run-registration-review > span { color:var(--quiet); font-size:12px; }
-.run-registration-review strong { font-size:14px; }
-.run-registration-review b { color:var(--green); font-size:14px; }
-.run-consent-error { margin:-7px 0 12px 29px; }
-.run-demo-confirmation { max-width:780px; margin:0 auto; border-top:4px solid var(--gold); }
-.run-demo-confirmation h2 { margin:12px 0; font-size:clamp(27px,3vw,36px); }
-.run-demo-confirmation > p:not(.run-demo-label) { max-width:620px; color:var(--quiet); font-size:14px; line-height:1.8; margin-bottom:23px; }
-.run-demo-label { display:inline-flex; padding:7px 10px; background:#fff3d5; color:#654b12; font-size:10px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; }
 .run-field-wide { grid-column:1/-1; }
 .run-consent { display:flex; gap:11px; align-items:flex-start; margin:20px 0 12px; font-size:12px; line-height:1.7; color:var(--ink); cursor:pointer; }
 .run-consent input { flex:0 0 18px; width:18px; height:18px; margin-top:2px; accent-color:var(--green); }

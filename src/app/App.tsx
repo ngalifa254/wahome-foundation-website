@@ -83,8 +83,6 @@ type Page =
   | "mentorship"
   | "event";
 
-const isMilesForMindsRoute = (hash: string) => hash === "#/miles-for-minds" || hash.startsWith("#/miles-for-minds/");
-
 // ─── Shared primitives ────────────────────────────────────────────────────────
 
 function SectionTag({ children }: { children: React.ReactNode }) {
@@ -1178,7 +1176,7 @@ function HomePage({ onNav }: { onNav: (p: Page) => void }) {
           <h2 id="run-promo-title">Miles for Minds: The Wahome Foundation Run</h2>
           <div className="run-promo-facts"><span>Saturday, January 9, 2027</span><span>7:00 AM · Mugumo Center</span></div>
           <p>Every step supports children’s education through the Thomas D.K. Wahome Scholarship Program.</p>
-          <div className="run-promo-actions"><a className="button button-green" href="#/miles-for-minds/registration">Register <ArrowRight size={17} /></a><a className="button button-run-outline" href="#/miles-for-minds/sponsor">Become a Sponsor <ArrowRight size={17} /></a></div>
+          <div className="run-promo-actions"><button className="button button-green" onClick={() => onNav("event")}>Register <ArrowRight size={17} /></button><button className="button button-run-outline" onClick={() => { onNav("event"); window.setTimeout(() => document.getElementById("sponsor-inquiry")?.scrollIntoView({behavior:"smooth",block:"start"}), 100); }}>Become a Sponsor <ArrowRight size={17} /></button></div>
         </div>
       </section>
 
@@ -2133,16 +2131,13 @@ function FloatingDonateButton({ onClick }: { onClick: () => void }) {
 // ─── ROOT APP (Clean, Error-Free Build Target) ─────────────────────────────
 
 export default function App() {
-  const [page, setPage] = useState<Page>(() => isMilesForMindsRoute(window.location.hash) ? "event" : "home");
+  const [page, setPage] = useState<Page>(() => window.location.hash === "#/miles-for-minds" ? "event" : "home");
   const [isDonateOpen, setIsDonateOpen] = useState(false);
   const [donateAmount, setDonateAmount] = useState<number | undefined>(undefined);
 
+  useEffect(() => { window.scrollTo({ top: 0, behavior: "instant" }); }, [page]);
   useEffect(() => {
-    if (page === "event" && ["#/miles-for-minds/registration", "#/miles-for-minds/sponsor"].includes(window.location.hash)) return;
-    window.scrollTo({ top: 0, behavior: "instant" });
-  }, [page]);
-  useEffect(() => {
-    const syncRoute = () => setPage(isMilesForMindsRoute(window.location.hash) ? "event" : "home");
+    const syncRoute = () => setPage(window.location.hash === "#/miles-for-minds" ? "event" : "home");
     window.addEventListener("hashchange", syncRoute);
     return () => window.removeEventListener("hashchange", syncRoute);
   }, []);
