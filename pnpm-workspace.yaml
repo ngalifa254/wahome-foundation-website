@@ -1,11 +1,16 @@
 packages:
   - '.'
 allowBuilds:
+  '@firebase/util': false
   '@tailwindcss/oxide': true
   esbuild: true
+  protobufjs: false
+overrides:
+  vite: "6.3.5"
 supportedArchitectures:
   os:
     - linux
+    - win32
   cpu:
     - x64
     - arm64

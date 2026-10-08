@@ -1,1 +1,8 @@
 node_modules 
+.pnpm-store/
+vite-dev.log
+.env*.local
+firebase-debug.log
+firestore-debug.log
+.secret.local
+dist/

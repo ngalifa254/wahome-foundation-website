@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { ArrowDownToLine, ArrowRight, CalendarDays, Clock3, MapPin, HeartHandshake } from "lucide-react";
 import posterImage from "@/imports/wahome-run-poster.png.jpg";
+import RegistrationForm from "./RegistrationForm";
 
 type Category = "21K" | "10K" | "Children's 5K";
 
@@ -8,40 +9,6 @@ const fieldClass = "run-field";
 
 function PosterDownload() {
   return <div className="run-poster-action"><a className="button button-green" href={posterImage} download="miles-for-minds-wahome-foundation-run.jpg"><ArrowDownToLine size={17} /> Download event poster</a></div>;
-}
-
-function FormField({ id, label, type = "text", required = true, min, autoComplete }: { id: string; label: string; type?: string; required?: boolean; min?: number; autoComplete?: string }) {
-  return <div className={fieldClass}><label htmlFor={id}>{label}{required ? " *" : ""}</label><input id={id} name={id} type={type} required={required} min={min} autoComplete={autoComplete} pattern={type === "tel" ? "[+0-9() .-]{7,20}" : undefined} title={type === "tel" ? "Enter a phone number using 7 to 20 digits or common phone punctuation." : undefined} /></div>;
-}
-
-function RegistrationForm() {
-  const [category, setCategory] = useState<Category>("21K");
-  const [status, setStatus] = useState("");
-  const child = category === "Children's 5K";
-
-  return <form className="run-form" onSubmit={(event) => { event.preventDefault(); setStatus("Registration is not configured yet. This site has no secure registration service or payment verification endpoint, so your details were not sent or saved."); }}>
-    <div className="run-form-heading"><span className="eyebrow">Participant registration</span><h2>Take your place at the start</h2><p>Registration fee: <strong>KSh 1,000 per participant</strong> for all categories.</p></div>
-    {child && <div className="run-notice" role="note"><strong>Children’s 5K:</strong> A parent or guardian must complete this form. Their details will serve as the child’s emergency contact.</div>}
-    <div className="run-form-grid">
-      <FormField id="participant-name" label="Participant full name" autoComplete="name" />
-      <FormField id="participant-age" label="Participant age in years" type="number" min={0} />
-      <FormField id="participant-phone" label="Participant phone" type="tel" autoComplete="tel" />
-      <FormField id="participant-email" label="Participant email (or guardian email for a child)" type="email" autoComplete="email" />
-      <div className={fieldClass}><label htmlFor="run-category">Category *</label><select id="run-category" name="category" required value={category} onChange={(event) => { setCategory(event.target.value as Category); setStatus(""); }}><option>21K</option><option>10K</option><option>Children&apos;s 5K</option></select></div>
-      {child ? <>
-        <FormField id="guardian-name" label="Parent or guardian full name" autoComplete="name" />
-        <FormField id="guardian-phone" label="Parent or guardian phone" type="tel" autoComplete="tel" />
-        <FormField id="guardian-email" label="Parent or guardian email" type="email" autoComplete="email" />
-      </> : <>
-        <FormField id="emergency-name" label="Emergency contact full name" />
-        <FormField id="emergency-phone" label="Emergency contact phone" type="tel" />
-      </>}
-    </div>
-    <label className="run-consent"><input type="checkbox" required /> <span>I confirm I am sharing this information for event registration and consent to its use for event coordination and safety. I will only provide a child’s information as their parent or guardian. *</span></label>
-    <p className="run-privacy">Participant and child information should be handled by the event team only for registration, safety, and event updates. This page does not currently transmit or store your details.</p>
-    <button className="button button-green" type="submit">Continue registration <ArrowRight size={17} /></button>
-    <p className="run-form-status" role="status" aria-live="polite">{status}</p>
-  </form>;
 }
 
 function SponsorForm() {
