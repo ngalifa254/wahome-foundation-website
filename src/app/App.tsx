@@ -993,7 +993,7 @@ function PrizeGivingBanner({
 
                 <button
                   type="button"
-                  onClick={onOpenDonate}
+                  onClick={() => onOpenDonate()}
                   className="px-6 py-3 rounded-full bg-white/10 hover:bg-white/20 text-white font-bold text-xs uppercase tracking-wider backdrop-blur border border-white/20 transition-all"
                 >
                   Partner With Us
@@ -1970,16 +1970,10 @@ function PrizePage({
 
               <div className="mt-8 flex flex-wrap gap-4">
                 <button
-                  onClick={onOpenDonate}
+                  onClick={() => onOpenDonate()}
                   className="px-6 py-3 rounded-xl bg-[#16324A] text-white font-semibold text-sm hover:bg-[#1A3A52] transition-colors"
                 >
                   Become a Partner
-                </button>
-                <button
-                  onClick={() => go("mentorship")}
-                  className="px-6 py-3 rounded-xl border border-[#16324A] text-[#16324A] font-semibold text-sm hover:bg-[#16324A]/10 transition-colors"
-                >
-                  Volunteer at Ceremony
                 </button>
               </div>
             </div>
