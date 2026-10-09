@@ -1,7 +1,10 @@
 import { defineConfig } from 'vite'
 import path from 'path'
+import { fileURLToPath } from 'node:url'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
+
+const configDir = path.dirname(fileURLToPath(import.meta.url))
 
 export default defineConfig({
   // Required for GitHub Pages subfolder deployment. Override with VITE_BASE_PATH
@@ -13,7 +16,7 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      '@': path.resolve(configDir, './src'),
     },
   },
 })

@@ -1,7 +1,15 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { ArrowDownToLine, ArrowRight, CalendarDays, Clock3, MapPin, HeartHandshake } from "lucide-react";
+import { httpsCallable } from "firebase/functions";
 import posterImage from "@/imports/wahome-run-poster.png.jpg";
+import { functions } from "@/lib/firebase";
 import RegistrationForm from "./RegistrationForm";
+
+declare global {
+  interface Window {
+    turnstile?: { reset: () => void };
+  }
+}
 
 type Category = "21K" | "10K" | "Children's 5K";
 
@@ -11,18 +19,88 @@ function PosterDownload() {
   return <div className="run-poster-action"><a className="button button-green" href={posterImage} download="miles-for-minds-wahome-foundation-run.jpg"><ArrowDownToLine size={17} /> Download event poster</a></div>;
 }
 
+function SponsorField({
+  id,
+  name = id,
+  label,
+  type = "text",
+  required = true,
+  autoComplete,
+}: {
+  id: string;
+  name?: string;
+  label: string;
+  type?: string;
+  required?: boolean;
+  autoComplete?: string;
+}) {
+  return <div className={fieldClass}>
+    <label htmlFor={id}>{label}{required ? " *" : ""}</label>
+    <input id={id} name={name} type={type} required={required} autoComplete={autoComplete} />
+  </div>;
+}
+
 function SponsorForm() {
   const [status, setStatus] = useState("");
-  return <form id="sponsor-inquiry" className="run-form" onSubmit={(event) => { event.preventDefault(); setStatus("Sponsor inquiries are not configured yet. No destination is connected, so your details were not sent or saved. Submitting an inquiry does not confirm sponsorship."); }}>
-    <div className="run-form-heading"><span className="eyebrow">Partner with the run</span><h2>Become a Sponsor</h2><p>Tell us how you would like to support this event. The team can follow up once an inquiry destination is configured.</p></div>
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY;
+  const configured = Boolean(functions && siteKey);
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+    if (!functions) {
+      setStatus("Sponsor inquiries are unavailable in this environment.");
+      return;
+    }
+    if (!siteKey) {
+      setStatus("Spam protection is not configured, so this inquiry cannot be submitted yet.");
+      return;
+    }
+    const turnstileToken = String(formData.get("cf-turnstile-response") ?? "");
+    if (!turnstileToken) {
+      setStatus("Complete the spam protection check before submitting.");
+      return;
+    }
+
+    const input = {
+      contactName: String(formData.get("contactName") ?? ""),
+      organization: String(formData.get("organization") ?? ""),
+      contactEmail: String(formData.get("contactEmail") ?? ""),
+      contactPhone: String(formData.get("contactPhone") ?? ""),
+      supportMessage: String(formData.get("supportMessage") ?? ""),
+      turnstileToken,
+    };
+
+    setIsSubmitting(true);
+    setStatus("Submitting your inquiry…");
+    try {
+      const submitInquiry = httpsCallable<typeof input, { inquiryId: string }>(functions, "submitSponsorInquiry");
+      const response = await submitInquiry(input);
+      form.reset();
+      setStatus(`Sponsor inquiry received. Your reference is ${response.data.inquiryId}.`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Your inquiry could not be submitted. Please try again.";
+      setStatus(message);
+      window.turnstile?.reset();
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  return <form id="sponsor-inquiry" className="run-form" onSubmit={handleSubmit}>
+    <div className="run-form-heading"><span className="eyebrow">Partner with the run</span><h2>Become a Sponsor</h2><p>Tell us how you would like to support this event. Your inquiry will be saved for the Foundation team to follow up; submitting it does not confirm sponsorship.</p></div>
     <div className="run-form-grid">
-      <FormField id="sponsor-contact" label="Contact name" autoComplete="name" />
-      <FormField id="sponsor-organization" label="Organization (optional)" required={false} autoComplete="organization" />
-      <FormField id="sponsor-email" label="Email" type="email" autoComplete="email" />
-      <FormField id="sponsor-phone" label="Phone" type="tel" autoComplete="tel" />
-      <div className={`${fieldClass} run-field-wide`}><label htmlFor="sponsor-message">How would you like to support the event? *</label><textarea id="sponsor-message" name="message" rows={5} required /></div>
+      <SponsorField id="sponsor-contact" name="contactName" label="Contact name" autoComplete="name" />
+      <SponsorField id="sponsor-organization" name="organization" label="Organization (optional)" required={false} autoComplete="organization" />
+      <SponsorField id="sponsor-email" name="contactEmail" label="Email" type="email" autoComplete="email" />
+      <SponsorField id="sponsor-phone" name="contactPhone" label="Phone" type="tel" autoComplete="tel" />
+      <div className={`${fieldClass} run-field-wide`}><label htmlFor="sponsor-message">How would you like to support the event? *</label><textarea id="sponsor-message" name="supportMessage" rows={5} minLength={10} maxLength={2000} required /></div>
     </div>
-    <button className="button button-green" type="submit">Send sponsor inquiry <ArrowRight size={17} /></button>
+    {siteKey && <div className="cf-turnstile" data-sitekey={siteKey} data-action="event_sponsor_inquiry" />}
+    {!configured && <p className="run-form-status" role="status">Sponsor inquiry submission is not configured in this environment.</p>}
+    <button className="button button-green" type="submit" disabled={isSubmitting || !configured}>{isSubmitting ? "Submitting…" : "Send sponsor inquiry"} <ArrowRight size={17} /></button>
     <p className="run-form-status" role="status" aria-live="polite">{status}</p>
   </form>;
 }
@@ -36,7 +114,7 @@ export function EventPage() {
     description?.setAttribute("content", "Join Miles for Minds on January 9, 2027 at Mugumo Center. Run 21K, 10K, or the children’s 5K to support the Thomas D.K. Wahome Scholarship Program.");
     return () => {
       document.title = previousTitle;
-      if (previousDescription !== null && description) description.setAttribute("content", previousDescription);
+      if (previousDescription != null && description) description.setAttribute("content", previousDescription);
     };
   }, []);
   return <div className="run-page">

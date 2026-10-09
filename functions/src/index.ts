@@ -81,7 +81,7 @@ function validatePhone(value: unknown): string {
  * @param {string=} origin Request origin, when supplied.
  * @return {Promise<void>} Resolves only for a valid token.
  */
-async function verifyTurnstile(token: string, secret: string, origin?: string): Promise<void> {
+async function verifyTurnstile(token: string, secret: string, expectedAction: string, origin?: string): Promise<void> {
   const parameters = new URLSearchParams({secret, response: token});
   let validation: TurnstileResult;
   try {
@@ -101,7 +101,7 @@ async function verifyTurnstile(token: string, secret: string, origin?: string): 
 
   const isEmulatorTestToken = process.env.FUNCTIONS_EMULATOR === "true" &&
     validation.metadata?.result_with_testing_key === true;
-  if (!validation.success || (validation.action !== "event_registration" && !isEmulatorTestToken)) {
+  if (!validation.success || (validation.action !== expectedAction && !isEmulatorTestToken)) {
     throw new HttpsError("permission-denied", "Spam protection could not verify this submission. Please complete the check again.");
   }
 
@@ -183,7 +183,7 @@ export const registerEvent = onCall({
     throw new HttpsError("unavailable", "Spam protection is not configured. Please try again later.");
   }
   const originHeader = request.rawRequest.headers.origin;
-  await verifyTurnstile(token, secret, typeof originHeader === "string" ? originHeader : undefined);
+  await verifyTurnstile(token, secret, "event_registration", typeof originHeader === "string" ? originHeader : undefined);
 
   const registration = await db.collection("eventRegistrations").add({
     eventSlug: "miles-for-minds-2027",
@@ -207,4 +207,57 @@ export const registerEvent = onCall({
   });
 
   return {registrationId: registration.id, paymentStatus: "pending" as const};
+});
+
+export const submitSponsorInquiry = onCall({
+  secrets: [turnstileSecret],
+  timeoutSeconds: 20,
+}, async (request) => {
+  if (typeof request.data !== "object" || request.data === null || Array.isArray(request.data)) {
+    throw new HttpsError("invalid-argument", "The sponsor inquiry details are invalid.");
+  }
+  const data = request.data as Record<string, unknown>;
+  const contactName = requiredText(data, "contactName", 150);
+  const organizationValue = data.organization;
+  if (organizationValue !== undefined && typeof organizationValue !== "string") {
+    throw new HttpsError("invalid-argument", "Please enter a valid organization name.");
+  }
+  const organization = typeof organizationValue === "string" ?
+    organizationValue.trim().replace(/\s+/g, " ").slice(0, 150) || null : null;
+  if (typeof organizationValue === "string" && organizationValue.trim().length > 150) {
+    throw new HttpsError("invalid-argument", "Organization must be 150 characters or fewer.");
+  }
+  const contactEmail = validateEmail(data.contactEmail);
+  const contactPhone = validatePhone(data.contactPhone);
+  const supportMessage = requiredText(data, "supportMessage", 2000);
+  if (supportMessage.length < 10) {
+    throw new HttpsError("invalid-argument", "Please tell us a little more about how you would like to support the event.");
+  }
+  const token = data.turnstileToken;
+  if (typeof token !== "string" || token.length === 0 || token.length > 2048) {
+    throw new HttpsError("failed-precondition", "Complete the spam protection check before submitting.");
+  }
+
+  const secret = turnstileSecret.value() || (
+    process.env.FUNCTIONS_EMULATOR === "true" ?
+      "1x0000000000000000000000000000000AA" : ""
+  );
+  if (!secret) {
+    throw new HttpsError("unavailable", "Spam protection is not configured. Please try again later.");
+  }
+  const originHeader = request.rawRequest.headers.origin;
+  await verifyTurnstile(token, secret, "event_sponsor_inquiry", typeof originHeader === "string" ? originHeader : undefined);
+
+  const inquiry = await db.collection("eventSponsorshipInquiries").add({
+    eventSlug: "miles-for-minds-2027",
+    submittedAt: FieldValue.serverTimestamp(),
+    contactName,
+    organization,
+    contactEmail,
+    contactPhone,
+    supportMessage,
+    status: "new",
+  });
+
+  return {inquiryId: inquiry.id};
 });
