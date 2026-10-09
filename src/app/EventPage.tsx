@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { ArrowDownToLine, ArrowRight, CalendarDays, Clock3, MapPin, HeartHandshake } from "lucide-react";
 import { httpsCallable } from "firebase/functions";
-import posterImage from "@/imports/wahome-run-poster.png.jpg";
+import posterImage from "@/imports/event-poster-2027.jpg";
 import { functions } from "@/lib/firebase";
 import RegistrationForm from "./RegistrationForm";
 

@@ -1975,12 +1975,6 @@ function PrizePage({
                 >
                   Become a Partner
                 </button>
-                <button
-                  onClick={() => onNav("mentorship")}
-                  className="px-6 py-3 rounded-xl border border-[#16324A] text-[#16324A] font-semibold text-sm hover:bg-[#16324A]/10 transition-colors"
-                >
-                  Volunteer at Ceremony
-                </button>
               </div>
             </div>
 
