@@ -37,7 +37,18 @@ import logoTufahaResort from "@/imports/tufaharesort.PNG";
 
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from 'motion/react';
-
+import EventRegistrationsDashboard from "./EventRegistrationsDashboard";
+import AdminLoginForm from "./components/AdminLoginForm";
+import { onAuthStateChanged, auth, signOutAdmin } from "../lib/adminAuth";
+function useHashLocation() {
+  const [hash, setHash] = useState(window.location.hash);
+  useEffect(() => {
+    const handleHashChange = () => setHash(window.location.hash);
+    window.addEventListener("hashchange", handleHashChange);
+    return () => window.removeEventListener("hashchange", handleHashChange);
+  }, []);
+  return hash;
+}
 
 
 // Utility function to shuffle array
@@ -2129,25 +2140,57 @@ function FloatingDonateButton({ onClick }: { onClick: () => void }) {
   );
 }
 
-// ─── ROOT APP (Clean, Error-Free Build Target) ─────────────────────────────
+// ─── ROOT APP ──────────────────────────────────────────────────────────────
 
 export default function App() {
-  const [page, setPage] = useState<Page>(() => isMilesForMindsRoute(window.location.hash) ? "event" : "home");
-  const [isDonateOpen, setIsDonateOpen] = useState(false);
+  const [isAdminRoute, setIsAdminRoute] = useState<boolean>(
+    () => window.location.hash === "#/admin/registrations"
+  );
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [page, setPage] = useState<Page>(() =>
+    isMilesForMindsRoute(window.location.hash) ? "event" : "home"
+  );
+  const [isDonateOpen, setIsDonateOpen] = useState<boolean>(false);
   const [donateAmount, setDonateAmount] = useState<number | undefined>(undefined);
 
-  useEffect(() => { window.scrollTo({ top: 0, behavior: "instant" }); }, [page]);
   useEffect(() => {
-    const syncRoute = () => setPage(isMilesForMindsRoute(window.location.hash) ? "event" : "home");
+    const syncRoute = () => {
+      const currentHash = window.location.hash;
+      setIsAdminRoute(currentHash === "#/admin/registrations");
+      setPage(isMilesForMindsRoute(currentHash) ? "event" : "home");
+    };
+
     window.addEventListener("hashchange", syncRoute);
-    return () => window.removeEventListener("hashchange", syncRoute);
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setIsAuthenticated(!!user);
+    });
+
+    return () => {
+      window.removeEventListener("hashchange", syncRoute);
+      unsubscribe();
+    };
   }, []);
 
+  // 1. ADMIN AUTHENTICATION GUARD
+  if (isAdminRoute) {
+    if (!isAuthenticated) {
+      return <AdminLoginForm onSuccess={() => setIsAuthenticated(true)} />;
+    }
+    return <EventRegistrationsDashboard onSignOut={signOutAdmin} />;
+  }
+
+  // 2. WEBSITE ROUTING CONTROLLERS
   const navigate = (next: Page) => {
     if (next === "event") {
-      if (window.location.hash !== "#/miles-for-minds") window.location.hash = "/miles-for-minds";
+      if (window.location.hash !== "#/miles-for-minds") {
+        window.location.hash = "/miles-for-minds";
+      }
     } else if (window.location.hash) {
-      window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
+      window.history.replaceState(
+        null,
+        "",
+        `${window.location.pathname}${window.location.search}`
+      );
     }
     setPage(next);
   };
@@ -2156,6 +2199,7 @@ export default function App() {
     if (typeof amount === "number") setDonateAmount(amount);
     setIsDonateOpen(true);
   };
+
   const closeDonate = () => setIsDonateOpen(false);
 
   const pages: Record<Page, React.ReactNode> = {
@@ -2186,7 +2230,7 @@ export default function App() {
 
       <Footer onNav={navigate} onOpenDonate={openDonate} />
       <DonateModal isOpen={isDonateOpen} onClose={closeDonate} initialAmount={donateAmount} />
-      
+      <FloatingDonateButton onClick={() => openDonate()} />
     </div>
   );
 }

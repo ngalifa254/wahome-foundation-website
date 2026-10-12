@@ -1,187 +1,353 @@
-import { useState, type FormEvent } from "react";
-import { ArrowRight } from "lucide-react";
+import React, { useEffect, useRef, useState } from "react";
+import { ArrowRight, CheckCircle2, Loader2, Sparkles } from "lucide-react";
 import { httpsCallable } from "firebase/functions";
-import { functions } from "@/lib/firebase";
+import { functions } from "../lib/firebase"; // Uses existing functions export from lib/firebase.ts
 
-declare global {
-  interface Window {
-    turnstile?: { reset: () => void };
-  }
-}
+type Category = "21K" | "10K" | "Children's 5K";
+type GuardianRelationship = "parent" | "legal_guardian" | "other";
 
-type RaceCategory = "21k" | "10k" | "children_5k";
-
-type RegistrationInput = {
+interface RegisterEventPayload {
   participantName: string;
   participantAge: number;
-  raceCategory: RaceCategory;
-  guardianName?: string;
-  guardianRelationship?: string;
-  guardianAuthorized?: boolean;
+  raceCategory: "21k" | "10k" | "children_5k";
+  guardianName: string | null;
+  guardianRelationship: GuardianRelationship | null;
+  guardianAuthorized: boolean;
   contactEmail: string;
   contactPhone: string;
   privacyNoticeAccepted: boolean;
   futureEventUpdates: boolean;
   turnstileToken: string;
-};
+}
 
-type RegistrationResult = { registrationId: string; paymentStatus: "pending" };
+interface RegisterEventResponse {
+  registrationId: string;
+  paymentStatus: "pending";
+}
 
-const fieldClass = "run-field";
-
-function FormField({
-  id,
-  name = id,
-  label,
-  type = "text",
-  required = true,
-  min,
-  max,
-  autoComplete,
-  onChange,
-}: {
-  id: string;
-  name?: string;
-  label: string;
-  type?: string;
-  required?: boolean;
-  min?: number;
-  max?: number;
-  autoComplete?: string;
-  onChange?: (value: string) => void;
-}) {
-  return (
-    <div className={fieldClass}>
-      <label htmlFor={id}>{label}{required ? " *" : ""}</label>
-      <input
-        id={id}
-        name={name}
-        type={type}
-        required={required}
-        min={min}
-        max={max}
-        autoComplete={autoComplete}
-        pattern={type === "tel" ? "[+0-9() .-]{7,24}" : undefined}
-        title={type === "tel" ? "Enter a phone number using 7 to 15 digits and common phone punctuation." : undefined}
-        onChange={onChange ? (event) => onChange(event.target.value) : undefined}
-      />
-    </div>
-  );
+declare global {
+  interface Window {
+    turnstile?: {
+      render: (container: HTMLElement, options: {
+        sitekey: string;
+        action: string;
+        callback: (token: string) => void;
+        "expired-callback"?: () => void;
+        "error-callback"?: () => void;
+      }) => string;
+      reset: (widgetId?: string) => void;
+      remove?: (widgetId: string) => void;
+    };
+  }
 }
 
 export default function RegistrationForm() {
-  const [category, setCategory] = useState<RaceCategory>("21k");
-  const [age, setAge] = useState("");
-  const [status, setStatus] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const isMinor = age !== "" && Number(age) < 18;
-  const isChildrenRace = category === "children_5k";
-  const needsGuardian = isMinor || isChildrenRace;
-  const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY;
-  const configured = Boolean(functions && siteKey);
+  const [formData, setFormData] = useState({
+    fullName: "",
+    age: "",
+    category: "21K" as Category,
+    email: "",
+    phone: "",
+    agreedToTerms: false,
+    optInMarketing: false,
+    guardianName: "",
+    guardianRelationship: "parent" as GuardianRelationship,
+    guardianAuthorized: false,
+  });
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const form = event.currentTarget;
-    const formData = new FormData(form);
+  const [loading, setLoading] = useState(false);
+  const [registrationId, setRegistrationId] = useState<string | null>(null);
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const [error, setError] = useState("");
+  const turnstileContainer = useRef<HTMLDivElement>(null);
+  const turnstileWidgetId = useRef<string | null>(null);
+  const turnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY;
+  const participantIsMinor = formData.age !== "" && Number(formData.age) < 18;
 
-    if (!functions) {
-      setStatus("Registration is temporarily unavailable. Please try again later.");
-      return;
-    }
-    if (!siteKey) {
-      setStatus("Spam protection is not configured, so this form cannot be submitted yet.");
-      return;
-    }
-    if (isChildrenRace && Number(age) >= 18) {
-      setStatus("The Children’s 5K is for participants under 18. Please choose the 10K or 21K category.");
-      return;
-    }
+  useEffect(() => {
+    if (!turnstileSiteKey || !turnstileContainer.current) return;
 
-    const turnstileToken = String(formData.get("cf-turnstile-response") ?? "");
-    if (!turnstileToken) {
-      setStatus("Complete the spam protection check before submitting.");
-      return;
-    }
-
-    const input: RegistrationInput = {
-      participantName: String(formData.get("participantName") ?? ""),
-      participantAge: Number(formData.get("participantAge")),
-      raceCategory: category,
-      contactEmail: String(formData.get("contactEmail") ?? ""),
-      contactPhone: String(formData.get("contactPhone") ?? ""),
-      privacyNoticeAccepted: formData.get("privacyNoticeAccepted") === "on",
-      futureEventUpdates: formData.get("futureEventUpdates") === "on",
-      turnstileToken,
+    let timer = 0;
+    const renderWidget = () => {
+      if (!window.turnstile || !turnstileContainer.current || turnstileWidgetId.current) return;
+      turnstileWidgetId.current = window.turnstile.render(turnstileContainer.current, {
+        sitekey: turnstileSiteKey,
+        action: "event_registration",
+        callback: setTurnstileToken,
+        "expired-callback": () => setTurnstileToken(""),
+        "error-callback": () => setTurnstileToken(""),
+      });
+      window.clearInterval(timer);
     };
-    if (needsGuardian) {
-      input.guardianName = String(formData.get("guardianName") ?? "");
-      input.guardianRelationship = String(formData.get("guardianRelationship") ?? "");
-      input.guardianAuthorized = formData.get("guardianAuthorized") === "on";
-    }
 
-    setIsSubmitting(true);
-    setStatus("Submitting your registration…");
-    try {
-      const register = httpsCallable<RegistrationInput, RegistrationResult>(functions, "registerEvent");
-      const response = await register(input);
-      form.reset();
-      setCategory("21k");
-      setAge("");
-      setStatus(`Registration received. Your reference is ${response.data.registrationId}. Payment status: pending.`);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Registration could not be submitted. Please try again.";
-      setStatus(message);
-      window.turnstile?.reset();
-    } finally {
-      setIsSubmitting(false);
+    timer = window.setInterval(renderWidget, 250);
+    renderWidget();
+    return () => {
+      window.clearInterval(timer);
+      if (turnstileWidgetId.current) window.turnstile?.remove?.(turnstileWidgetId.current);
+      turnstileWidgetId.current = null;
+    };
+  }, [turnstileSiteKey]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setRegistrationId(null);
+    if (!functions) {
+      setError("Registration is unavailable because the event service is not configured.");
+      return;
     }
-  }
+    if (!turnstileToken) {
+      setError("Complete the spam protection check before submitting.");
+      return;
+    }
+    setLoading(true);
+
+    try {
+      const registerEventFn = httpsCallable<RegisterEventPayload, RegisterEventResponse>(
+        functions,
+        "registerEvent",
+      );
+
+      const result = await registerEventFn({
+        participantName: formData.fullName,
+        participantAge: Number(formData.age),
+        raceCategory: formData.category === "21K" ? "21k" :
+          formData.category === "10K" ? "10k" : "children_5k",
+        guardianName: participantIsMinor ? formData.guardianName : null,
+        guardianRelationship: participantIsMinor ? formData.guardianRelationship : null,
+        guardianAuthorized: participantIsMinor && formData.guardianAuthorized,
+        contactEmail: formData.email,
+        contactPhone: formData.phone,
+        privacyNoticeAccepted: formData.agreedToTerms,
+        futureEventUpdates: formData.optInMarketing,
+        turnstileToken,
+      });
+
+      setRegistrationId(result.data.registrationId);
+      setFormData({
+        fullName: "", age: "", category: "21K", email: "", phone: "",
+        agreedToTerms: false, optInMarketing: false, guardianName: "",
+        guardianRelationship: "parent", guardianAuthorized: false,
+      });
+      setTurnstileToken("");
+      if (turnstileWidgetId.current) window.turnstile?.reset(turnstileWidgetId.current);
+    } catch (cause) {
+      console.error("Cloud function error:", cause);
+      setError(cause instanceof Error ? cause.message : "Registration failed. Please try again.");
+      setTurnstileToken("");
+      if (turnstileWidgetId.current) window.turnstile?.reset(turnstileWidgetId.current);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <form className="run-form" onSubmit={handleSubmit}>
-      <div className="run-form-heading">
-        <span className="eyebrow">Participant registration</span>
-        <h2>Take your place at the start</h2>
-        <p>Registration fee: <strong>KSh 1,000 per participant</strong> for all categories.</p>
-      </div>
-      {isChildrenRace && <div className="run-notice" role="note"><strong>Children’s 5K:</strong> A parent or guardian must register a participant under 18.</div>}
-      <div className="run-form-grid">
-        <FormField id="participantName" label="Participant full name" autoComplete="name" />
-        <FormField id="participantAge" label="Participant age in years" type="number" min={0} max={120} onChange={setAge} />
-        <div className={fieldClass}>
-          <label htmlFor="raceCategory">Category *</label>
-          <select id="raceCategory" name="raceCategory" required value={category} onChange={(event) => { setCategory(event.target.value as RaceCategory); setStatus(""); }}>
-            <option value="21k">21K</option>
-            <option value="10k">10K</option>
-            <option value="children_5k">Children’s 5K</option>
-          </select>
+    <div className="relative overflow-hidden rounded-3xl border border-slate-200/80 bg-gradient-to-b from-white via-slate-50/50 to-slate-100/30 p-8 shadow-2xl shadow-slate-200/50 backdrop-blur-xl transition-all duration-300">
+      {/* Subtle Background Glow */}
+      <div className="pointer-events-none absolute -top-24 -right-24 h-60 w-60 rounded-full bg-blue-500/10 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-24 -left-24 h-60 w-60 rounded-full bg-emerald-500/10 blur-3xl" />
+
+      {/* Header */}
+      <div className="relative mb-8">
+        <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50/80 px-3 py-1 text-xs font-semibold text-emerald-800 shadow-sm">
+          <Sparkles className="h-3.5 w-3.5 text-emerald-600" />
+          <span>Participant Registration</span>
         </div>
-        <FormField id="contactEmail" label={needsGuardian ? "Parent or guardian email" : "Participant email"} type="email" autoComplete="email" />
-        <FormField id="contactPhone" label={needsGuardian ? "Parent or guardian phone" : "Participant phone"} type="tel" autoComplete="tel" />
-        {needsGuardian && <>
-          <FormField id="guardianName" label="Parent or guardian full name" autoComplete="name" />
-          <div className={fieldClass}>
-            <label htmlFor="guardianRelationship">Relationship to participant *</label>
-            <select id="guardianRelationship" name="guardianRelationship" required>
-              <option value="">Choose a relationship</option>
-              <option value="parent">Parent</option>
-              <option value="legal_guardian">Legal guardian</option>
-              <option value="other">Other authorised guardian</option>
+        <h2 className="mt-3 text-3xl font-black tracking-tight text-slate-900 md:text-4xl">
+          Take your place at the start
+        </h2>
+        <p className="mt-2 text-sm text-slate-600">
+          Registration fee: <span className="font-bold text-slate-900">KSh 1,000 per participant</span> for all categories.
+        </p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="relative space-y-5">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div>
+            <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-700">
+              Participant full name <span className="text-emerald-600">*</span>
+            </label>
+            <input
+              type="text"
+              required
+              value={formData.fullName}
+              onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+              className="w-full rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 text-sm text-slate-900 outline-none transition-all duration-200 placeholder:text-slate-400 focus:border-slate-900 focus:bg-white focus:ring-4 focus:ring-slate-900/5"
+              placeholder="e.g. George Nganga"
+            />
+          </div>
+
+          <div>
+            <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-700">
+              Participant age in years <span className="text-emerald-600">*</span>
+            </label>
+            <input
+              type="number"
+              required
+            min="0"
+              max="120"
+              value={formData.age}
+              onChange={(e) => setFormData({ ...formData, age: e.target.value })}
+              className="w-full rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 text-sm text-slate-900 outline-none transition-all duration-200 placeholder:text-slate-400 focus:border-slate-900 focus:bg-white focus:ring-4 focus:ring-slate-900/5"
+              placeholder="36"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div>
+            <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-700">
+              Category <span className="text-emerald-600">*</span>
+            </label>
+            <select
+              value={formData.category}
+              onChange={(e) => setFormData({ ...formData, category: e.target.value as Category })}
+              className="w-full cursor-pointer rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 text-sm text-slate-900 outline-none transition-all duration-200 focus:border-slate-900 focus:bg-white focus:ring-4 focus:ring-slate-900/5"
+            >
+              <option value="21K">21K</option>
+              <option value="10K">10K</option>
+              <option value="Children's 5K">Children's 5K</option>
             </select>
           </div>
-        </>}
-      </div>
-      {needsGuardian && <label className="run-consent"><input type="checkbox" name="guardianAuthorized" required /> <span>I am the participant’s parent or authorised guardian and may register them. *</span></label>}
-      <label className="run-consent"><input type="checkbox" name="privacyNoticeAccepted" required /> <span>I have read the privacy notice and agree that these details may be used to administer this event. *</span></label>
-      <p className="run-privacy">We collect only the details needed to register and contact the participant or their guardian about this event. We do not collect separate emergency-contact details.</p>
-      <label className="run-consent"><input type="checkbox" name="futureEventUpdates" /> <span>I would like to receive information about future Wahome Foundation events (optional).</span></label>
-      {siteKey && <div className="cf-turnstile" data-sitekey={siteKey} data-action="event_registration" />}
-      {!configured && <p className="run-form-status" role="status">Online registration is not configured in this environment.</p>}
-      <button className="button button-green" type="submit" disabled={isSubmitting || !configured}>
-        {isSubmitting ? "Submitting…" : "Submit registration"} <ArrowRight size={17} />
-      </button>
-      <p className="run-form-status" role="status" aria-live="polite">{status}</p>
-    </form>
+
+          <div>
+            <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-700">
+              Participant email <span className="text-emerald-600">*</span>
+            </label>
+            <input
+              type="email"
+              required
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              className="w-full rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 text-sm text-slate-900 outline-none transition-all duration-200 placeholder:text-slate-400 focus:border-slate-900 focus:bg-white focus:ring-4 focus:ring-slate-900/5"
+              placeholder="gnganga@gsdkenya.com"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-700">
+            Participant phone <span className="text-emerald-600">*</span>
+          </label>
+          <input
+            type="tel"
+            required
+            value={formData.phone}
+            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+            className="w-full rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 text-sm text-slate-900 outline-none transition-all duration-200 placeholder:text-slate-400 focus:border-slate-900 focus:bg-white focus:ring-4 focus:ring-slate-900/5"
+            placeholder="0121258699"
+          />
+        </div>
+
+        {participantIsMinor && (
+          <fieldset className="space-y-4 rounded-2xl border border-slate-200 bg-white/70 p-4">
+            <legend className="px-2 text-xs font-bold uppercase tracking-wider text-slate-700">Parent or guardian details</legend>
+            <div>
+              <label htmlFor="guardian-name" className="mb-1.5 block text-xs font-bold text-slate-700">Parent or guardian full name *</label>
+              <input
+                id="guardian-name"
+                type="text"
+                required
+                maxLength={150}
+                value={formData.guardianName}
+                onChange={(e) => setFormData({ ...formData, guardianName: e.target.value })}
+                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5"
+              />
+            </div>
+            <div>
+              <label htmlFor="guardian-relationship" className="mb-1.5 block text-xs font-bold text-slate-700">Relationship to participant *</label>
+              <select
+                id="guardian-relationship"
+                required
+                value={formData.guardianRelationship}
+                onChange={(e) => setFormData({ ...formData, guardianRelationship: e.target.value as GuardianRelationship })}
+                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5"
+              >
+                <option value="parent">Parent</option>
+                <option value="legal_guardian">Legal guardian</option>
+                <option value="other">Other authorized guardian</option>
+              </select>
+            </div>
+            <label className="flex items-start gap-3 text-xs text-slate-600">
+              <input
+                type="checkbox"
+                required
+                checked={formData.guardianAuthorized}
+                onChange={(e) => setFormData({ ...formData, guardianAuthorized: e.target.checked })}
+                className="mt-0.5 h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900"
+              />
+              <span>I confirm I am authorized to register this participant and consent to their participation. *</span>
+            </label>
+          </fieldset>
+        )}
+
+        <div className="space-y-3 pt-2">
+          <label className="flex items-start gap-3 cursor-pointer text-xs text-slate-600 select-none">
+            <input
+              type="checkbox"
+              required
+              checked={formData.agreedToTerms}
+              onChange={(e) => setFormData({ ...formData, agreedToTerms: e.target.checked })}
+              className="mt-0.5 h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900"
+            />
+            <span>I have read the privacy notice and agree that these details may be used to administer this event. *</span>
+          </label>
+
+          <label className="flex items-start gap-3 cursor-pointer text-xs text-slate-600 select-none">
+            <input
+              type="checkbox"
+              checked={formData.optInMarketing}
+              onChange={(e) => setFormData({ ...formData, optInMarketing: e.target.checked })}
+              className="mt-0.5 h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900"
+            />
+            <span>I would like to receive information about future Wahome Foundation events (optional).</span>
+          </label>
+        </div>
+
+        {turnstileSiteKey ? (
+          <div>
+            <div ref={turnstileContainer} />
+            {!turnstileToken && <p className="mt-2 text-xs text-slate-500">Complete the spam protection check to submit.</p>}
+          </div>
+        ) : (
+          <p role="status" className="text-sm text-amber-700">Registration is unavailable because spam protection is not configured.</p>
+        )}
+        {error && <p role="alert" className="rounded-xl bg-red-50 p-3 text-sm text-red-700">{error}</p>}
+
+        <button
+          type="submit"
+          disabled={loading || !functions || !turnstileSiteKey || !turnstileToken}
+          className="group relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-2xl bg-slate-900 px-6 py-4 text-sm font-semibold text-white shadow-xl shadow-slate-900/20 transition-all duration-200 hover:bg-slate-800 hover:shadow-slate-900/30 active:scale-[0.99] disabled:opacity-50"
+        >
+          {loading ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span>Submitting registration...</span>
+            </>
+          ) : (
+            <>
+              <span>Submit registration</span>
+              <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
+            </>
+          )}
+        </button>
+      </form>
+
+      {registrationId && (
+        <div className="mt-6 flex items-start gap-3 rounded-2xl border border-emerald-200/80 bg-emerald-50/90 p-4 text-xs text-emerald-950 shadow-sm animate-in fade-in duration-300">
+          <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-600 mt-0.5" />
+          <div>
+            <p className="text-sm font-bold">Registration saved via Cloud Function!</p>
+            <p className="mt-1">
+              Ref ID: <code className="rounded bg-emerald-100 px-1.5 py-0.5 font-mono text-emerald-950 font-bold">{registrationId}</code>
+            </p>
+            <p className="mt-1 text-emerald-800">
+              Saved to <code className="font-semibold">eventRegistrations</code> with status <span className="font-bold uppercase">"pending"</span>.
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

@@ -22,8 +22,16 @@ export const firebaseApp = isConfigured
 export const firestore = firebaseApp ? getFirestore(firebaseApp) : null;
 export const functions = firebaseApp ? getFunctions(firebaseApp, "africa-south1") : null;
 
-if (import.meta.env.DEV && firestore && functions) {
+const useFunctionsEmulator = import.meta.env.DEV &&
+  import.meta.env.VITE_USE_FUNCTIONS_EMULATOR === "true";
+
+if (import.meta.env.DEV && firestore) {
   connectFirestoreEmulator(firestore, "127.0.0.1", 8080);
+}
+
+if (useFunctionsEmulator && functions) {
   connectFunctionsEmulator(functions, "127.0.0.1", 5001);
-  console.info("Firebase client connected to the local Firestore and Functions emulators.");
+  console.info("Firebase client connected to the local Functions emulator.");
+} else if (import.meta.env.DEV && functions) {
+  console.info("Firebase client using deployed Cloud Functions in africa-south1.");
 }
