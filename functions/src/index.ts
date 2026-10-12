@@ -6,6 +6,7 @@ import {defineSecret} from "firebase-functions/params";
 import {HttpsError, onCall} from "firebase-functions/v2/https";
 
 const turnstileSecret = defineSecret("TURNSTILE_SECRET_KEY");
+const eventSlug = "miles-for-minds-2027";
 const privacyNoticeVersion = "miles-for-minds-2027-v1";
 const registrationClosesAt = Date.parse("2027-01-06T00:00:00+03:00");
 const allowedCategories = new Set(["21k", "10k", "children_5k"]);
@@ -78,6 +79,7 @@ function validatePhone(value: unknown): string {
  * Verifies the one-use Turnstile token with Cloudflare Siteverify.
  * @param {string} token Turnstile response token.
  * @param {string} secret Server-side Siteverify key.
+ * @param {string} expectedAction Expected Turnstile action.
  * @param {string=} origin Request origin, when supplied.
  * @return {Promise<void>} Resolves only for a valid token.
  */
@@ -167,26 +169,30 @@ export const registerEvent = onCall({
   if (typeof data.futureEventUpdates !== "boolean") {
     throw new HttpsError("invalid-argument", "The future-events preference is invalid.");
   }
-  const token = data.turnstileToken;
-  if (typeof token !== "string" || token.length === 0 || token.length > 2048) {
-    throw new HttpsError("failed-precondition", "Complete the spam protection check before submitting.");
-  }
+
   if (Date.now() >= registrationClosesAt) {
     throw new HttpsError("failed-precondition", "Registration closed on January 5, 2027.");
   }
 
-  const secret = turnstileSecret.value() || (
-    process.env.FUNCTIONS_EMULATOR === "true" ?
-      "1x0000000000000000000000000000000AA" : ""
-  );
-  if (!secret) {
-    throw new HttpsError("unavailable", "Spam protection is not configured. Please try again later.");
+  const isDevMode = process.env.FUNCTIONS_EMULATOR === "true" || process.env.NODE_ENV === "development";
+
+  // Verify Turnstile on production, bypass on local test
+  if (!isDevMode) {
+    const token = data.turnstileToken;
+    if (typeof token !== "string" || token.length === 0 || token.length > 2048) {
+      throw new HttpsError("failed-precondition", "Complete the spam protection check before submitting.");
+    }
+
+    const secret = turnstileSecret.value() || "";
+    if (!secret) {
+      throw new HttpsError("unavailable", "Spam protection is not configured. Please try again later.");
+    }
+    const originHeader = request.rawRequest.headers.origin;
+    await verifyTurnstile(token, secret, "event_registration", typeof originHeader === "string" ? originHeader : undefined);
   }
-  const originHeader = request.rawRequest.headers.origin;
-  await verifyTurnstile(token, secret, "event_registration", typeof originHeader === "string" ? originHeader : undefined);
 
   const registration = await db.collection("eventRegistrations").add({
-    eventSlug: "miles-for-minds-2027",
+    eventSlug,
     submittedAt: FieldValue.serverTimestamp(),
     participantName,
     participantAge,
@@ -207,6 +213,51 @@ export const registerEvent = onCall({
   });
 
   return {registrationId: registration.id, paymentStatus: "pending" as const};
+});
+
+export const listEventRegistrations = onCall(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Sign in with an administrator account to view registrations.");
+  }
+
+  const uid = request.auth.uid;
+  const adminDoc = await db.doc(`admins/${uid}`).get();
+  const role = adminDoc.data()?.role;
+
+  // Require an admin record with an explicitly supported role.
+  if (!adminDoc.exists || (role !== "superadmin" && role !== "staff")) {
+    throw new HttpsError("permission-denied", "Check that this signed-in account has a staff or superadmin record.");
+  }
+
+  // Only show registrations for the current event.
+  const snapshot = await db.collection("eventRegistrations")
+    .where("eventSlug", "==", eventSlug)
+    .get();
+
+  const registrations = snapshot.docs.map((document) => {
+    const data = document.data();
+    const submittedAt = data.submittedAt || data.createdAt;
+    const createdAt = submittedAt && typeof submittedAt.toDate === "function" ?
+      submittedAt.toDate().toISOString() :
+      new Date().toISOString();
+
+    const category = data.raceCategory === "21k" || data.category === "21K" ? "21K" :
+      data.raceCategory === "10k" || data.category === "10K" ? "10K" : "Children's 5K";
+
+    return {
+      id: document.id,
+      fullName: data.participantName || data.fullName || "Anonymous Participant",
+      age: data.participantAge || data.age || 0,
+      category,
+      email: data.contactEmail || data.email || "",
+      phone: data.contactPhone || data.phone || "",
+      paymentStatus: data.paymentStatus || "pending",
+      mpesaCode: data.mpesaReceiptNumber || "",
+      createdAt,
+    };
+  });
+
+  return {registrations};
 });
 
 export const submitSponsorInquiry = onCall({
@@ -249,7 +300,7 @@ export const submitSponsorInquiry = onCall({
   await verifyTurnstile(token, secret, "event_sponsor_inquiry", typeof originHeader === "string" ? originHeader : undefined);
 
   const inquiry = await db.collection("eventSponsorshipInquiries").add({
-    eventSlug: "miles-for-minds-2027",
+    eventSlug,
     submittedAt: FieldValue.serverTimestamp(),
     contactName,
     organization,
