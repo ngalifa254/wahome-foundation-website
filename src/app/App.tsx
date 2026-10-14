@@ -1173,7 +1173,7 @@ function HomePage({ onNav }: { onNav: (p: Page) => void }) {
         <div className="hero-controls"><span>Our community. Our shared future.</span><button onClick={() => { if (playing) videoRef.current?.pause(); else videoRef.current?.play().catch(() => setPlaying(false)); }} aria-label={playing ? "Pause background video" : "Play background video"}>{playing ? <><span aria-hidden="true">Ⅱ</span> Pause</> : <><PlayCircle size={16} /> Play</>}</button></div>
       </section>
 
-      <section className="partner-section partner-section-under-hero" aria-label="Our partners"><div className="layout"><span className="eyebrow">Trusted by supporters, funders, and newsletters</span><div className="partner-logos">{[{name:"Autism Allies",src:logoAutismAllies},{name:"Coffee Bench",src:logoCoffeeBench},{name:"Laikipia Heights",src:logoLaikipiaHeights},{name:"Luxo",src:logoLuxo},{name:"Tufaha Resort",src:logoTufahaResort}].map(partner => <div key={partner.name}><img src={partner.src} alt={partner.name} loading="lazy" /></div>)}</div><button className="text-link" onClick={() => onNav("about")}>Meet our community of partners <ArrowRight size={17} /></button></div></section>
+      <section className="partner-section partner-section-under-hero" aria-label="Our partners"><div className="layout"><div className="partner-logos">{[{name:"Autism Allies",src:logoAutismAllies},{name:"Coffee Bench",src:logoCoffeeBench},{name:"Laikipia Heights",src:logoLaikipiaHeights},{name:"Luxo",src:logoLuxo},{name:"Tufaha Resort",src:logoTufahaResort}].map(partner => <div key={partner.name}><img src={partner.src} alt={partner.name} loading="lazy" /></div>)}</div><button className="text-link" onClick={() => onNav("about")}>Meet our community of partners <ArrowRight size={17} /></button></div></section>
 
       <section className="impact-band">
         <div className="layout impact-section">
@@ -2128,18 +2128,6 @@ function MentorshipPage({
 
 // ─── FLOATING DONATE WIDGET ───────────────────────────────────────────────────
 
-function FloatingDonateButton({ onClick }: { onClick: () => void }) {
-  return (
-    <button
-      onClick={onClick}
-      className="fixed bottom-6 right-6 z-40 px-5 py-3.5 rounded-full bg-[#16324A] text-white font-bold text-xs uppercase tracking-wider shadow-xl hover:bg-[#1A3A52] transition-all duration-150 flex items-center gap-2 hover:scale-105"
-    >
-      <Heart className="w-4 h-4 fill-white" />
-      Make A Change
-    </button>
-  );
-}
-
 // ─── ROOT APP ──────────────────────────────────────────────────────────────
 
 export default function App() {
@@ -2230,7 +2218,6 @@ export default function App() {
 
       <Footer onNav={navigate} onOpenDonate={openDonate} />
       <DonateModal isOpen={isDonateOpen} onClose={closeDonate} initialAmount={donateAmount} />
-      <FloatingDonateButton onClick={() => openDonate()} />
     </div>
   );
 }
