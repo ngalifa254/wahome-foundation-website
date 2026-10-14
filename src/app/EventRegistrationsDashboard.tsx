@@ -25,6 +25,7 @@ export interface Registration {
   id: string;
   fullName: string;
   age: number;
+  gender?: "male" | "female" | "";
   category: "21K" | "10K" | "Children's 5K";
   email: string;
   phone: string;
@@ -204,8 +205,8 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
               <button
                 onClick={() => {
                   const csvContent = "data:text/csv;charset=utf-8,"
-                    + ["Name,Email,Phone,Category,M-Pesa,Status"]
-                    .concat(registrations.map(r => `"${r.fullName}","${r.email}","${r.phone}","${r.category}","${r.mpesaCode || ''}","${r.paymentStatus}"`))
+                    + ["Name,Age,Gender,Email,Phone,Category,M-Pesa,Status"]
+                    .concat(registrations.map(r => `"${r.fullName}","${r.age}","${r.gender || ''}","${r.email}","${r.phone}","${r.category}","${r.mpesaCode || ''}","${r.paymentStatus}"`))
                     .join("\n");
                   const encodedUri = encodeURI(csvContent);
                   const link = document.createElement("a");
@@ -399,6 +400,7 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
                             {item.category}
                           </span>
                           <span className="text-[11px] text-slate-400">Age: {item.age}</span>
+                          {item.gender && <span className="text-[11px] text-slate-400">Gender: {item.gender === "male" ? "Male" : "Female"}</span>}
                         </div>
                         <div className="flex items-center gap-3 text-xs text-slate-500 mt-1 flex-wrap">
                           <span>{item.email}</span>

@@ -137,6 +137,11 @@ export const registerEvent = onCall({
     throw new HttpsError("invalid-argument", "Please enter a valid participant age.");
   }
 
+  const gender = data.gender;
+  if (gender !== "male" && gender !== "female") {
+    throw new HttpsError("invalid-argument", "Please choose male or female for participant gender.");
+  }
+
   const raceCategory = data.raceCategory;
   if (typeof raceCategory !== "string" || !allowedCategories.has(raceCategory)) {
     throw new HttpsError("invalid-argument", "Please choose a valid race category.");
@@ -196,6 +201,7 @@ export const registerEvent = onCall({
     submittedAt: FieldValue.serverTimestamp(),
     participantName,
     participantAge,
+    gender,
     participantIsMinor,
     raceCategory,
     guardianName,
@@ -248,6 +254,7 @@ export const listEventRegistrations = onCall(async (request) => {
       id: document.id,
       fullName: data.participantName || data.fullName || "Anonymous Participant",
       age: data.participantAge || data.age || 0,
+      gender: data.gender === "male" || data.gender === "female" ? data.gender : "",
       category,
       email: data.contactEmail || data.email || "",
       phone: data.contactPhone || data.phone || "",

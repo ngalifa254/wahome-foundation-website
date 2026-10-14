@@ -4,11 +4,13 @@ import { httpsCallable } from "firebase/functions";
 import { functions } from "../lib/firebase"; // Uses existing functions export from lib/firebase.ts
 
 type Category = "21K" | "10K" | "Children's 5K";
+type Gender = "male" | "female";
 type GuardianRelationship = "parent" | "legal_guardian" | "other";
 
 interface RegisterEventPayload {
   participantName: string;
   participantAge: number;
+  gender: Gender;
   raceCategory: "21k" | "10k" | "children_5k";
   guardianName: string | null;
   guardianRelationship: GuardianRelationship | null;
@@ -45,6 +47,7 @@ export default function RegistrationForm() {
   const [formData, setFormData] = useState({
     fullName: "",
     age: "",
+    gender: "" as Gender | "",
     category: "21K" as Category,
     email: "",
     phone: "",
@@ -112,6 +115,7 @@ export default function RegistrationForm() {
       const result = await registerEventFn({
         participantName: formData.fullName,
         participantAge: Number(formData.age),
+        gender: formData.gender as Gender,
         raceCategory: formData.category === "21K" ? "21k" :
           formData.category === "10K" ? "10k" : "children_5k",
         guardianName: participantIsMinor ? formData.guardianName : null,
@@ -126,7 +130,7 @@ export default function RegistrationForm() {
 
       setRegistrationId(result.data.registrationId);
       setFormData({
-        fullName: "", age: "", category: "21K", email: "", phone: "",
+        fullName: "", age: "", gender: "", category: "21K", email: "", phone: "",
         agreedToTerms: false, optInMarketing: false, guardianName: "",
         guardianRelationship: "parent", guardianAuthorized: false,
       });
@@ -178,20 +182,38 @@ export default function RegistrationForm() {
             />
           </div>
 
-          <div>
-            <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-700">
-              Participant age in years <span className="text-emerald-600">*</span>
-            </label>
-            <input
-              type="number"
-              required
-            min="0"
-              max="120"
-              value={formData.age}
-              onChange={(e) => setFormData({ ...formData, age: e.target.value })}
-              className="w-full rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 text-sm text-slate-900 outline-none transition-all duration-200 placeholder:text-slate-400 focus:border-slate-900 focus:bg-white focus:ring-4 focus:ring-slate-900/5"
-              placeholder="36"
-            />
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-700">
+                Participant age in years <span className="text-emerald-600">*</span>
+              </label>
+              <input
+                type="number"
+                required
+                min="0"
+                max="120"
+                value={formData.age}
+                onChange={(e) => setFormData({ ...formData, age: e.target.value })}
+                className="w-full rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 text-sm text-slate-900 outline-none transition-all duration-200 placeholder:text-slate-400 focus:border-slate-900 focus:bg-white focus:ring-4 focus:ring-slate-900/5"
+                placeholder="36"
+              />
+            </div>
+            <div>
+              <label htmlFor="participant-gender" className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-700">
+                Gender <span className="text-emerald-600">*</span>
+              </label>
+              <select
+                id="participant-gender"
+                required
+                value={formData.gender}
+                onChange={(e) => setFormData({ ...formData, gender: e.target.value as Gender | "" })}
+                className="w-full cursor-pointer rounded-2xl border border-slate-200 bg-white/80 px-3 py-3 text-sm text-slate-900 outline-none transition-all duration-200 focus:border-slate-900 focus:bg-white focus:ring-4 focus:ring-slate-900/5"
+              >
+                <option value="" disabled>Select</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+              </select>
+            </div>
           </div>
         </div>
 
@@ -224,6 +246,7 @@ export default function RegistrationForm() {
               placeholder="gnganga@gsdkenya.com"
             />
           </div>
+
         </div>
 
         <div>

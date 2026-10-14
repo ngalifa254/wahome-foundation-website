@@ -1,5 +1,5 @@
-import { useEffect, useState, type FormEvent } from "react";
-import { ArrowDownToLine, ArrowRight, CalendarDays, Clock3, MapPin, HeartHandshake } from "lucide-react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import { ArrowRight, CalendarDays, Clock3, MapPin, HeartHandshake, X } from "lucide-react";
 import { httpsCallable } from "firebase/functions";
 import posterImage from "@/imports/event-poster-2027.jpg";
 import { functions } from "@/lib/firebase";
@@ -22,12 +22,9 @@ declare global {
 }
 
 type Category = "21K" | "10K" | "Children's 5K";
+export type EventDialog = "registration" | "sponsor";
 
 const fieldClass = "run-field";
-
-function PosterDownload() {
-  return <div className="run-poster-action"><a className="button button-green" href={posterImage} download="miles-for-minds-wahome-foundation-run.jpg"><ArrowDownToLine size={17} /> Download event poster</a></div>;
-}
 
 function SponsorField({
   id,
@@ -53,8 +50,34 @@ function SponsorField({
 function SponsorForm() {
   const [status, setStatus] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const turnstileContainer = useRef<HTMLDivElement>(null);
+  const turnstileWidgetId = useRef<string | null>(null);
   const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY;
   const configured = Boolean(functions && siteKey);
+
+  useEffect(() => {
+    if (!siteKey || !turnstileContainer.current) return;
+    let timer = 0;
+    const renderWidget = () => {
+      if (!window.turnstile || !turnstileContainer.current || turnstileWidgetId.current) return;
+      turnstileWidgetId.current = window.turnstile.render(turnstileContainer.current, {
+        sitekey: siteKey,
+        action: "event_sponsor_inquiry",
+        callback: setTurnstileToken,
+        "expired-callback": () => setTurnstileToken(""),
+        "error-callback": () => setTurnstileToken(""),
+      });
+      window.clearInterval(timer);
+    };
+    timer = window.setInterval(renderWidget, 250);
+    renderWidget();
+    return () => {
+      window.clearInterval(timer);
+      if (turnstileWidgetId.current) window.turnstile?.remove?.(turnstileWidgetId.current);
+      turnstileWidgetId.current = null;
+    };
+  }, [siteKey]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -68,7 +91,6 @@ function SponsorForm() {
       setStatus("Spam protection is not configured, so this inquiry cannot be submitted yet.");
       return;
     }
-    const turnstileToken = String(formData.get("cf-turnstile-response") ?? "");
     if (!turnstileToken) {
       setStatus("Complete the spam protection check before submitting.");
       return;
@@ -89,17 +111,20 @@ function SponsorForm() {
       const submitInquiry = httpsCallable<typeof input, { inquiryId: string }>(functions, "submitSponsorInquiry");
       const response = await submitInquiry(input);
       form.reset();
+      setTurnstileToken("");
+      if (turnstileWidgetId.current) window.turnstile?.reset(turnstileWidgetId.current);
       setStatus(`Sponsor inquiry received. Your reference is ${response.data.inquiryId}.`);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Your inquiry could not be submitted. Please try again.";
       setStatus(message);
-      window.turnstile?.reset();
+      setTurnstileToken("");
+      if (turnstileWidgetId.current) window.turnstile?.reset(turnstileWidgetId.current);
     } finally {
       setIsSubmitting(false);
     }
   }
 
-  return <form id="sponsor-inquiry" className="run-form" onSubmit={handleSubmit}>
+  return <form className="run-form" onSubmit={handleSubmit}>
     <div className="run-form-heading"><span className="eyebrow">Partner with the run</span><h2>Become a Sponsor</h2><p>Tell us how you would like to support this event. Your inquiry will be saved for the Foundation team to follow up; submitting it does not confirm sponsorship.</p></div>
     <div className="run-form-grid">
       <SponsorField id="sponsor-contact" name="contactName" label="Contact name" autoComplete="name" />
@@ -108,14 +133,22 @@ function SponsorForm() {
       <SponsorField id="sponsor-phone" name="contactPhone" label="Phone" type="tel" autoComplete="tel" />
       <div className={`${fieldClass} run-field-wide`}><label htmlFor="sponsor-message">How would you like to support the event? *</label><textarea id="sponsor-message" name="supportMessage" rows={5} minLength={10} maxLength={2000} required /></div>
     </div>
-    {siteKey && <div className="cf-turnstile" data-sitekey={siteKey} data-action="event_sponsor_inquiry" />}
+    {siteKey && <div ref={turnstileContainer} />}
     {!configured && <p className="run-form-status" role="status">Sponsor inquiry submission is not configured in this environment.</p>}
     <button className="button button-green" type="submit" disabled={isSubmitting || !configured}>{isSubmitting ? "Submitting…" : "Send sponsor inquiry"} <ArrowRight size={17} /></button>
     <p className="run-form-status" role="status" aria-live="polite">{status}</p>
   </form>;
 }
 
-export function EventPage() {
+export function EventPage({
+  requestedDialog = null,
+  onDialogRequestHandled,
+}: {
+  requestedDialog?: EventDialog | null;
+  onDialogRequestHandled?: () => void;
+}) {
+  const [activeDialog, setActiveDialog] = useState<EventDialog | null>(null);
+
   useEffect(() => {
     const previousTitle = document.title;
     const description = document.querySelector('meta[name="description"]');
@@ -127,12 +160,39 @@ export function EventPage() {
       if (previousDescription != null && description) description.setAttribute("content", previousDescription);
     };
   }, []);
+
+  useEffect(() => {
+    if (!requestedDialog) return;
+    setActiveDialog(requestedDialog);
+    onDialogRequestHandled?.();
+  }, [requestedDialog]);
+
+  useEffect(() => {
+    if (!activeDialog) return;
+    const previousOverflow = document.body.style.overflow;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setActiveDialog(null);
+    };
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [activeDialog]);
+
   return <div className="run-page">
-    <section className="run-hero"><div className="layout run-hero-inner"><div className="run-hero-copy"><span className="eyebrow">Move for education</span><h1>Miles for Minds:<br /><em>The Wahome Foundation Run</em></h1><p>Join us to support children’s education through the Thomas D.K. Wahome Scholarship Program.</p><div className="run-hero-details"><span><CalendarDays size={18} /> Saturday, January 9, 2027</span><span><Clock3 size={18} /> 7:00 AM</span><span><MapPin size={18} /> Mugumo Center</span></div><div className="run-hero-actions"><button type="button" className="button button-gold" onClick={() => document.getElementById("participant-registration")?.scrollIntoView({ behavior: "smooth", block: "start" })}>Register <ArrowRight size={17} /></button><button type="button" className="button button-outline" onClick={() => document.getElementById("sponsor-inquiry")?.scrollIntoView({ behavior: "smooth", block: "start" })}>Become a Sponsor <HeartHandshake size={17} /></button></div></div></div></section>
+    <section className="run-hero"><div className="layout run-hero-inner"><div className="run-hero-copy"><span className="eyebrow">Move for education</span><h1>Miles for Minds:<br /><em>The Wahome Foundation Run</em></h1><p>Join us to support children’s education through the Thomas D.K. Wahome Scholarship Program.</p><div className="run-hero-details"><span><CalendarDays size={18} /> Saturday, January 9, 2027</span><span><Clock3 size={18} /> 7:00 AM</span><span><MapPin size={18} /> Mugumo Center</span></div><div className="run-hero-actions"><button type="button" className="button button-gold" onClick={() => setActiveDialog("registration")}>Register <ArrowRight size={17} /></button><button type="button" className="button button-outline" onClick={() => setActiveDialog("sponsor")}>Become a Sponsor <HeartHandshake size={17} /></button></div></div></div></section>
     <section className="layout run-details-section"><div className="run-purpose"><span className="eyebrow">Every mile makes a difference</span><h2>Run for the next generation</h2><p>Funds raised support children’s education through the Thomas D.K. Wahome Scholarship Program. Registration is open to everyone. There is no minimum age for the 21K or 10K categories.</p></div><div className="run-category-grid"><article><span>01</span><h3>21K</h3><p>Open to everyone</p><strong>KSh 1,000</strong></article><article><span>02</span><h3>10K</h3><p>Open to everyone</p><strong>KSh 1,000</strong></article><article><span>03</span><h3>Children&apos;s 5K</h3><p>Parent or guardian registers the child</p><strong>KSh 1,000</strong></article></div></section>
     <section className="run-info-band"><div className="layout run-info-grid"><div><span className="eyebrow">Event information</span><h2>Details to follow</h2><p>We’ll share more information when it is confirmed.</p></div><dl><div><dt>Route</dt><dd>To be announced</dd></div><div><dt>Registration deadline</dt><dd>To be announced</dd></div><div><dt>Participant capacity</dt><dd>To be announced</dd></div><div><dt>Event-day guidance</dt><dd>To be announced</dd></div></dl></div></section>
-    <section className="layout run-registration-section" id="participant-registration"><RegistrationForm /><aside className="run-payment-note"><span className="eyebrow">Registration status</span><h2>Register before payment</h2><p>Submitting this form securely saves participant details with a pending payment status. This step does not request payment or mark a participant as paid.</p><p>Payment verification is separate. Only verified payments should change a registration’s status or trigger a confirmation.</p></aside></section>
-    <section className="run-poster-section"><div className="layout run-poster-grid"><div className="run-poster-info"><span className="eyebrow">Save the date</span><h2>Invite someone to run with you</h2><p>Download the full event poster to share the details or scan its registration QR code.</p><dl className="run-poster-details"><div><dt>Date</dt><dd>Saturday, January 9, 2027</dd></div><div><dt>Time &amp; venue</dt><dd>7:00 AM · Mugumo Center</dd></div><div><dt>Distances</dt><dd>21K · 10K · Children’s 5K</dd></div><div><dt>Registration</dt><dd>KSh 1,000 per participant</dd></div></dl><p className="run-poster-cause">Every step supports children’s education through the Thomas D.K. Wahome Scholarship Program.</p><PosterDownload /></div><div className="run-poster-preview"><img src={posterImage} alt="Preview of the Miles for Minds run poster. Download the full poster for complete details and its registration QR code." /></div></div></section>
-    <section className="layout run-sponsor-section"><SponsorForm /></section>
+    <section className="run-poster-section"><div className="layout run-poster-grid"><div className="run-poster-info"><span className="eyebrow">Save the date</span><h2>Invite someone to run with you</h2><p>The event poster includes full details and a registration QR code.</p><dl className="run-poster-details"><div><dt>Date</dt><dd>Saturday, January 9, 2027</dd></div><div><dt>Time &amp; venue</dt><dd>7:00 AM · Mugumo Center</dd></div><div><dt>Distances</dt><dd>21K · 10K · Children’s 5K</dd></div><div><dt>Registration</dt><dd>KSh 1,000 per participant</dd></div></dl><p className="run-poster-cause">Every step supports children’s education through the Thomas D.K. Wahome Scholarship Program.</p></div><div className="run-poster-preview"><img src={posterImage} alt="Miles for Minds Run 2027 event poster with race distances, date, venue, and registration QR code." /></div></div></section>
+    {activeDialog && <div className="run-dialog-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setActiveDialog(null); }}>
+      <section className="run-dialog" role="dialog" aria-modal="true" aria-labelledby="run-dialog-title">
+        <header className="run-dialog-header"><h2 id="run-dialog-title">{activeDialog === "registration" ? "Participant Registration" : "Become a Sponsor"}</h2><button type="button" className="run-dialog-close" onClick={() => setActiveDialog(null)} aria-label="Close dialog"><X size={20} /></button></header>
+        <div className="run-dialog-content">
+          {activeDialog === "registration" ? <><RegistrationForm /><aside className="run-payment-note"><span className="eyebrow">Registration status</span><h2>Register before payment</h2><p>Submitting this form securely saves participant details with a pending payment status. This step does not request payment or mark a participant as paid.</p><p>Payment verification is separate. Only verified payments should change a registration’s status or trigger a confirmation.</p></aside></> : <SponsorForm />}
+        </div>
+      </section>
+    </div>}
   </div>;
 }
