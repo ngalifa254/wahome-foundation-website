@@ -23,7 +23,7 @@ import marathon3 from "@/imports/marathon3.jpg";
 import marathon4 from "@/imports/marathon4.jpg";
 import marathon5 from "@/imports/marathon5.jpg";
 import marathon6 from "@/imports/marathon6.jpg";
-import { EventPage } from "./EventPage";
+import { EventPage, type EventDialog } from "./EventPage";
 
 // Corrected Partner Logos Imports (Exact file names)
 import logoAutismAllies from "@/imports/autismallies.PNG";
@@ -1139,7 +1139,7 @@ function HeroStoryCTA({ onNav }: { onNav: (page: Page) => void }) {
 
 // ─── HOME PAGE ────────────────────────────────────────────────────────────────
 
-function HomePage({ onNav }: { onNav: (p: Page) => void }) {
+function HomePage({ onNav, onOpenEventDialog }: { onNav: (p: Page) => void; onOpenEventDialog: (dialog: EventDialog) => void }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [playing, setPlaying] = useState(false);
   useEffect(() => {
@@ -1173,7 +1173,7 @@ function HomePage({ onNav }: { onNav: (p: Page) => void }) {
         <div className="hero-controls"><span>Our community. Our shared future.</span><button onClick={() => { if (playing) videoRef.current?.pause(); else videoRef.current?.play().catch(() => setPlaying(false)); }} aria-label={playing ? "Pause background video" : "Play background video"}>{playing ? <><span aria-hidden="true">Ⅱ</span> Pause</> : <><PlayCircle size={16} /> Play</>}</button></div>
       </section>
 
-      <section className="partner-section partner-section-under-hero" aria-label="Our partners"><div className="layout"><span className="eyebrow">Trusted by supporters, funders, and newsletters</span><div className="partner-logos">{[{name:"Autism Allies",src:logoAutismAllies},{name:"Coffee Bench",src:logoCoffeeBench},{name:"Laikipia Heights",src:logoLaikipiaHeights},{name:"Luxo",src:logoLuxo},{name:"Tufaha Resort",src:logoTufahaResort}].map(partner => <div key={partner.name}><img src={partner.src} alt={partner.name} loading="lazy" /></div>)}</div><button className="text-link" onClick={() => onNav("about")}>Meet our community of partners <ArrowRight size={17} /></button></div></section>
+      <section className="partner-section partner-section-under-hero" aria-label="Our partners"><div className="layout"><div className="partner-logos">{[{name:"Autism Allies",src:logoAutismAllies},{name:"Coffee Bench",src:logoCoffeeBench},{name:"Laikipia Heights",src:logoLaikipiaHeights},{name:"Luxo",src:logoLuxo},{name:"Tufaha Resort",src:logoTufahaResort}].map(partner => <div key={partner.name}><img src={partner.src} alt={partner.name} loading="lazy" /></div>)}</div><button className="text-link" onClick={() => onNav("about")}>Meet our community of partners <ArrowRight size={17} /></button></div></section>
 
       <section className="impact-band">
         <div className="layout impact-section">
@@ -1192,7 +1192,7 @@ function HomePage({ onNav }: { onNav: (p: Page) => void }) {
               <h2 id="run-promo-title">Miles for Minds: The Wahome Foundation Run</h2>
               <div className="run-promo-facts"><span>Saturday, January 9, 2027</span><span>7:00 AM · Mugumo Center</span></div>
               <p>Every step supports children’s education through the Thomas D.K. Wahome Scholarship Program.</p>
-              <div className="run-promo-actions"><button type="button" className="button button-green" onClick={() => { onNav("event"); window.setTimeout(() => document.getElementById("participant-registration")?.scrollIntoView({ behavior: "smooth", block: "start" }), 100); }}>Register <ArrowRight size={17} /></button><button type="button" className="button button-run-outline" onClick={() => { onNav("event"); window.setTimeout(() => document.getElementById("sponsor-inquiry")?.scrollIntoView({ behavior: "smooth", block: "start" }), 100); }}>Become a Sponsor <ArrowRight size={17} /></button></div>
+              <div className="run-promo-actions"><button type="button" className="button button-green" onClick={() => onOpenEventDialog("registration")}>Register <ArrowRight size={17} /></button><button type="button" className="button button-run-outline" onClick={() => onOpenEventDialog("sponsor")}>Become a Sponsor <ArrowRight size={17} /></button></div>
             </div>
           </div>
         </div>
@@ -1313,54 +1313,6 @@ function AboutPage({ onNav }: { onNav: (p: Page) => void }) {
                   {b.name}
                 </h3>
                 <p className="text-sm text-[#2C6E9E] font-medium">{b.role}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="py-6 sm:py-8 px-6 bg-white">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12">
-            <SectionTag>Our Team</SectionTag>
-            <h2
-              className="font-serif text-3xl font-bold text-[#1F3A52]"
-              style={{ fontFamily: "'Montserrat', Arial, sans-serif" }}
-            >
-              The team behind our programmes
-            </h2>
-          </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[
-              {
-                name: "Dr. Anne Wahome",
-                role: "Executive Director",
-                img: "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=400&h=400&fit=crop&auto=format",
-              },
-              {
-                name: "James Mwangi",
-                role: "Head of Programmes",
-                img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&auto=format",
-              },
-              {
-                name: "Grace Njoroge",
-                role: "Fundraising Manager",
-                img: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=400&h=400&fit=crop&auto=format",
-              },
-            ].map((p) => (
-              <div key={p.name} className="text-center">
-                <img
-                  src={p.img}
-                  alt={p.name}
-                  className="w-28 h-28 rounded-full object-cover mx-auto mb-4 border-4 border-[#F1F4F7]"
-                />
-                <h3
-                  className="font-bold text-[#1F3A52] font-serif text-lg"
-                  style={{ fontFamily: "'Montserrat', Arial, sans-serif" }}
-                >
-                  {p.name}
-                </h3>
-                <p className="text-sm text-[#2C6E9E] font-medium">{p.role}</p>
               </div>
             ))}
           </div>
@@ -1549,20 +1501,21 @@ function ScholarshipPage({
         </div>
       </section>
 
-      {/* 2. Meet Our Scholars (Bento-Inspired Testimonial Cards) */}
-      <section id="meet-our-scholars" className="py-12 px-6 bg-[#F1F4F7]">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center max-w-xl mx-auto mb-10">
+      {/* 2. Meet Our Scholars */}
+      <section id="meet-our-scholars" className="py-16 px-6 bg-white">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center max-w-xl mx-auto mb-8">
             <SectionTag>Meet Our Scholars</SectionTag>
             <h2
-              className="text-2xl sm:text-3xl font-extrabold text-[#1F3A52] tracking-tight"
+              className="text-3xl sm:text-4xl font-normal text-[#1F3A52] tracking-tight"
               style={{ fontFamily: "'Montserrat', Arial, sans-serif" }}
             >
-              The dreams your support makes possible
+              Scholar Profiles
             </h2>
           </div>
 
-          <div className="space-y-4">
+          <div className="mb-8 border-b border-[#DDE3E8]" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-x-8 gap-y-12">
             {[
               {
                 name: "Alex Karani",
@@ -1607,29 +1560,26 @@ function ScholarshipPage({
             ].map((s) => (
               <div
                 key={s.name}
-                className="group flex flex-col sm:flex-row bg-white rounded-[24px] border border-slate-200/80 overflow-hidden shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 text-left"
+                className="group min-w-0 text-left"
               >
-                <div className="w-full h-52 sm:w-52 sm:h-auto shrink-0 overflow-hidden bg-[#F1F4F7]">
+                <div className="mx-auto mb-5 aspect-[4/5] w-full max-w-[250px] overflow-hidden rounded-lg bg-[#0B0B0B] ring-1 ring-[#DDE3E8]">
                   <img
                     src={s.photo}
                     alt={s.name}
                     className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${s.objectPosition}`}
                   />
                 </div>
-                <div className="p-6 flex flex-col justify-center">
-                  <div className="flex items-center justify-between mb-1">
+                <div className="text-left">
+                  <div className="mb-1">
                     <h3
-                      className="font-bold text-[#1F3A52] text-base"
+                      className="font-bold text-[#1F3A52] text-sm"
                       style={{ fontFamily: "'Montserrat', Arial, sans-serif" }}
                     >
                       {s.name}
                     </h3>
-                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#2C6E9E] bg-[#F1F4F7] px-2.5 py-0.5 rounded-full">
-                      Scholar
-                    </span>
                   </div>
                   <p className="text-xs text-[#2C6E9E] font-semibold mb-2">{s.meta}</p>
-                  <p className="text-[#5B6670] text-xs sm:text-sm leading-relaxed">
+                  <p className="text-[#5B6670] text-xs leading-relaxed">
                     “{s.message}”
                   </p>
                 </div>
@@ -2128,18 +2078,6 @@ function MentorshipPage({
 
 // ─── FLOATING DONATE WIDGET ───────────────────────────────────────────────────
 
-function FloatingDonateButton({ onClick }: { onClick: () => void }) {
-  return (
-    <button
-      onClick={onClick}
-      className="fixed bottom-6 right-6 z-40 px-5 py-3.5 rounded-full bg-[#16324A] text-white font-bold text-xs uppercase tracking-wider shadow-xl hover:bg-[#1A3A52] transition-all duration-150 flex items-center gap-2 hover:scale-105"
-    >
-      <Heart className="w-4 h-4 fill-white" />
-      Make A Change
-    </button>
-  );
-}
-
 // ─── ROOT APP ──────────────────────────────────────────────────────────────
 
 export default function App() {
@@ -2152,6 +2090,7 @@ export default function App() {
   );
   const [isDonateOpen, setIsDonateOpen] = useState<boolean>(false);
   const [donateAmount, setDonateAmount] = useState<number | undefined>(undefined);
+  const [eventDialogRequest, setEventDialogRequest] = useState<EventDialog | null>(null);
 
   useEffect(() => {
     const syncRoute = () => {
@@ -2195,6 +2134,11 @@ export default function App() {
     setPage(next);
   };
 
+  const openEventDialog = (dialog: EventDialog) => {
+    setEventDialogRequest(dialog);
+    navigate("event");
+  };
+
   const openDonate = (amount?: number) => {
     if (typeof amount === "number") setDonateAmount(amount);
     setIsDonateOpen(true);
@@ -2203,7 +2147,7 @@ export default function App() {
   const closeDonate = () => setIsDonateOpen(false);
 
   const pages: Record<Page, React.ReactNode> = {
-    home: <HomePage onNav={navigate} />,
+    home: <HomePage onNav={navigate} onOpenEventDialog={openEventDialog} />,
     about: <AboutPage onNav={navigate} />,
     scholarship: (
       <ScholarshipPage onNav={navigate} onOpenDonate={openDonate} />
@@ -2213,7 +2157,7 @@ export default function App() {
     mentorship: (
       <MentorshipPage onNav={navigate} onOpenDonate={openDonate} />
     ),
-    event: <EventPage />,
+    event: <EventPage requestedDialog={eventDialogRequest} onDialogRequestHandled={() => setEventDialogRequest(null)} />,
   };
 
   return (
@@ -2230,7 +2174,6 @@ export default function App() {
 
       <Footer onNav={navigate} onOpenDonate={openDonate} />
       <DonateModal isOpen={isDonateOpen} onClose={closeDonate} initialAmount={donateAmount} />
-      <FloatingDonateButton onClick={() => openDonate()} />
     </div>
   );
 }
