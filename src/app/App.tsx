@@ -546,7 +546,11 @@ function Navbar({ current, onNav, onOpenDonate }: NavbarProps) {
       window.removeEventListener("pointerdown", closeOutside);
     };
   }, []);
-  const go = (page: Page) => { onNav(page); setOpen(false); setProgrammesOpen(false); setScholarsOpen(false); setEventsOpen(false); };
+  const go = (page: Page) => {
+    onNav(page);
+    setOpen(false); setProgrammesOpen(false); setScholarsOpen(false); setEventsOpen(false);
+    window.requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "auto" }));
+  };
   const goToSection = (page: Page, id: string) => {
     go(page);
     let attempts = 0;
@@ -572,12 +576,13 @@ function Navbar({ current, onNav, onOpenDonate }: NavbarProps) {
             {programmesOpen && <div id="programme-menu" className="programme-dropdown">{programmes.map(link => <button key={link.page} onClick={() => go(link.page)} aria-current={current === link.page ? "page" : undefined}>{link.label}<ArrowRight size={15} /></button>)}</div>}
           </div>
           <div className="programme-nav" onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) setScholarsOpen(false); }}>
-            <button aria-expanded={scholarsOpen} data-active={current === "scholarship"} aria-controls="scholarship-menu" onClick={() => { setScholarsOpen(!scholarsOpen); setProgrammesOpen(false); setEventsOpen(false); }}>Scholarships <ChevronRight size={13} className={scholarsOpen ? "chevron-open" : "chevron-down"} /></button>
+            <button onClick={() => go("scholarship")} aria-current={current === "scholarship" ? "page" : undefined}>Scholarships</button>
+            <button className="nav-dropdown-toggle" aria-label="Show scholarship links" aria-expanded={scholarsOpen} data-active={current === "scholarship"} aria-controls="scholarship-menu" onClick={() => { setScholarsOpen(!scholarsOpen); setProgrammesOpen(false); setEventsOpen(false); }}><ChevronRight size={13} className={scholarsOpen ? "chevron-open" : "chevron-down"} /></button>
             {scholarsOpen && <div id="scholarship-menu" className="programme-dropdown"><button onClick={() => goToSection("scholarship", "meet-our-scholars")} aria-current={current === "scholarship" ? "page" : undefined}>Meet Our Scholars <ArrowRight size={15} /></button></div>}
           </div>
           <div className="programme-nav" onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) setEventsOpen(false); }}>
             <button aria-expanded={eventsOpen} data-active={current === "prize" || current === "event"} aria-controls="events-menu" onClick={() => { setEventsOpen(!eventsOpen); setProgrammesOpen(false); setScholarsOpen(false); }}>Community & events <ChevronRight size={13} className={eventsOpen ? "chevron-open" : "chevron-down"} /></button>
-            {eventsOpen && <div id="events-menu" className="programme-dropdown"><button onClick={() => goToSection("prize", "save-the-date")} aria-current={current === "prize" ? "page" : undefined}>Save The Date <ArrowRight size={15} /></button><button onClick={() => go("event")} aria-current={current === "event" ? "page" : undefined}>Miles for Minds Run <ArrowRight size={15} /></button></div>}
+            {eventsOpen && <div id="events-menu" className="programme-dropdown"><button onClick={() => go("event")} aria-current={current === "event" ? "page" : undefined}>Miles for Minds <ArrowRight size={15} /></button><button onClick={() => go("prize")} aria-current={current === "prize" ? "page" : undefined}>Prizegiving 2027 <ArrowRight size={15} /></button></div>}
           </div>
         </nav>
         <div className="header-actions">

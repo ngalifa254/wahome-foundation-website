@@ -165,8 +165,9 @@ button:focus-visible,a:focus-visible { outline:3px solid #bd9135; outline-offset
 .header-utility { background:var(--sky-deep); color:var(--sky-ink); font-size:9px; letter-spacing:.04em; }
 .header-utility > div { display:flex; justify-content:space-between; align-items:center; min-height:31px; }
 .header-utility a { display:flex; align-items:center; gap:9px; }
-.programme-nav { position:relative; }
+.programme-nav { position:relative; display:flex; align-items:center; }
 .programme-nav > button { display:flex; align-items:center; gap:7px; }
+.programme-nav > .nav-dropdown-toggle { padding-inline:0; }
 .chevron-down { transform:rotate(90deg); transition:transform .2s; }
 .chevron-open { transform:rotate(-90deg); transition:transform .2s; }
 .programme-dropdown { position:absolute; top:calc(100% + 14px); left:0; width:240px; background:#fff; border:1px solid var(--line); border-radius:12px; box-shadow:0 16px 40px #16324a1f; padding:8px; display:flex; flex-direction:column; gap:2px; }
