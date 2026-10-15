@@ -1173,7 +1173,7 @@ function HomePage({ onNav, onOpenEventDialog }: { onNav: (p: Page) => void; onOp
         <div className="hero-controls"><span>Our community. Our shared future.</span><button onClick={() => { if (playing) videoRef.current?.pause(); else videoRef.current?.play().catch(() => setPlaying(false)); }} aria-label={playing ? "Pause background video" : "Play background video"}>{playing ? <><span aria-hidden="true">Ⅱ</span> Pause</> : <><PlayCircle size={16} /> Play</>}</button></div>
       </section>
 
-      <section className="partner-section partner-section-under-hero" aria-label="Our partners"><div className="layout"><div className="partner-logos">{[{name:"Autism Allies",src:logoAutismAllies},{name:"Coffee Bench",src:logoCoffeeBench},{name:"Laikipia Heights",src:logoLaikipiaHeights},{name:"Luxo",src:logoLuxo},{name:"Tufaha Resort",src:logoTufahaResort}].map(partner => <div key={partner.name}><img src={partner.src} alt={partner.name} loading="lazy" /></div>)}</div><button className="text-link" onClick={() => onNav("about")}>Meet our community of partners <ArrowRight size={17} /></button></div></section>
+      <section className="partner-section partner-section-under-hero" aria-label="Our partners"><div className="layout"><h2>Our Trusted Partners</h2><div className="partner-logos">{[{name:"Autism Allies",src:logoAutismAllies},{name:"Coffee Bench",src:logoCoffeeBench},{name:"Laikipia Heights",src:logoLaikipiaHeights},{name:"Luxo",src:logoLuxo},{name:"Tufaha Resort",src:logoTufahaResort}].map(partner => <div key={partner.name}><img src={partner.src} alt={partner.name} loading="lazy" /></div>)}</div><button className="text-link" onClick={() => onNav("about")}>Meet our community of partners <ArrowRight size={17} /></button></div></section>
 
       <section className="impact-band">
         <div className="layout impact-section">
@@ -1502,8 +1502,8 @@ function ScholarshipPage({
       </section>
 
       {/* 2. Meet Our Scholars */}
-      <section id="meet-our-scholars" className="py-16 px-6 bg-white">
-        <div className="max-w-7xl mx-auto">
+      <section id="meet-our-scholars" className="py-16 px-6 bg-[#F1F4F7]">
+        <div className="max-w-5xl mx-auto">
           <div className="text-center max-w-xl mx-auto mb-8">
             <SectionTag>Meet Our Scholars</SectionTag>
             <h2
@@ -1515,11 +1515,11 @@ function ScholarshipPage({
           </div>
 
           <div className="mb-8 border-b border-[#DDE3E8]" />
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-x-8 gap-y-12">
+          <div className="space-y-6">
             {[
               {
                 name: "Alex Karani",
-                meta: "Grade 10 · Active Scholar",
+                meta: "Grade 10 · Ontilili Boys",
                 message:
                   "The Foundation came at a defining time when I was uncertain of my future education. They helped me join High School and gave me hope of pursuing a career in Agricultural Engineering.",
                 photo: alexPhoto,
@@ -1560,26 +1560,32 @@ function ScholarshipPage({
             ].map((s) => (
               <div
                 key={s.name}
-                className="group min-w-0 text-left"
+                className="group relative flex min-w-0 flex-col text-left md:flex-row md:items-center"
               >
-                <div className="mx-auto mb-5 aspect-[4/5] w-full max-w-[250px] overflow-hidden rounded-lg bg-[#0B0B0B] ring-1 ring-[#DDE3E8]">
+                <div className="relative z-10 mx-auto -mb-8 h-56 w-[72%] max-w-[240px] shrink-0 overflow-hidden rounded-xl bg-[#0B0B0B] shadow-xl transition-transform duration-300 group-hover:-translate-y-1 md:mx-0 md:mb-0 md:h-[280px] md:w-[220px]">
                   <img
                     src={s.photo}
                     alt={s.name}
                     className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${s.objectPosition}`}
                   />
                 </div>
-                <div className="text-left">
-                  <div className="mb-1">
+                <div className="relative z-0 flex min-h-[230px] flex-col justify-center rounded-3xl border border-[#DDE3E8] bg-white px-6 pb-6 pt-12 shadow-sm transition-shadow duration-300 group-hover:shadow-lg md:-ml-12 md:flex-1 md:py-8 md:pl-20 md:pr-8">
+                  <div className="mb-2 flex items-start justify-between gap-4">
                     <h3
-                      className="font-bold text-[#1F3A52] text-sm"
+                      className="font-bold text-[#1F3A52] text-lg"
                       style={{ fontFamily: "'Montserrat', Arial, sans-serif" }}
                     >
                       {s.name}
                     </h3>
+                    <span className="shrink-0 rounded-full bg-[#F1F4F7] px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider text-[#2C6E9E]">
+                      Scholar
+                    </span>
                   </div>
-                  <p className="text-xs text-[#2C6E9E] font-semibold mb-2">{s.meta}</p>
-                  <p className="text-[#5B6670] text-xs leading-relaxed">
+                  <p className="mb-4 inline-flex w-fit items-center gap-2 rounded-full bg-[#F1F4F7] px-3 py-1 text-xs font-semibold text-[#2C6E9E]">
+                    <span className="h-2 w-2 rounded-full bg-[#4CAB6D]" aria-hidden="true" />
+                    {s.meta}
+                  </p>
+                  <p className="rounded-l-lg border-l-4 border-[#4CAB6D] pl-4 text-sm leading-relaxed text-[#334155] md:text-base">
                     “{s.message}”
                   </p>
                 </div>

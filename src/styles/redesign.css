@@ -242,3 +242,4 @@ html { scroll-padding-top:105px; }
 .eden-hero .hero-layout-split { gap:20px; }
 .eden-hero .hero-story-cta { width:auto; min-height:0; justify-content:flex-start; }
 .partner-section-under-hero { padding-top:0; }
+.partner-section-under-hero h2 { margin:4px 0 8px; font-size:12px; font-weight:600; line-height:1.4; color:var(--green); }

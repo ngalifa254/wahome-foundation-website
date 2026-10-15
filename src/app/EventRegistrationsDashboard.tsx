@@ -26,11 +26,13 @@ export interface Registration {
   fullName: string;
   age: number;
   gender?: "male" | "female" | "";
-  category: "21K" | "10K" | "Children's 5K";
+  category: "21K" | "10K" | "Children's 1K";
   email: string;
   phone: string;
   paymentStatus: "verified" | "pending" | "failed";
   mpesaCode?: string;
+  paymentMethod?: string;
+  paymentReceipt?: string;
   createdAt: string;
 }
 
@@ -205,8 +207,8 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
               <button
                 onClick={() => {
                   const csvContent = "data:text/csv;charset=utf-8,"
-                    + ["Name,Age,Gender,Email,Phone,Category,M-Pesa,Status"]
-                    .concat(registrations.map(r => `"${r.fullName}","${r.age}","${r.gender || ''}","${r.email}","${r.phone}","${r.category}","${r.mpesaCode || ''}","${r.paymentStatus}"`))
+                    + ["Name,Age,Gender,Email,Phone,Category,Payment Method,Receipt,Status"]
+                    .concat(registrations.map(r => `"${r.fullName}","${r.age}","${r.gender || ''}","${r.email}","${r.phone}","${r.category}","${r.paymentMethod || ''}","${r.paymentReceipt}","${r.paymentStatus}"`))
                     .join("\n");
                   const encodedUri = encodeURI(csvContent);
                   const link = document.createElement("a");
@@ -245,7 +247,6 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
           </div>
         </div>
         {signOutError && <p role="alert" className="mt-3 text-right text-sm text-red-600">{signOutError}</p>}
-
         {/* Seamless Horizontal Divider Stat Banner (Replaces AI Boxes) */}
         <div className="bg-white border border-slate-200 rounded-2xl p-6 mt-6 shadow-xs">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-slate-100 gap-4 sm:gap-0">
@@ -273,7 +274,7 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
                 KSh {ticketRevenue.toLocaleString()}
               </div>
               <p className="text-[11px] text-slate-400 mt-1">
-                {verifiedCount} verified M-Pesa entries
+                {verifiedCount} verified payment entries
               </p>
             </div>
 
@@ -363,7 +364,7 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
                     <option value="all">All Categories</option>
                     <option value="21K">21K</option>
                     <option value="10K">10K</option>
-                    <option value="Children's 5K">Children's 5K</option>
+                    <option value="Children's 1K">Children's 1K</option>
                   </select>
                 </div>
               </div>
@@ -413,11 +414,15 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
                     <div className="flex items-center justify-between md:justify-end gap-6 pt-3 md:pt-0 border-t md:border-t-0 border-slate-200">
                       <div className="text-right">
                         <div className="text-xs text-slate-400 mb-0.5">
-                          M-Pesa: <span className="font-mono text-slate-800 font-medium">{item.mpesaCode || "—"}</span>
+                          {item.paymentMethod ? `${item.paymentMethod === "mpesa" ? "Flutterwave M-Pesa" : "Flutterwave card"}: ` : "Payment: "}<span className="font-mono text-slate-800 font-medium">{item.paymentReceipt || item.mpesaCode || "—"}</span>
                         </div>
                         {item.paymentStatus === "verified" ? (
                           <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
                             <CheckCircle2 className="w-3 h-3" /> Verified
+                          </span>
+                        ) : item.paymentStatus === "failed" ? (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-red-700 bg-red-50 border border-red-200 px-2.5 py-0.5 rounded-full">
+                            Payment failed
                           </span>
                         ) : (
                           <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-full">
@@ -548,8 +553,8 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
                   <span className="text-slate-900 font-semibold truncate block">{selectedParticipant.email}</span>
                 </div>
                 <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 col-span-2">
-                  <span className="text-slate-400 block mb-1">M-Pesa Code</span>
-                  <span className="text-emerald-700 font-mono font-bold text-sm">{selectedParticipant.mpesaCode || "Pending Payment"}</span>
+                  <span className="text-slate-400 block mb-1">Payment receipt or reference</span>
+                  <span className="text-emerald-700 font-mono font-bold text-sm">{selectedParticipant.paymentReceipt || selectedParticipant.mpesaCode || "Pending Payment"}</span>
                 </div>
               </div>
 
