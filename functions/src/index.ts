@@ -1,11 +1,15 @@
 /* eslint-disable max-len */
 import {getApps, initializeApp} from "firebase-admin/app";
 import {FieldValue, getFirestore} from "firebase-admin/firestore";
+import {randomBytes, timingSafeEqual} from "node:crypto";
 import {setGlobalOptions} from "firebase-functions";
 import {defineSecret} from "firebase-functions/params";
-import {HttpsError, onCall} from "firebase-functions/v2/https";
+import {HttpsError, onCall, onRequest} from "firebase-functions/v2/https";
+import {createHostedCheckout, verifyFlutterwaveTransaction, type FlutterwavePaymentMethod} from "./flutterwaveClient.js";
 
 const turnstileSecret = defineSecret("TURNSTILE_SECRET_KEY");
+const flutterwaveSecretKey = defineSecret("FLUTTERWAVE_SECRET_KEY");
+const flutterwaveWebhookHash = defineSecret("FLUTTERWAVE_WEBHOOK_HASH");
 const eventSlug = "miles-for-minds-2027";
 const privacyNoticeVersion = "miles-for-minds-2027-v1";
 const registrationClosesAt = Date.parse("2027-01-06T00:00:00+03:00");
@@ -15,6 +19,27 @@ setGlobalOptions({maxInstances: 10, region: "africa-south1"});
 
 const app = getApps()[0] ?? initializeApp();
 const db = getFirestore(app);
+const registrationFeeKes = 1000;
+
+function normalizeKenyanPhone(value: unknown): string {
+  if (typeof value !== "string") {
+    throw new HttpsError("invalid-argument", "Enter a valid Kenyan M-Pesa phone number.");
+  }
+  const digits = value.replace(/\D/g, "");
+  const normalized = digits.startsWith("254") ? digits :
+    digits.startsWith("0") ? `254${digits.slice(1)}` : `254${digits}`;
+  if (!/^254(?:7|1)\d{8}$/.test(normalized)) {
+    throw new HttpsError("invalid-argument", "Enter a valid Kenyan M-Pesa phone number.");
+  }
+  return normalized;
+}
+
+function safeHeaderEquals(actual: string | undefined, expected: string): boolean {
+  if (!actual) return false;
+  const actualBuffer = Buffer.from(actual);
+  const expectedBuffer = Buffer.from(expected);
+  return actualBuffer.length === expectedBuffer.length && timingSafeEqual(actualBuffer, expectedBuffer);
+}
 
 type TurnstileResult = {
   success?: boolean;
@@ -148,7 +173,7 @@ export const registerEvent = onCall({
   }
   const participantIsMinor = participantAge < 18;
   if (raceCategory === "children_5k" && !participantIsMinor) {
-    throw new HttpsError("invalid-argument", "The Children’s 5K is for participants under 18.");
+    throw new HttpsError("invalid-argument", "The Children’s 1K is for participants under 18.");
   }
 
   const guardianRequired = participantIsMinor;
@@ -212,13 +237,175 @@ export const registerEvent = onCall({
     privacyNoticeAcceptedAt: FieldValue.serverTimestamp(),
     privacyNoticeVersion,
     futureEventUpdates: data.futureEventUpdates,
-    feeKes: 1000,
+    feeKes: registrationFeeKes,
     paymentStatus: "pending",
+    paymentReference: `WF${randomBytes(5).toString("hex").toUpperCase()}`,
+    paymentMethod: null,
+    paymentProvider: null,
     mpesaReceiptNumber: null,
     paidAt: null,
   });
 
   return {registrationId: registration.id, paymentStatus: "pending" as const};
+});
+
+export const startRacePayment = onCall({
+  secrets: [flutterwaveSecretKey],
+  timeoutSeconds: 30,
+}, async (request) => {
+  if (typeof request.data !== "object" || request.data === null || Array.isArray(request.data)) {
+    throw new HttpsError("invalid-argument", "The payment request is invalid.");
+  }
+  const data = request.data as Record<string, unknown>;
+  const registrationId = requiredText(data, "registrationId", 128);
+  const method = data.paymentMethod;
+  if (method !== "mpesa" && method !== "card") {
+    throw new HttpsError("invalid-argument", "Choose M-Pesa or card.");
+  }
+
+  const registrationRef = db.collection("eventRegistrations").doc(registrationId);
+  const registrationSnapshot = await registrationRef.get();
+  const registration = registrationSnapshot.data();
+  if (!registrationSnapshot.exists || registration?.eventSlug !== eventSlug) {
+    throw new HttpsError("not-found", "We could not find this race registration.");
+  }
+  if (registration.paymentStatus === "verified") {
+    throw new HttpsError("failed-precondition", "This registration has already been paid.");
+  }
+  if (registration.paymentStatus === "pending" && registration.paymentMethod && registration.paymentMethod !== method) {
+    throw new HttpsError("failed-precondition", "A payment attempt is already pending. Complete or wait for that payment before choosing another method.");
+  }
+
+  const paymentReference = typeof registration.paymentReference === "string" ?
+    registration.paymentReference : `WF${randomBytes(5).toString("hex").toUpperCase()}`;
+  const feeKes = typeof registration.feeKes === "number" ? registration.feeKes : registrationFeeKes;
+  const returnUrlValue = data.returnUrl;
+  const origin = request.rawRequest.headers.origin;
+  if (typeof returnUrlValue !== "string" || typeof origin !== "string") {
+    throw new HttpsError("invalid-argument", "The checkout return address is invalid.");
+  }
+  let returnUrl: URL;
+  try {
+    returnUrl = new URL(returnUrlValue);
+  } catch {
+    throw new HttpsError("invalid-argument", "The checkout return address is invalid.");
+  }
+  if (returnUrl.origin !== origin || (returnUrl.protocol !== "https:" && returnUrl.hostname !== "localhost" && returnUrl.hostname !== "127.0.0.1")) {
+    throw new HttpsError("invalid-argument", "The checkout return address is not allowed.");
+  }
+
+  if (registration.paymentStatus === "pending" && registration.paymentMethod === method && typeof registration.paymentCheckoutUrl === "string") {
+    return {paymentMethod: method as FlutterwavePaymentMethod, paymentStatus: "pending" as const, paymentReference, checkoutUrl: registration.paymentCheckoutUrl};
+  }
+  const secretKey = flutterwaveSecretKey.value();
+  if (!secretKey) throw new HttpsError("failed-precondition", "Flutterwave payments are not configured yet.");
+  const paymentPhone = method === "mpesa" ?
+    normalizeKenyanPhone(typeof data.paymentPhone === "string" ? data.paymentPhone : registration.contactPhone) : registration.contactPhone;
+  const providerTransactionRef = `${paymentReference}-${randomBytes(3).toString("hex").toUpperCase()}`;
+  let checkoutUrl: string;
+  try {
+    checkoutUrl = await createHostedCheckout({
+      secretKey,
+      txRef: providerTransactionRef,
+      amountKes: feeKes,
+      method,
+      returnUrl: returnUrl.toString(),
+      customer: {email: registration.contactEmail, name: registration.participantName, phone: paymentPhone},
+      registrationId,
+      eventSlug,
+    });
+  } catch (error) {
+    console.error("Flutterwave checkout creation failed", error instanceof Error ? error.message : "unknown error");
+    throw new HttpsError("unavailable", "Flutterwave checkout could not start right now. Please try again.");
+  }
+
+  await registrationRef.update({
+    paymentMethod: method,
+    paymentProvider: "flutterwave",
+    paymentStatus: "pending",
+    paymentReference,
+    providerTransactionRef,
+    paymentCheckoutUrl: checkoutUrl,
+    paymentPhone: method === "mpesa" ? paymentPhone : FieldValue.delete(),
+    paymentStartedAt: FieldValue.serverTimestamp(),
+    paymentError: FieldValue.delete(),
+  });
+  return {
+    paymentMethod: method as FlutterwavePaymentMethod,
+    paymentStatus: "pending" as const,
+    paymentReference,
+    checkoutUrl,
+  };
+});
+export const flutterwavePaymentWebhook = onRequest({
+  secrets: [flutterwaveSecretKey, flutterwaveWebhookHash],
+  timeoutSeconds: 30,
+}, async (request, response) => {
+  if (request.method !== "POST") {
+    response.status(405).send("Method not allowed");
+    return;
+  }
+  if (!safeHeaderEquals(request.get("verif-hash"), flutterwaveWebhookHash.value())) {
+    response.status(401).send("Unauthorized");
+    return;
+  }
+  const payload = request.body as {data?: {id?: number; tx_ref?: string}} | undefined;
+  const transactionId = payload?.data?.id;
+  const transactionReference = payload?.data?.tx_ref;
+  if (!transactionId || !transactionReference) {
+    response.status(200).send("Ignored");
+    return;
+  }
+  try {
+    const verification = await verifyFlutterwaveTransaction({
+      secretKey: flutterwaveSecretKey.value(),
+      transactionId,
+      expectedTxRef: transactionReference,
+      expectedAmountKes: registrationFeeKes,
+    });
+    const verifiedPayment = verification?.data;
+    if (!verifiedPayment) {
+      response.status(200).send("Payment not verified");
+      return;
+    }
+    const matches = await db.collection("eventRegistrations")
+      .where("providerTransactionRef", "==", transactionReference)
+      .limit(1)
+      .get();
+    if (!matches.empty) {
+      const registrationRef = matches.docs[0].ref;
+      await db.runTransaction(async (transaction) => {
+        const current = await transaction.get(registrationRef);
+        const data = current.data();
+        if (current.exists && data?.eventSlug === eventSlug && data.paymentProvider === "flutterwave" && data.paymentStatus !== "verified" && data.feeKes === registrationFeeKes) {
+          transaction.update(registrationRef, {
+            paymentStatus: "verified",
+            paymentReceipt: verifiedPayment.flw_ref || transactionReference,
+            paidAt: FieldValue.serverTimestamp(),
+          });
+        }
+      });
+    }
+    response.status(200).send("OK");
+  } catch (error) {
+    console.error("Flutterwave webhook verification failed", error instanceof Error ? error.message : "unknown error");
+    response.status(500).send("Verification unavailable");
+  }
+});
+
+export const getRacePaymentStatus = onCall(async (request) => {
+  const data = request.data as Record<string, unknown> | null;
+  const registrationId = typeof data?.registrationId === "string" ? data.registrationId.trim() : "";
+  if (!registrationId) throw new HttpsError("invalid-argument", "The registration reference is invalid.");
+  const registration = await db.collection("eventRegistrations").doc(registrationId).get();
+  const details = registration.data();
+  if (!registration.exists || details?.eventSlug !== eventSlug) {
+    throw new HttpsError("not-found", "We could not find this race registration.");
+  }
+  return {
+    paymentStatus: details.paymentStatus || "pending",
+    paymentReceipt: details.paymentReceipt || details.mpesaReceiptNumber || null,
+  };
 });
 
 export const listEventRegistrations = onCall(async (request) => {
@@ -248,7 +435,7 @@ export const listEventRegistrations = onCall(async (request) => {
       new Date().toISOString();
 
     const category = data.raceCategory === "21k" || data.category === "21K" ? "21K" :
-      data.raceCategory === "10k" || data.category === "10K" ? "10K" : "Children's 5K";
+      data.raceCategory === "10k" || data.category === "10K" ? "10K" : "Children's 1K";
 
     return {
       id: document.id,
@@ -259,7 +446,9 @@ export const listEventRegistrations = onCall(async (request) => {
       email: data.contactEmail || data.email || "",
       phone: data.contactPhone || data.phone || "",
       paymentStatus: data.paymentStatus || "pending",
-      mpesaCode: data.mpesaReceiptNumber || "",
+      mpesaCode: data.paymentMethod === "mpesa" ? data.paymentReceipt || "" : "",
+      paymentMethod: data.paymentMethod || "",
+      paymentReceipt: data.paymentReceipt || data.mpesaReceiptNumber || "",
       createdAt,
     };
   });
