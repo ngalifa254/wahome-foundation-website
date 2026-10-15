@@ -1,23 +1,13 @@
-import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, User } from "firebase/auth";
 import { getFirestore, doc, getDoc } from "firebase/firestore";
+import { firebaseApp } from "./firebase";
 
 export { onAuthStateChanged, signInWithEmailAndPassword };
 
-// Reuse existing initialized app or initialize
-const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: "wahome-foundation-dev",
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID
-};
-
-const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
-
-export const auth = getAuth(app);
-export const db = getFirestore(app);
+// The public site can render without Firebase config (for example, in an
+// unconfigured Pages preview). Firebase-backed actions stay unavailable then.
+export const auth = firebaseApp ? getAuth(firebaseApp) : null;
+export const db = firebaseApp ? getFirestore(firebaseApp) : null;
 
 export interface AdminUser {
   uid: string;
@@ -26,6 +16,7 @@ export interface AdminUser {
 }
 
 export async function verifyAdminRole(user: User): Promise<AdminUser | null> {
+  if (!db) return null;
   try {
     const adminDoc = await getDoc(doc(db, "admins", user.uid));
     if (adminDoc.exists()) {
@@ -45,6 +36,7 @@ export async function verifyAdminRole(user: User): Promise<AdminUser | null> {
 
 // Added function required by App.tsx
 export async function signOutAdmin(): Promise<void> {
+  if (!auth) throw new Error("Firebase Auth is not configured for this deployment.");
   try {
     await signOut(auth);
   } catch (error) {

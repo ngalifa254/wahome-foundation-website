@@ -2100,13 +2100,13 @@ export default function App() {
     };
 
     window.addEventListener("hashchange", syncRoute);
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = auth ? onAuthStateChanged(auth, (user) => {
       setIsAuthenticated(!!user);
-    });
+    }) : undefined;
 
     return () => {
       window.removeEventListener("hashchange", syncRoute);
-      unsubscribe();
+      unsubscribe?.();
     };
   }, []);
 

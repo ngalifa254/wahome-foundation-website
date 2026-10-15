@@ -14,6 +14,10 @@ export default function AdminLoginForm({ onSuccess }: AdminLoginFormProps) {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!auth) {
+      setError("Firebase Auth is not configured for this deployment.");
+      return;
+    }
     setLoading(true);
     setError(null);
 
@@ -91,7 +95,7 @@ export default function AdminLoginForm({ onSuccess }: AdminLoginFormProps) {
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || !auth}
             className="w-full mt-2 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs rounded-xl transition flex items-center justify-center gap-2 shadow-xs"
           >
             {loading ? "Authenticating..." : "Sign In to Portal"}

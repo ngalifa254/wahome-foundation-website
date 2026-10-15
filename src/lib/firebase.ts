@@ -13,7 +13,8 @@ const firebaseConfig = {
 };
 
 const isConfigured = Boolean(
-  firebaseConfig.apiKey && firebaseConfig.projectId && firebaseConfig.appId,
+  typeof firebaseConfig.apiKey === "string" && /^AIza[0-9A-Za-z_-]{35}$/.test(firebaseConfig.apiKey) &&
+  firebaseConfig.projectId && firebaseConfig.appId,
 );
 
 export const firebaseApp = isConfigured
