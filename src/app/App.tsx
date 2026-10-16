@@ -2,6 +2,7 @@ import wahomeSlideshow from "@/imports/wahome_foundation_slideshow.mp4";
 import image_mentorship_1 from "@/imports/mentorship-1.jpg";
 import image_DSC_0332 from "@/imports/DSC_0332.jpg";
 import image_DSC_0445 from "@/imports/DSC_0445.jpg";
+import dinnerImage from "@/imports/Dinner.jpeg";
 import image_Prizegiving_What_we_do from "@/imports/Prizegiving-What-we-do.png";
 import image_wells_of_hope from "@/imports/wells_of_hope.jpg";
 import image_fundeducation from "@/imports/fundeducation.jpg";
@@ -1060,7 +1061,7 @@ const blogNewsItems: MediaItem[] = [
     title: "Thank You Dinner",
     excerpt:
       "An evening honoring U.S. partners and donors, celebrating milestones in scholarship distributions, mentorship, and new water wells.",
-    image: image_DSC_0445,
+    image: dinnerImage,
   },
 ];
 
