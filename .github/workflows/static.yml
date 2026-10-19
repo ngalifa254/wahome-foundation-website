@@ -2,7 +2,10 @@ name: Deploy Vite PNPM Project to GitHub Pages
 
 on:
   push:
-    branches: ["main", "v2"]
+    # The main branch is deployed by deploy.yml, which injects the public
+    # Firebase and Turnstile build-time configuration. Keep this workflow for
+    # v2 previews so it cannot overwrite the configured main site.
+    branches: ["v2"]
 
 permissions:
   contents: read
