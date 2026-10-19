@@ -1,5 +1,6 @@
 {
   "projects": {
-    "default": "wahome-foundation-dev"
+    "default": "wahome-foundation-dev",
+    "production": "wahome-foundation"
   }
 }

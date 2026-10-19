@@ -21,6 +21,11 @@ const app = getApps()[0] ?? initializeApp();
 const db = getFirestore(app);
 const registrationFeeKes = 1000;
 
+/**
+ * Validates and normalizes a Kenyan phone number for M-Pesa.
+ * @param {unknown} value Untrusted phone number.
+ * @return {string} The normalized number in international format.
+ */
 function normalizeKenyanPhone(value: unknown): string {
   if (typeof value !== "string") {
     throw new HttpsError("invalid-argument", "Enter a valid Kenyan M-Pesa phone number.");
@@ -34,6 +39,12 @@ function normalizeKenyanPhone(value: unknown): string {
   return normalized;
 }
 
+/**
+ * Compares a webhook header with its configured secret without timing leaks.
+ * @param {string | undefined} actual The received header value.
+ * @param {string} expected The expected secret value.
+ * @return {boolean} Whether both values match.
+ */
 function safeHeaderEquals(actual: string | undefined, expected: string): boolean {
   if (!actual) return false;
   const actualBuffer = Buffer.from(actual);
@@ -46,6 +57,7 @@ type TurnstileResult = {
   action?: string;
   hostname?: string;
   metadata?: {result_with_testing_key?: boolean};
+  "error-codes"?: string[];
 };
 
 /**
@@ -111,18 +123,34 @@ function validatePhone(value: unknown): string {
 async function verifyTurnstile(token: string, secret: string, expectedAction: string, origin?: string): Promise<void> {
   const parameters = new URLSearchParams({secret, response: token});
   let validation: TurnstileResult;
+  let response: Response;
   try {
-    const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+    response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
       method: "POST",
       headers: {"content-type": "application/x-www-form-urlencoded"},
       body: parameters,
       signal: AbortSignal.timeout(8000),
     });
-    if (!response.ok) {
-      throw new Error("Turnstile returned an unsuccessful HTTP response.");
-    }
+  } catch (error) {
+    console.error("Turnstile Siteverify request failed", error instanceof Error ? error.name : "unknown error");
+    throw new HttpsError("unavailable", "Spam protection could not be reached. Please try again.");
+  }
+
+  try {
     validation = await response.json() as TurnstileResult;
-  } catch {
+  } catch (error) {
+    console.error("Turnstile Siteverify returned invalid JSON", {
+      httpStatus: response.status,
+      errorName: error instanceof Error ? error.name : "unknown error",
+    });
+    throw new HttpsError("unavailable", "Spam protection could not be reached. Please try again.");
+  }
+
+  if (!response.ok) {
+    console.error("Turnstile Siteverify returned a non-success HTTP status", {
+      httpStatus: response.status,
+      errorCodes: validation["error-codes"] || [],
+    });
     throw new HttpsError("unavailable", "Spam protection could not be reached. Please try again.");
   }
 

@@ -6,6 +6,7 @@
   "scripts": {
     "build": "vite build",
     "dev": "vite",
+    "dev:cloud": "vite --mode cloud",
     "emulators": "firebase emulators:start --only functions,firestore"
   },
   "dependencies": {

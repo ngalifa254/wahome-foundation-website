@@ -97,6 +97,7 @@ export default function RegistrationForm() {
   const turnstileContainer = useRef<HTMLDivElement>(null);
   const turnstileWidgetId = useRef<string | null>(null);
   const turnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY;
+  const paymentDisabled = import.meta.env.VITE_DISABLE_EVENT_PAYMENT === "true";
   const participantIsMinor = formData.age !== "" && Number(formData.age) < 18;
 
   useEffect(() => {
@@ -462,11 +463,11 @@ export default function RegistrationForm() {
             <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
             <div>
               <p className="font-bold">{paymentStatus === "verified" ? "Payment confirmed" : "Registration saved"} · Ref {registrationId}</p>
-              <p className="mt-1 text-xs text-slate-600">{paymentStatus === "verified" ? `Your KSh 1,000 payment is confirmed${paymentReceipt ? ` (receipt ${paymentReceipt})` : ""}. Your race entry is secured.` : "Choose a payment method to finish your KSh 1,000 registration. Your place remains pending until payment is confirmed."}</p>
+              <p className="mt-1 text-xs text-slate-600">{paymentStatus === "verified" ? `Your KSh 1,000 payment is confirmed${paymentReceipt ? ` (receipt ${paymentReceipt})` : ""}. Your race entry is secured.` : paymentDisabled ? "Cloud test mode: registration saved in the cloud project with no payment started." : "Choose a payment method to finish your KSh 1,000 registration. Your place remains pending until payment is confirmed."}</p>
             </div>
           </div>
 
-          {paymentStatus !== "verified" && <fieldset className="mt-5 space-y-2">
+          {!paymentDisabled && paymentStatus !== "verified" && <fieldset className="mt-5 space-y-2">
             <legend className="mb-2 text-xs font-bold uppercase tracking-wider text-slate-700">Payment method</legend>
             {([ ["mpesa", "M-Pesa via Flutterwave"],
               ["card", "Credit or debit card"],
@@ -485,7 +486,7 @@ export default function RegistrationForm() {
             ))}
           </fieldset>}
 
-          {paymentStatus !== "verified" && paymentMethod === "mpesa" && (
+          {!paymentDisabled && paymentStatus !== "verified" && paymentMethod === "mpesa" && (
             <label className="mt-4 block text-xs font-semibold text-slate-700">
               M-Pesa phone number
               <input
@@ -509,7 +510,7 @@ export default function RegistrationForm() {
             </div>
           )}
 
-          {paymentStatus !== "verified" && <button
+          {!paymentDisabled && paymentStatus !== "verified" && <button
             type="button"
             onClick={handleStartPayment}
             disabled={paymentLoading}
