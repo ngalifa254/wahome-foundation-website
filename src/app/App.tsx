@@ -2,13 +2,14 @@ import wahomeSlideshow from "@/imports/wahome_foundation_slideshow.mp4";
 import image_mentorship_1 from "@/imports/mentorship-1.jpg";
 import image_DSC_0332 from "@/imports/DSC_0332.jpg";
 import image_DSC_0445 from "@/imports/DSC_0445.jpg";
-import dinnerImage from "@/imports/Dinner.jpeg";
 import image_Prizegiving_What_we_do from "@/imports/Prizegiving-What-we-do.png";
 import image_wells_of_hope from "@/imports/wells_of_hope.jpg";
 import image_fundeducation from "@/imports/fundeducation.jpg";
 import alexPhoto from "@/imports/Alex.jpeg";
 import jedidahPhoto from "@/imports/Jedidah.jpeg";
 import jamesPhoto from "@/imports/James.jpeg";
+import jamesWachiraPhoto from "@/imports/gallery/Jamesw.jpg";
+import wilsonKiriungiPhoto from "@/imports/gallery/Wilson.jpg";
 import newtonPhoto from "@/imports/Newton.jpeg";
 import samuelPhoto from "@/imports/Samuel.jpeg";
 import thomasPhoto from "@/imports/thomas.jpg";
@@ -1061,7 +1062,7 @@ const blogNewsItems: MediaItem[] = [
     title: "Thank You Dinner",
     excerpt:
       "An evening honoring U.S. partners and donors, celebrating milestones in scholarship distributions, mentorship, and new water wells.",
-    image: dinnerImage,
+    image: image_DSC_0445,
   },
 ];
 
@@ -1300,26 +1301,54 @@ function AboutPage({ onNav }: { onNav: (p: Page) => void }) {
               The people who guide our mission
             </h2>
           </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="max-w-6xl mx-auto space-y-16">
             {[
-              { name: "Wilson Kiriungi", role: "Chairperson" },
-              { name: "James Wachira", role: "Vice Chairperson" },
-              { name: "Name Pending", role: "Treasurer" },
-              { name: "Name Pending", role: "Secretary" },
-              { name: "Name Pending", role: "Board Member" },
-            ].map((b) => (
-              <div key={b.role} className="text-center">
-                <div className="w-28 h-28 rounded-full bg-white flex items-center justify-center mx-auto mb-4 shadow-sm">
-                  <Users className="w-12 h-12 text-[#2C6E9E]" />
+              {
+                name: "Wilson Kiriungi",
+                role: "Chairperson",
+                photo: wilsonKiriungiPhoto,
+                bio: [
+                  "Wilson Kiriungi is the founder and Chairperson of the Wahome Foundation’s Board of Trustees. He has been dedicated to the Foundation since its inception 20 years ago. With his compassion for community wellness, strong networking skills, and ability to bring resources together, he has helped drive the Foundation’s growth and impact.",
+                  "Wilson is also a member of the Worcester State University Foundation Board and serves on its Faculty and Staff Research Award Committee. He is the driving force behind brightTARS, an AI-powered practice management platform, and BCBAfinder, a national marketplace that connects families and professionals to ABA services with greater transparency and access.",
+                ],
+              },
+              {
+                name: "James Wachira",
+                role: "Vice Chairperson",
+                photo: jamesWachiraPhoto,
+                bio: [
+                  "James Wachira is a seasoned finance professional with 26 years of experience in financial management, budgeting, reporting, cash-flow management, and financial controls. As Board Treasurer of Wahome Global Foundation, he provides financial oversight and supports sound governance, transparency, and responsible stewardship of the Foundation’s resources.",
+                  "He is committed to ensuring the Foundation’s resources are effectively managed and aligned with its programmes and objectives, guided by integrity, accountability, transparency, teamwork, and financial discipline.",
+                ],
+              },
+            ].map((member) => (
+              <article
+                key={member.name}
+                className="grid md:grid-cols-[280px_minmax(0,1fr)] lg:grid-cols-[360px_minmax(0,1fr)] gap-8 lg:gap-14 items-center text-left"
+              >
+                <img
+                  src={member.photo}
+                  alt={member.name}
+                  className="w-full max-w-sm mx-auto md:max-w-none aspect-[3/4] object-cover rounded-2xl shadow-md"
+                  loading="lazy"
+                />
+                <div>
+                  <p className="text-[#2C6E9E] font-semibold text-lg mb-2">
+                    {member.role}
+                  </p>
+                  <h3
+                    className="font-bold text-[#1F3A52] font-serif text-3xl sm:text-4xl mb-6"
+                    style={{ fontFamily: "'Montserrat', Arial, sans-serif" }}
+                  >
+                    {member.name}
+                  </h3>
+                  <div className="space-y-5 text-[#30465A] leading-relaxed">
+                    {member.bio.map((paragraph) => (
+                      <p key={paragraph}>{paragraph}</p>
+                    ))}
+                  </div>
                 </div>
-                <h3
-                  className="font-bold text-[#1F3A52] font-serif text-lg"
-                  style={{ fontFamily: "'Montserrat', Arial, sans-serif" }}
-                >
-                  {b.name}
-                </h3>
-                <p className="text-sm text-[#2C6E9E] font-medium">{b.role}</p>
-              </div>
+              </article>
             ))}
           </div>
         </div>
@@ -2052,7 +2081,7 @@ function MentorshipPage({
               },
               {
                 name: "George Nganga",
-                role: "Remote IT Specialist",
+                role: "Remote IT Assistance",
                 quote:
                   "I work remotely from Kenya for a U.S. company thanks to the Wahome Foundation for making my dream come true. I am deeply grateful for their mentorship, which bridged the gap between my technical skills and international remote career opportunities. This program truly proves that Kenyan talent is resourceful and can thrive on the global stage without leaving home! Viva Wahome Foundation!",
                 img: georgePhoto,
