@@ -282,7 +282,7 @@ export default function RegistrationForm() {
               value={formData.fullName}
               onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
               className="w-full rounded-2xl border-2 border-slate-300 bg-white/80 px-4 py-3 text-sm text-slate-900 outline-none transition-all duration-200 placeholder:text-slate-400 focus:border-slate-900 focus:bg-white focus:ring-4 focus:ring-slate-900/5"
-              placeholder="e.g. George Nganga"
+              placeholder="John Doe"
             />
           </div>
 
@@ -345,7 +345,7 @@ export default function RegistrationForm() {
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               className="w-full rounded-2xl border-2 border-slate-300 bg-white/80 px-4 py-3 text-sm text-slate-900 outline-none transition-all duration-200 placeholder:text-slate-400 focus:border-slate-900 focus:bg-white focus:ring-4 focus:ring-slate-900/5"
-              placeholder="gnganga@gsdkenya.com"
+              placeholder="john.doe@example.com"
             />
           </div>
           <div>
@@ -358,7 +358,7 @@ export default function RegistrationForm() {
               value={formData.phone}
               onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
               className="w-full rounded-2xl border-2 border-slate-300 bg-white/80 px-4 py-3 text-sm text-slate-900 outline-none transition-all duration-200 placeholder:text-slate-400 focus:border-slate-900 focus:bg-white focus:ring-4 focus:ring-slate-900/5"
-              placeholder="0121258699"
+              placeholder="+254 700 000 000"
             />
           </div>
         </div>
