@@ -37,11 +37,14 @@ import logoPrestigeAFC from "@/imports/prestigeafc.PNG";
 import logoSneakerama from "@/imports/sneakerama.PNG";
 import logoTufahaResort from "@/imports/tufaharesort.PNG";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { httpsCallable } from "firebase/functions";
 import { motion, AnimatePresence } from 'motion/react';
 import EventRegistrationsDashboard from "./EventRegistrationsDashboard";
 import AdminLoginForm from "./components/AdminLoginForm";
+import PayPalCheckoutButton from "./components/PayPalCheckoutButton";
 import { onAuthStateChanged, auth, signOutAdmin } from "../lib/adminAuth";
+import { functions } from "../lib/firebase";
 function useHashLocation() {
   const [hash, setHash] = useState(window.location.hash);
   useEffect(() => {
@@ -165,29 +168,47 @@ function DonateModal({
   onClose: () => void;
   initialAmount?: number;
 }) {
-  const [currency, setCurrency] = useState<"USD" | "KES">("USD");
   const [amount, setAmount] = useState<string>("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [frequency] = useState("One time");
-  const [paymentMethod, setPaymentMethod] = useState<
-    "card" | "mpesa" | "paybill" | "paypal"
-  >("mpesa");
-  const [mpesaPhone, setMpesaPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [paymentError, setPaymentError] = useState("");
+  const donationIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (isOpen && initialAmount) setAmount(String(initialAmount));
   }, [isOpen, initialAmount]);
 
-  if (!isOpen) return null;
+  const handleCreateDonationOrder = useCallback(async () => {
+    if (!functions) throw new Error("Donations are unavailable because the payment service is not configured.");
+    setPaymentError("");
+    const startDonation = httpsCallable<
+      {amount: number; firstName: string; lastName: string; email: string},
+      {donationId: string; orderId: string}
+    >(functions, "startDonationPayPalOrder");
+    const result = await startDonation({amount: Number(amount), firstName, lastName, email});
+    donationIdRef.current = result.data.donationId;
+    return result.data.orderId;
+  }, [amount, email, firstName, lastName]);
 
-  const currencySymbol = currency === "USD" ? "$" : "KSh ";
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleDonationApproval = useCallback(async ({orderID}: {orderID: string}) => {
+    if (!functions || !donationIdRef.current) throw new Error("We could not match this PayPal payment to the donation.");
+    const captureDonation = httpsCallable<
+      {donationId: string; orderId: string},
+      {paymentStatus: "verified"; receipt: string}
+    >(functions, "captureDonationPayPalOrder");
+    await captureDonation({donationId: donationIdRef.current, orderId: orderID});
     setSubmitted(true);
-  };
+  }, []);
+
+  const handleDonationError = useCallback((cause: unknown) => {
+    setPaymentError(cause instanceof Error ? cause.message : "PayPal could not complete the donation. Please try again.");
+  }, []);
+
+  const currencySymbol = "$";
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
@@ -217,11 +238,7 @@ function DonateModal({
               Thank you for your generosity!
             </h3>
             <p className="text-[#5B6670] text-sm max-w-md mx-auto">
-              {paymentMethod === "mpesa"
-                ? `An M-Pesa payment prompt has been sent to ${mpesaPhone || "your phone"}. Please enter your PIN to complete the contribution.`
-                : paymentMethod === "paybill"
-                  ? `Please complete your transfer via Paybill 123456 using Account Name: ${`${firstName} ${lastName}`.trim() || "Your Name"}.`
-                  : "Your contribution directly empowers bright students and communities across Kenya."}
+              Your contribution directly empowers bright students and communities across Kenya.
             </p>
             <button
               type="button"
@@ -235,39 +252,13 @@ function DonateModal({
             </button>
           </div>
         ) : (
-          <form
-            onSubmit={handleSubmit}
-            className="p-6 md:p-8 space-y-8 max-h-[80vh] overflow-y-auto"
-          >
+          <form className="p-6 md:p-8 space-y-8 max-h-[80vh] overflow-y-auto" onSubmit={(event) => event.preventDefault()}>
             <div>
               <div className="flex items-center justify-between mb-2">
                 <h3 className="font-bold text-lg text-[#1F3A52]">
                   How much would you like to contribute today?
                 </h3>
-                <div className="flex items-center bg-[#F1F4F7] p-1 rounded-xl border border-[#DDE3E8]">
-                  <button
-                    type="button"
-                    onClick={() => setCurrency("USD")}
-                    className={`px-3 py-1 text-xs font-bold rounded-lg transition-colors ${
-                      currency === "USD"
-                        ? "bg-[#2C6E9E] text-white shadow-sm"
-                        : "text-[#5B6670] hover:text-[#1F3A52]"
-                    }`}
-                  >
-                    US$
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setCurrency("KES")}
-                    className={`px-3 py-1 text-xs font-bold rounded-lg transition-colors ${
-                      currency === "KES"
-                        ? "bg-[#2C6E9E] text-white shadow-sm"
-                        : "text-[#5B6670] hover:text-[#1F3A52]"
-                    }`}
-                  >
-                    KSh
-                  </button>
-                </div>
+                <span className="rounded-lg bg-[#F1F4F7] px-3 py-1 text-xs font-bold text-[#2C6E9E]">USD</span>
               </div>
 
               <p className="text-xs text-[#5B6670] mb-4">
@@ -281,7 +272,10 @@ function DonateModal({
                 <input
                   type="number"
                   required
-                  placeholder={`Enter amount in ${currency}`}
+                  placeholder="Enter amount in USD"
+                  min="1"
+                  max="10000"
+                  step="0.01"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
                   className="w-full pl-14 pr-4 py-3.5 rounded-xl border border-[#DDE3E8] text-sm font-semibold focus:outline-none focus:border-[#2C6E9E] text-[#1F3A52]"
@@ -326,147 +320,16 @@ function DonateModal({
                 <input
                   type="email"
                   placeholder="john@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="w-full px-3.5 py-2.5 rounded-xl border border-[#DDE3E8] text-sm focus:outline-none focus:border-[#2C6E9E]"
                 />
               </div>
             </div>
 
             <div className="space-y-4">
-              <h3 className="font-bold text-base text-[#1F3A52]">Payment Details</h3>
-
-              <div className="space-y-2">
-                <label
-                  className={`flex items-center justify-between p-3.5 rounded-xl border cursor-pointer transition-all ${
-                    paymentMethod === "mpesa"
-                      ? "border-[#2C6E9E] bg-[#F1F4F7]/40 ring-1 ring-[#2C6E9E]"
-                      : "border-[#DDE3E8]"
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="radio"
-                      name="payment"
-                      checked={paymentMethod === "mpesa"}
-                      onChange={() => setPaymentMethod("mpesa")}
-                      className="accent-[#2C6E9E]"
-                    />
-                    <span className="text-sm font-semibold text-[#1F3A52]">
-                      M-Pesa Express (STK Push)
-                    </span>
-                  </div>
-                  <span className="text-xs font-bold text-[#2E8FCB] bg-[#EAF2F8] px-2 py-0.5 rounded-md">
-                    M-PESA
-                  </span>
-                </label>
-
-                {paymentMethod === "mpesa" && (
-                  <div className="p-4 bg-[#F1F4F7]/60 rounded-xl border border-[#DDE3E8] space-y-2">
-                    <label className="block text-xs font-semibold text-[#1F3A52]">
-                      M-Pesa Phone Number *
-                    </label>
-                    <input
-                      type="tel"
-                      required
-                      placeholder="e.g. 0712345678 or 254712345678"
-                      value={mpesaPhone}
-                      onChange={(e) => setMpesaPhone(e.target.value)}
-                      className="w-full px-3.5 py-2 rounded-lg border border-[#DDE3E8] text-sm bg-white focus:outline-none focus:border-[#2C6E9E]"
-                    />
-                    <p className="text-[11px] text-[#5B6670]">
-                      An instant STK push prompt will be sent directly to your phone.
-                    </p>
-                  </div>
-                )}
-
-                <label
-                  className={`flex items-center justify-between p-3.5 rounded-xl border cursor-pointer transition-all ${
-                    paymentMethod === "paybill"
-                      ? "border-[#2E8FCB] bg-[#EAF2F8]/40 ring-1 ring-[#2E8FCB]"
-                      : "border-[#DDE3E8]"
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="radio"
-                      name="payment"
-                      checked={paymentMethod === "paybill"}
-                      onChange={() => setPaymentMethod("paybill")}
-                      className="accent-[#2E8FCB]"
-                    />
-                    <span className="text-sm font-semibold text-[#1F3A52]">Pay via Paybill</span>
-                  </div>
-                  <span className="text-xs font-bold text-[#2E8FCB] bg-[#EAF2F8] px-2 py-0.5 rounded-md">
-                    PAYBILL
-                  </span>
-                </label>
-
-                {paymentMethod === "paybill" && (
-                  <div className="p-4 bg-white rounded-xl border border-[#2E8FCB]/30 shadow-sm space-y-3">
-                    <div className="bg-[#2E8FCB] text-white p-3.5 rounded-lg flex items-center justify-between shadow-inner">
-                      <div className="flex items-center gap-2">
-                        <span className="bg-white text-[#2E8FCB] text-xs font-extrabold px-2 py-1 rounded">
-                          LIPA NA M-PESA
-                        </span>
-                        <span className="font-bold text-sm tracking-wide">PAYBILL</span>
-                      </div>
-                      <span className="text-xs font-medium opacity-90">Business No: 123456</span>
-                    </div>
-
-                    <div className="bg-[#F1F7FB] p-3.5 rounded-lg border border-[#E3ECF2] text-xs space-y-2">
-                      <div className="flex justify-between border-b border-[#D6E4EC] pb-1.5">
-                        <span className="text-[#5B6670]">Paybill Business No:</span>
-                        <strong className="text-[#1F3A52] font-bold text-sm">123456</strong>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-[#5B6670]">Account Number:</span>
-                        <strong className="text-[#1F3A52] font-bold text-sm">
-                          {`${firstName} ${lastName}`.trim() || "Your Name"}
-                        </strong>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                <label
-                  className={`flex items-center justify-between p-3.5 rounded-xl border cursor-pointer transition-all ${
-                    paymentMethod === "card"
-                      ? "border-[#2C6E9E] bg-[#F1F4F7]/40 ring-1 ring-[#2C6E9E]"
-                      : "border-[#DDE3E8]"
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="radio"
-                      name="payment"
-                      checked={paymentMethod === "card"}
-                      onChange={() => setPaymentMethod("card")}
-                      className="accent-[#2C6E9E]"
-                    />
-                    <span className="text-sm font-semibold text-[#1F3A52]">Credit / Debit Card</span>
-                  </div>
-                  <span className="text-xs text-[#5B6670]">Visa / Mastercard</span>
-                </label>
-
-                <label
-                  className={`flex items-center justify-between p-3.5 rounded-xl border cursor-pointer transition-all ${
-                    paymentMethod === "paypal"
-                      ? "border-[#2C6E9E] bg-[#F1F4F7]/40 ring-1 ring-[#2C6E9E]"
-                      : "border-[#DDE3E8]"
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="radio"
-                      name="payment"
-                      checked={paymentMethod === "paypal"}
-                      onChange={() => setPaymentMethod("paypal")}
-                      className="accent-[#2C6E9E]"
-                    />
-                    <span className="text-sm font-semibold text-[#1F3A52]">PayPal</span>
-                  </div>
-                  <span className="text-xs text-[#003087] font-bold">PayPal</span>
-                </label>
-              </div>
+              <h3 className="font-bold text-base text-[#1F3A52]">Pay securely with PayPal</h3>
+              <p className="text-xs text-[#5B6670]">Your donation is charged in US dollars. You can pay with your PayPal account or an available card at checkout.</p>
 
               <div className="bg-[#F8FAFC] p-4 rounded-xl border border-[#E2E8F0] space-y-2 text-sm">
                 <div className="flex justify-between text-[#5B6670]">
@@ -478,7 +341,7 @@ function DonateModal({
                 </div>
                 <div className="flex justify-between text-[#5B6670]">
                   <span>Giving Frequency</span>
-                  <span className="font-semibold text-[#1F3A52]">{frequency}</span>
+                  <span className="font-semibold text-[#1F3A52]">One time</span>
                 </div>
                 <div className="border-t border-[#E2E8F0] pt-2 flex justify-between font-bold text-[#1F3A52]">
                   <span>Support Total</span>
@@ -490,13 +353,8 @@ function DonateModal({
               </div>
             </div>
 
-            <button
-              type="submit"
-              className="w-full py-4 rounded-xl bg-[#16324A] hover:bg-[#1A3A52] text-white font-bold text-base transition-colors shadow-md"
-            >
-              Make An Impact ({currencySymbol}
-              {amount || "0"})
-            </button>
+            {paymentError && <p className="text-sm text-red-700" role="alert">{paymentError}</p>}
+            <PayPalCheckoutButton createOrder={handleCreateDonationOrder} onApprove={handleDonationApproval} onError={handleDonationError} />
           </form>
         )}
       </div>

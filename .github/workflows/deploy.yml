@@ -43,6 +43,7 @@ jobs:
           VITE_FIREBASE_STORAGE_BUCKET: ${{ vars.VITE_FIREBASE_STORAGE_BUCKET }}
           VITE_FIREBASE_MEASUREMENT_ID: ${{ vars.VITE_FIREBASE_MEASUREMENT_ID }}
           VITE_TURNSTILE_SITE_KEY: ${{ vars.VITE_TURNSTILE_SITE_KEY }}
+          VITE_PAYPAL_CLIENT_ID: ${{ vars.VITE_PAYPAL_CLIENT_ID }}
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload Pages artifact

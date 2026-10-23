@@ -30,7 +30,6 @@ export interface Registration {
   email: string;
   phone: string;
   paymentStatus: "verified" | "pending" | "failed";
-  mpesaCode?: string;
   paymentMethod?: string;
   paymentReceipt?: string;
   createdAt: string;
@@ -142,7 +141,7 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
       item.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.phone?.includes(searchTerm) ||
-      item.mpesaCode?.toLowerCase().includes(searchTerm.toLowerCase());
+      item.paymentReceipt?.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesTab =
       activeTab === "all" ? true : item.paymentStatus === activeTab;
@@ -176,7 +175,7 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
               </span>
             </div>
             <p className="text-sm text-slate-500 mt-1 pl-11">
-              Event registration portal & live M-Pesa automated ledger.
+              Event registration portal and PayPal payment ledger.
             </p>
             <div className="flex flex-wrap items-center gap-3">
               <div className="bg-white p-1 rounded-xl border border-slate-200 shadow-xs flex items-center gap-1">
@@ -347,7 +346,7 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
                   <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                   <input
                     type="text"
-                    placeholder="Search name, phone, M-Pesa..."
+                    placeholder="Search name, phone, PayPal receipt..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:border-emerald-600 focus:bg-white transition"
@@ -414,7 +413,7 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
                     <div className="flex items-center justify-between md:justify-end gap-6 pt-3 md:pt-0 border-t md:border-t-0 border-slate-200">
                       <div className="text-right">
                         <div className="text-xs text-slate-400 mb-0.5">
-                          {item.paymentMethod ? `${item.paymentMethod === "mpesa" ? "Flutterwave M-Pesa" : "Flutterwave card"}: ` : "Payment: "}<span className="font-mono text-slate-800 font-medium">{item.paymentReceipt || item.mpesaCode || "—"}</span>
+                          {item.paymentMethod ? `${item.paymentMethod === "paypal" ? "PayPal" : item.paymentMethod}: ` : "Payment: "}<span className="font-mono text-slate-800 font-medium">{item.paymentReceipt || "—"}</span>
                         </div>
                         {item.paymentStatus === "verified" ? (
                           <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
@@ -554,7 +553,7 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
                 </div>
                 <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 col-span-2">
                   <span className="text-slate-400 block mb-1">Payment receipt or reference</span>
-                  <span className="text-emerald-700 font-mono font-bold text-sm">{selectedParticipant.paymentReceipt || selectedParticipant.mpesaCode || "Pending Payment"}</span>
+                  <span className="text-emerald-700 font-mono font-bold text-sm">{selectedParticipant.paymentReceipt || "Pending Payment"}</span>
                 </div>
               </div>
 

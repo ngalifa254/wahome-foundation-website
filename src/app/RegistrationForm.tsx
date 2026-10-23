@@ -1,7 +1,8 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowRight, CheckCircle2, Loader2, Sparkles } from "lucide-react";
 import { httpsCallable } from "firebase/functions";
 import { functions } from "../lib/firebase"; // Uses existing functions export from lib/firebase.ts
+import PayPalCheckoutButton from "./components/PayPalCheckoutButton";
 
 type Category = "21K" | "10K" | "Children's 1K";
 type Gender = "male" | "female";
@@ -27,20 +28,15 @@ interface RegisterEventResponse {
   paymentStatus: "pending";
 }
 
-type PaymentMethod = "mpesa" | "card";
 type PaymentStatus = "pending" | "verified" | "failed";
 
 interface StartPaymentResponse {
-  paymentMethod: PaymentMethod;
+  orderId: string;
+  amountUsd: number;
   paymentStatus: "pending";
-  paymentReference: string;
-  instructions?: string;
-  amountKes?: number;
-  checkoutUrl?: string;
 }
 
 interface PaymentInstructions {
-  method: PaymentMethod;
   message: string;
   reference: string;
 }
@@ -89,8 +85,6 @@ export default function RegistrationForm() {
       return null;
     }
   });
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(() => paymentInstructions?.method || "mpesa");
-  const [mpesaPhone, setMpesaPhone] = useState(() => sessionStorage.getItem("miles-for-minds-payment-phone") || "");
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState("");
   const [error, setError] = useState("");
@@ -157,7 +151,6 @@ export default function RegistrationForm() {
     setRegistrationId(null);
     sessionStorage.removeItem("miles-for-minds-registration");
     sessionStorage.removeItem("miles-for-minds-payment");
-    sessionStorage.removeItem("miles-for-minds-payment-phone");
     setPaymentInstructions(null);
     setPaymentStatus("pending");
     setPaymentReceipt(null);
@@ -199,8 +192,6 @@ export default function RegistrationForm() {
       sessionStorage.setItem("miles-for-minds-registration", result.data.registrationId);
       setPaymentInstructions(null);
       sessionStorage.removeItem("miles-for-minds-payment");
-      setMpesaPhone(formData.phone);
-      sessionStorage.setItem("miles-for-minds-payment-phone", formData.phone);
       setFormData({
         fullName: "", age: "", gender: "", category: "21K", email: "", phone: "",
         agreedToTerms: false, optInMarketing: false, guardianName: "",
@@ -218,37 +209,58 @@ export default function RegistrationForm() {
     }
   };
 
-  const handleStartPayment = async () => {
-    if (!functions || !registrationId) return;
+  const handleCreatePayPalOrder = useCallback(async () => {
+    if (!functions || !registrationId) throw new Error("PayPal checkout is unavailable right now.");
     setError("");
-    setPaymentInstructions(null);
     setPaymentLoading(true);
     try {
-      const startPaymentFn = httpsCallable<
-        {registrationId: string; paymentMethod: PaymentMethod; paymentPhone: string; returnUrl: string},
-        StartPaymentResponse
-      >(functions, "startRacePayment");
-      const result = await startPaymentFn({
-        registrationId,
-        paymentMethod,
-        paymentPhone: mpesaPhone,
-        returnUrl: window.location.href,
-      });
+      const startPayment = httpsCallable<{registrationId: string}, StartPaymentResponse>(functions, "startRacePayPalOrder");
+      const result = await startPayment({registrationId});
       const instructions: PaymentInstructions = {
-        method: result.data.paymentMethod,
-        message: result.data.instructions || "Continue to Flutterwave's secure checkout to complete your registration.",
-        reference: result.data.paymentReference,
+        message: `Approve the US$${result.data.amountUsd.toFixed(2)} PayPal payment to finish registration.`,
+        reference: registrationId,
       };
       setPaymentStatus("pending");
       setPaymentInstructions(instructions);
       sessionStorage.setItem("miles-for-minds-payment", JSON.stringify(instructions));
-      if (result.data.checkoutUrl) window.location.assign(result.data.checkoutUrl);
+      return result.data.orderId;
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Could not start payment. Please try again.");
+      setError(cause instanceof Error ? cause.message : "Could not start PayPal checkout. Please try again.");
+      throw cause;
     } finally {
       setPaymentLoading(false);
     }
-  };
+  }, [registrationId]);
+
+  const handlePayPalApproval = useCallback(async ({orderID}: {orderID: string}) => {
+    if (!functions || !registrationId) throw new Error("We could not match this PayPal payment to the registration.");
+    setError("");
+    setPaymentLoading(true);
+    try {
+      const capturePayment = httpsCallable<
+        {registrationId: string; orderId: string},
+        {paymentStatus: "verified"; paymentReceipt: string}
+      >(functions, "captureRacePayPalOrder");
+      const result = await capturePayment({registrationId, orderId: orderID});
+      setPaymentStatus(result.data.paymentStatus);
+      setPaymentReceipt(result.data.paymentReceipt);
+      const instructions: PaymentInstructions = {
+        message: "Your US$8.00 PayPal payment is confirmed. Your race entry is secured.",
+        reference: registrationId,
+      };
+      setPaymentInstructions(instructions);
+      sessionStorage.setItem("miles-for-minds-payment", JSON.stringify(instructions));
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "PayPal could not confirm your payment. Please try again.");
+      throw cause;
+    } finally {
+      setPaymentLoading(false);
+    }
+  }, [registrationId]);
+
+  const handlePayPalError = useCallback((cause: unknown) => {
+    setError(cause instanceof Error ? cause.message : "PayPal checkout could not complete. Please try again.");
+  }, []);
 
   return (
     <div className="relative overflow-hidden rounded-3xl border border-slate-200/80 bg-gradient-to-b from-white via-slate-50/50 to-slate-100/30 p-8 shadow-2xl shadow-slate-200/50 backdrop-blur-xl transition-all duration-300">
@@ -266,7 +278,7 @@ export default function RegistrationForm() {
           Take your place at the start
         </h2>
         <p className="mt-2 text-sm text-slate-600">
-          Registration fee: <span className="font-bold text-slate-900">KSh 1,000 per participant</span> for all categories.
+          Registration fee: <span className="font-bold text-slate-900">KSh 1,000 per participant</span> for all categories. PayPal checkout is US$8.00.
         </p>
       </div>
 
@@ -463,45 +475,9 @@ export default function RegistrationForm() {
             <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
             <div>
               <p className="font-bold">{paymentStatus === "verified" ? "Payment confirmed" : "Registration saved"} · Ref {registrationId}</p>
-              <p className="mt-1 text-xs text-slate-600">{paymentStatus === "verified" ? `Your KSh 1,000 payment is confirmed${paymentReceipt ? ` (receipt ${paymentReceipt})` : ""}. Your race entry is secured.` : paymentDisabled ? "Cloud test mode: registration saved in the cloud project with no payment started." : "Choose a payment method to finish your KSh 1,000 registration. Your place remains pending until payment is confirmed."}</p>
+              <p className="mt-1 text-xs text-slate-600">{paymentStatus === "verified" ? `Your US$8.00 PayPal payment is confirmed${paymentReceipt ? ` (receipt ${paymentReceipt})` : ""}. Your race entry is secured.` : paymentDisabled ? "Cloud test mode: registration saved in the cloud project with no payment started." : "Approve the US$8.00 PayPal payment to finish your KSh 1,000 registration. Your place remains pending until payment is confirmed."}</p>
             </div>
           </div>
-
-          {!paymentDisabled && paymentStatus !== "verified" && <fieldset className="mt-5 space-y-2">
-            <legend className="mb-2 text-xs font-bold uppercase tracking-wider text-slate-700">Payment method</legend>
-            {([ ["mpesa", "M-Pesa via Flutterwave"],
-              ["card", "Credit or debit card"],
-            ] as const).map(([value, label]) => (
-              <label key={value} className={`flex cursor-pointer items-center gap-3 rounded-xl border-2 px-3 py-3 text-sm font-semibold transition ${paymentMethod === value ? "border-blue-500 bg-white" : "border-slate-200 bg-white/70"}`}>
-                <input
-                  type="radio"
-                  name="race-payment-method"
-                  value={value}
-                  checked={paymentMethod === value}
-                  disabled={Boolean(paymentInstructions && paymentStatus === "pending" && paymentInstructions.method !== value)}
-                  onChange={() => { setPaymentMethod(value); setPaymentInstructions(null); }}
-                />
-                {label}
-              </label>
-            ))}
-          </fieldset>}
-
-          {!paymentDisabled && paymentStatus !== "verified" && paymentMethod === "mpesa" && (
-            <label className="mt-4 block text-xs font-semibold text-slate-700">
-              M-Pesa phone number
-              <input
-                type="tel"
-                value={mpesaPhone}
-                disabled={Boolean(paymentInstructions && paymentStatus === "pending")}
-                onChange={(event) => {
-                  setMpesaPhone(event.target.value);
-                  sessionStorage.setItem("miles-for-minds-payment-phone", event.target.value);
-                }}
-                placeholder="e.g. 0712345678 or 254712345678"
-                className="mt-1.5 w-full rounded-xl border-2 border-slate-300 bg-white px-4 py-3 text-sm font-normal text-slate-900 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
-              />
-            </label>
-          )}
 
           {paymentInstructions && (
             <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-950" role="status">
@@ -510,15 +486,8 @@ export default function RegistrationForm() {
             </div>
           )}
 
-          {!paymentDisabled && paymentStatus !== "verified" && <button
-            type="button"
-            onClick={handleStartPayment}
-            disabled={paymentLoading}
-            className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-50"
-          >
-            {paymentLoading ? <><Loader2 className="h-4 w-4 animate-spin" /> Starting payment…</> : <>{paymentStatus === "failed" ? "Try payment again" : paymentInstructions ? "Return to secure checkout" : "Continue to secure checkout"} <ArrowRight className="h-4 w-4" /></>}
-          </button>
-          }
+          {paymentLoading && <p className="mt-3 flex items-center justify-center gap-2 text-xs text-slate-500"><Loader2 className="h-4 w-4 animate-spin" /> Contacting PayPal…</p>}
+          {!paymentDisabled && paymentStatus !== "verified" && <div className="mt-4"><PayPalCheckoutButton createOrder={handleCreatePayPalOrder} onApprove={handlePayPalApproval} onError={handlePayPalError} /></div>}
         </div>
       )}
     </div>

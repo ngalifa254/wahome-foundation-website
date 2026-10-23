@@ -1,15 +1,16 @@
 /* eslint-disable max-len */
 import {getApps, initializeApp} from "firebase-admin/app";
 import {FieldValue, getFirestore} from "firebase-admin/firestore";
-import {randomBytes, timingSafeEqual} from "node:crypto";
+import {randomBytes} from "node:crypto";
 import {setGlobalOptions} from "firebase-functions";
-import {defineSecret} from "firebase-functions/params";
-import {HttpsError, onCall, onRequest} from "firebase-functions/v2/https";
-import {createHostedCheckout, verifyFlutterwaveTransaction, type FlutterwavePaymentMethod} from "./flutterwaveClient.js";
+import {defineSecret, defineString} from "firebase-functions/params";
+import {HttpsError, onCall} from "firebase-functions/v2/https";
+import {capturePayPalOrder, createPayPalOrder, type PayPalOrderResult} from "./paypalClient.js";
 
 const turnstileSecret = defineSecret("TURNSTILE_SECRET_KEY");
-const flutterwaveSecretKey = defineSecret("FLUTTERWAVE_SECRET_KEY");
-const flutterwaveWebhookHash = defineSecret("FLUTTERWAVE_WEBHOOK_HASH");
+const paypalClientId = defineSecret("PAYPAL_CLIENT_ID");
+const paypalClientSecret = defineSecret("PAYPAL_CLIENT_SECRET");
+const paypalMode = defineString("PAYPAL_MODE", {default: "sandbox"});
 const eventSlug = "miles-for-minds-2027";
 const privacyNoticeVersion = "miles-for-minds-2027-v1";
 const registrationClosesAt = Date.parse("2027-01-06T00:00:00+03:00");
@@ -20,37 +21,8 @@ setGlobalOptions({maxInstances: 10, region: "africa-south1"});
 const app = getApps()[0] ?? initializeApp();
 const db = getFirestore(app);
 const registrationFeeKes = 1000;
-
-/**
- * Validates and normalizes a Kenyan phone number for M-Pesa.
- * @param {unknown} value Untrusted phone number.
- * @return {string} The normalized number in international format.
- */
-function normalizeKenyanPhone(value: unknown): string {
-  if (typeof value !== "string") {
-    throw new HttpsError("invalid-argument", "Enter a valid Kenyan M-Pesa phone number.");
-  }
-  const digits = value.replace(/\D/g, "");
-  const normalized = digits.startsWith("254") ? digits :
-    digits.startsWith("0") ? `254${digits.slice(1)}` : `254${digits}`;
-  if (!/^254(?:7|1)\d{8}$/.test(normalized)) {
-    throw new HttpsError("invalid-argument", "Enter a valid Kenyan M-Pesa phone number.");
-  }
-  return normalized;
-}
-
-/**
- * Compares a webhook header with its configured secret without timing leaks.
- * @param {string | undefined} actual The received header value.
- * @param {string} expected The expected secret value.
- * @return {boolean} Whether both values match.
- */
-function safeHeaderEquals(actual: string | undefined, expected: string): boolean {
-  if (!actual) return false;
-  const actualBuffer = Buffer.from(actual);
-  const expectedBuffer = Buffer.from(expected);
-  return actualBuffer.length === expectedBuffer.length && timingSafeEqual(actualBuffer, expectedBuffer);
-}
+const registrationFeeUsd = "8.00";
+const donationCurrency = "USD";
 
 type TurnstileResult = {
   success?: boolean;
@@ -270,155 +242,187 @@ export const registerEvent = onCall({
     paymentReference: `WF${randomBytes(5).toString("hex").toUpperCase()}`,
     paymentMethod: null,
     paymentProvider: null,
-    mpesaReceiptNumber: null,
     paidAt: null,
   });
 
   return {registrationId: registration.id, paymentStatus: "pending" as const};
 });
 
-export const startRacePayment = onCall({
-  secrets: [flutterwaveSecretKey],
+export const startDonationPayPalOrder = onCall({
+  secrets: [paypalClientId, paypalClientSecret],
   timeoutSeconds: 30,
 }, async (request) => {
   if (typeof request.data !== "object" || request.data === null || Array.isArray(request.data)) {
-    throw new HttpsError("invalid-argument", "The payment request is invalid.");
+    throw new HttpsError("invalid-argument", "The donation details are invalid.");
   }
   const data = request.data as Record<string, unknown>;
-  const registrationId = requiredText(data, "registrationId", 128);
-  const method = data.paymentMethod;
-  if (method !== "mpesa" && method !== "card") {
-    throw new HttpsError("invalid-argument", "Choose M-Pesa or card.");
+  const firstName = requiredText(data, "firstName", 80);
+  const lastName = typeof data.lastName === "string" ? data.lastName.trim().replace(/\s+/g, " ").slice(0, 80) : "";
+  const email = typeof data.email === "string" ? data.email.trim().toLowerCase() : "";
+  if (email && (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))) {
+    throw new HttpsError("invalid-argument", "Please enter a valid email address.");
   }
-
-  const registrationRef = db.collection("eventRegistrations").doc(registrationId);
-  const registrationSnapshot = await registrationRef.get();
-  const registration = registrationSnapshot.data();
-  if (!registrationSnapshot.exists || registration?.eventSlug !== eventSlug) {
-    throw new HttpsError("not-found", "We could not find this race registration.");
+  const amount = data.amount;
+  if (typeof amount !== "number" || !Number.isFinite(amount) || amount < 1 || amount > 10000) {
+    throw new HttpsError("invalid-argument", "Enter a donation amount between $1 and $10,000.");
   }
-  if (registration.paymentStatus === "verified") {
-    throw new HttpsError("failed-precondition", "This registration has already been paid.");
-  }
-  if (registration.paymentStatus === "pending" && registration.paymentMethod && registration.paymentMethod !== method) {
-    throw new HttpsError("failed-precondition", "A payment attempt is already pending. Complete or wait for that payment before choosing another method.");
-  }
-
-  const paymentReference = typeof registration.paymentReference === "string" ?
-    registration.paymentReference : `WF${randomBytes(5).toString("hex").toUpperCase()}`;
-  const feeKes = typeof registration.feeKes === "number" ? registration.feeKes : registrationFeeKes;
-  const returnUrlValue = data.returnUrl;
-  const origin = request.rawRequest.headers.origin;
-  if (typeof returnUrlValue !== "string" || typeof origin !== "string") {
-    throw new HttpsError("invalid-argument", "The checkout return address is invalid.");
-  }
-  let returnUrl: URL;
-  try {
-    returnUrl = new URL(returnUrlValue);
-  } catch {
-    throw new HttpsError("invalid-argument", "The checkout return address is invalid.");
-  }
-  if (returnUrl.origin !== origin || (returnUrl.protocol !== "https:" && returnUrl.hostname !== "localhost" && returnUrl.hostname !== "127.0.0.1")) {
-    throw new HttpsError("invalid-argument", "The checkout return address is not allowed.");
-  }
-
-  if (registration.paymentStatus === "pending" && registration.paymentMethod === method && typeof registration.paymentCheckoutUrl === "string") {
-    return {paymentMethod: method as FlutterwavePaymentMethod, paymentStatus: "pending" as const, paymentReference, checkoutUrl: registration.paymentCheckoutUrl};
-  }
-  const secretKey = flutterwaveSecretKey.value();
-  if (!secretKey) throw new HttpsError("failed-precondition", "Flutterwave payments are not configured yet.");
-  const paymentPhone = method === "mpesa" ?
-    normalizeKenyanPhone(typeof data.paymentPhone === "string" ? data.paymentPhone : registration.contactPhone) : registration.contactPhone;
-  const providerTransactionRef = `${paymentReference}-${randomBytes(3).toString("hex").toUpperCase()}`;
-  let checkoutUrl: string;
-  try {
-    checkoutUrl = await createHostedCheckout({
-      secretKey,
-      txRef: providerTransactionRef,
-      amountKes: feeKes,
-      method,
-      returnUrl: returnUrl.toString(),
-      customer: {email: registration.contactEmail, name: registration.participantName, phone: paymentPhone},
-      registrationId,
-      eventSlug,
-    });
-  } catch (error) {
-    console.error("Flutterwave checkout creation failed", error instanceof Error ? error.message : "unknown error");
-    throw new HttpsError("unavailable", "Flutterwave checkout could not start right now. Please try again.");
-  }
-
-  await registrationRef.update({
-    paymentMethod: method,
-    paymentProvider: "flutterwave",
+  const roundedAmount = Math.round(amount * 100) / 100;
+  const donationRef = db.collection("donations").doc();
+  const donationAmount = roundedAmount.toFixed(2);
+  const displayName = `${firstName} ${lastName}`.trim();
+  await donationRef.set({
+    provider: "paypal",
     paymentStatus: "pending",
-    paymentReference,
-    providerTransactionRef,
-    paymentCheckoutUrl: checkoutUrl,
-    paymentPhone: method === "mpesa" ? paymentPhone : FieldValue.delete(),
-    paymentStartedAt: FieldValue.serverTimestamp(),
-    paymentError: FieldValue.delete(),
+    paymentReference: donationRef.id,
+    amount: roundedAmount,
+    currency: donationCurrency,
+    donorName: displayName,
+    donorEmail: email || null,
+    givingFrequency: "One time",
+    createdAt: FieldValue.serverTimestamp(),
   });
-  return {
-    paymentMethod: method as FlutterwavePaymentMethod,
-    paymentStatus: "pending" as const,
-    paymentReference,
-    checkoutUrl,
-  };
-});
-export const flutterwavePaymentWebhook = onRequest({
-  secrets: [flutterwaveSecretKey, flutterwaveWebhookHash],
-  timeoutSeconds: 30,
-}, async (request, response) => {
-  if (request.method !== "POST") {
-    response.status(405).send("Method not allowed");
-    return;
-  }
-  if (!safeHeaderEquals(request.get("verif-hash"), flutterwaveWebhookHash.value())) {
-    response.status(401).send("Unauthorized");
-    return;
-  }
-  const payload = request.body as {data?: {id?: number; tx_ref?: string}} | undefined;
-  const transactionId = payload?.data?.id;
-  const transactionReference = payload?.data?.tx_ref;
-  if (!transactionId || !transactionReference) {
-    response.status(200).send("Ignored");
-    return;
-  }
+
   try {
-    const verification = await verifyFlutterwaveTransaction({
-      secretKey: flutterwaveSecretKey.value(),
-      transactionId,
-      expectedTxRef: transactionReference,
-      expectedAmountKes: registrationFeeKes,
-    });
-    const verifiedPayment = verification?.data;
-    if (!verifiedPayment) {
-      response.status(200).send("Payment not verified");
-      return;
-    }
-    const matches = await db.collection("eventRegistrations")
-      .where("providerTransactionRef", "==", transactionReference)
-      .limit(1)
-      .get();
-    if (!matches.empty) {
-      const registrationRef = matches.docs[0].ref;
-      await db.runTransaction(async (transaction) => {
-        const current = await transaction.get(registrationRef);
-        const data = current.data();
-        if (current.exists && data?.eventSlug === eventSlug && data.paymentProvider === "flutterwave" && data.paymentStatus !== "verified" && data.feeKes === registrationFeeKes) {
-          transaction.update(registrationRef, {
-            paymentStatus: "verified",
-            paymentReceipt: verifiedPayment.flw_ref || transactionReference,
-            paidAt: FieldValue.serverTimestamp(),
-          });
-        }
-      });
-    }
-    response.status(200).send("OK");
+    const order = await createPayPalOrder({
+      clientId: paypalClientId.value(),
+      clientSecret: paypalClientSecret.value(),
+      amount: donationAmount,
+      currency: donationCurrency,
+      reference: donationRef.id,
+      description: "Donation to Wahome Foundation",
+    }, paypalMode.value());
+    await donationRef.update({paypalOrderId: order.id, paymentStartedAt: FieldValue.serverTimestamp()});
+    return {donationId: donationRef.id, orderId: order.id};
   } catch (error) {
-    console.error("Flutterwave webhook verification failed", error instanceof Error ? error.message : "unknown error");
-    response.status(500).send("Verification unavailable");
+    await donationRef.update({paymentStatus: "failed", paymentError: "checkout_creation_failed"});
+    console.error("PayPal donation order creation failed", error instanceof Error ? error.message : "unknown error");
+    throw new HttpsError("unavailable", "PayPal checkout could not start right now. Please try again.");
   }
+});
+
+export const captureDonationPayPalOrder = onCall({
+  secrets: [paypalClientId, paypalClientSecret],
+  timeoutSeconds: 30,
+}, async (request) => {
+  const data = request.data as Record<string, unknown> | null;
+  const donationId = typeof data?.donationId === "string" ? data.donationId.trim() : "";
+  const orderId = typeof data?.orderId === "string" ? data.orderId.trim() : "";
+  if (!donationId || !orderId) throw new HttpsError("invalid-argument", "The PayPal donation reference is invalid.");
+  const donationRef = db.collection("donations").doc(donationId);
+  const snapshot = await donationRef.get();
+  const donation = snapshot.data();
+  if (!snapshot.exists || donation?.provider !== "paypal") throw new HttpsError("not-found", "We could not find this donation.");
+  if (donation.paymentStatus === "verified") return {paymentStatus: "verified" as const, receipt: donation.paymentReceipt || orderId};
+  if (donation.paypalOrderId !== orderId || donation.currency !== donationCurrency || typeof donation.amount !== "number") {
+    throw new HttpsError("failed-precondition", "The PayPal order does not match this donation.");
+  }
+
+  let capturedOrder: PayPalOrderResult | null = null;
+  try {
+    capturedOrder = await capturePayPalOrder({
+      clientId: paypalClientId.value(),
+      clientSecret: paypalClientSecret.value(),
+      amount: donation.amount.toFixed(2),
+      currency: donationCurrency,
+      reference: donationId,
+      description: "Donation to Wahome Foundation",
+    }, orderId, paypalMode.value());
+  } catch (error) {
+    console.error("PayPal donation capture failed", error instanceof Error ? error.message : "unknown error");
+    throw new HttpsError("unavailable", "PayPal could not confirm this donation right now. Please try again.");
+  }
+  if (!capturedOrder) throw new HttpsError("failed-precondition", "PayPal could not verify the completed donation amount.");
+  const capture = capturedOrder.purchase_units?.[0]?.payments?.captures?.[0];
+  await donationRef.update({
+    paymentStatus: "verified",
+    paymentReceipt: capture?.id || orderId,
+    paidAt: FieldValue.serverTimestamp(),
+  });
+  return {paymentStatus: "verified" as const, receipt: capture?.id || orderId};
+});
+
+export const startRacePayPalOrder = onCall({
+  secrets: [paypalClientId, paypalClientSecret],
+  timeoutSeconds: 30,
+}, async (request) => {
+  const data = request.data as Record<string, unknown> | null;
+  const registrationId = typeof data?.registrationId === "string" ? data.registrationId.trim() : "";
+  if (!registrationId) throw new HttpsError("invalid-argument", "The registration reference is invalid.");
+  const registrationRef = db.collection("eventRegistrations").doc(registrationId);
+  const snapshot = await registrationRef.get();
+  const registration = snapshot.data();
+  if (!snapshot.exists || registration?.eventSlug !== eventSlug) throw new HttpsError("not-found", "We could not find this race registration.");
+  if (registration.paymentStatus === "verified") throw new HttpsError("failed-precondition", "This registration has already been paid.");
+  if (registration.paymentProvider === "paypal" && typeof registration.paypalOrderId === "string" && registration.feeUsd === Number(registrationFeeUsd)) {
+    return {orderId: registration.paypalOrderId, amountUsd: Number(registrationFeeUsd), paymentStatus: "pending" as const};
+  }
+
+  try {
+    const order = await createPayPalOrder({
+      clientId: paypalClientId.value(),
+      clientSecret: paypalClientSecret.value(),
+      amount: registrationFeeUsd,
+      currency: "USD",
+      reference: registrationId,
+      description: "Miles for Minds Run 2027 registration",
+    }, paypalMode.value());
+    await registrationRef.update({
+      paymentMethod: "paypal",
+      paymentProvider: "paypal",
+      paymentStatus: "pending",
+      feeKes: registrationFeeKes,
+      feeUsd: Number(registrationFeeUsd),
+      paypalOrderId: order.id,
+      paymentReference: typeof registration.paymentReference === "string" ? registration.paymentReference : `WF${randomBytes(5).toString("hex").toUpperCase()}`,
+      paymentStartedAt: FieldValue.serverTimestamp(),
+      paymentError: FieldValue.delete(),
+    });
+    return {orderId: order.id, amountUsd: Number(registrationFeeUsd), paymentStatus: "pending" as const};
+  } catch (error) {
+    console.error("PayPal race order creation failed", error instanceof Error ? error.message : "unknown error");
+    throw new HttpsError("unavailable", "PayPal checkout could not start right now. Please try again.");
+  }
+});
+
+export const captureRacePayPalOrder = onCall({
+  secrets: [paypalClientId, paypalClientSecret],
+  timeoutSeconds: 30,
+}, async (request) => {
+  const data = request.data as Record<string, unknown> | null;
+  const registrationId = typeof data?.registrationId === "string" ? data.registrationId.trim() : "";
+  const orderId = typeof data?.orderId === "string" ? data.orderId.trim() : "";
+  if (!registrationId || !orderId) throw new HttpsError("invalid-argument", "The PayPal registration reference is invalid.");
+  const registrationRef = db.collection("eventRegistrations").doc(registrationId);
+  const snapshot = await registrationRef.get();
+  const registration = snapshot.data();
+  if (!snapshot.exists || registration?.eventSlug !== eventSlug) throw new HttpsError("not-found", "We could not find this race registration.");
+  if (registration.paymentStatus === "verified") return {paymentStatus: "verified" as const, paymentReceipt: registration.paymentReceipt || orderId};
+  if (registration.paymentProvider !== "paypal" || registration.paypalOrderId !== orderId || registration.feeUsd !== Number(registrationFeeUsd)) {
+    throw new HttpsError("failed-precondition", "The PayPal order does not match this race registration.");
+  }
+
+  let capturedOrder: PayPalOrderResult | null = null;
+  try {
+    capturedOrder = await capturePayPalOrder({
+      clientId: paypalClientId.value(),
+      clientSecret: paypalClientSecret.value(),
+      amount: registrationFeeUsd,
+      currency: "USD",
+      reference: registrationId,
+      description: "Miles for Minds Run 2027 registration",
+    }, orderId, paypalMode.value());
+  } catch (error) {
+    console.error("PayPal race capture failed", error instanceof Error ? error.message : "unknown error");
+    throw new HttpsError("unavailable", "PayPal could not confirm this registration payment right now. Please try again.");
+  }
+  if (!capturedOrder) throw new HttpsError("failed-precondition", "PayPal could not verify the completed registration amount.");
+  const capture = capturedOrder.purchase_units?.[0]?.payments?.captures?.[0];
+  await registrationRef.update({
+    paymentStatus: "verified",
+    paymentReceipt: capture?.id || orderId,
+    paidAt: FieldValue.serverTimestamp(),
+  });
+  return {paymentStatus: "verified" as const, paymentReceipt: capture?.id || orderId};
 });
 
 export const getRacePaymentStatus = onCall(async (request) => {
@@ -432,7 +436,7 @@ export const getRacePaymentStatus = onCall(async (request) => {
   }
   return {
     paymentStatus: details.paymentStatus || "pending",
-    paymentReceipt: details.paymentReceipt || details.mpesaReceiptNumber || null,
+    paymentReceipt: details.paymentReceipt || null,
   };
 });
 
@@ -474,9 +478,8 @@ export const listEventRegistrations = onCall(async (request) => {
       email: data.contactEmail || data.email || "",
       phone: data.contactPhone || data.phone || "",
       paymentStatus: data.paymentStatus || "pending",
-      mpesaCode: data.paymentMethod === "mpesa" ? data.paymentReceipt || "" : "",
       paymentMethod: data.paymentMethod || "",
-      paymentReceipt: data.paymentReceipt || data.mpesaReceiptNumber || "",
+      paymentReceipt: data.paymentReceipt || "",
       createdAt,
     };
   });

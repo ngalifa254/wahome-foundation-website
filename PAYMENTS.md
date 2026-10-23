@@ -1,33 +1,41 @@
-﻿# Race payment setup
+# PayPal checkout setup
 
-The Miles for Minds registration fee is KSh 1,000 and checkout is handled by Flutterwave for Kenyan M-Pesa or card. Registration remains pending until the Flutterwave webhook is authenticated and the transaction is verified for its reference, status, amount, and KES currency. Card data is entered on Flutterwave-hosted checkout and is never sent to this site.
+Donations and Miles for Minds Run registration use PayPal Checkout. Donors enter an amount in USD. Run registration is displayed locally as KSh 1,000 and charged at US$8.00. PayPal buttons use the public web client ID; Firebase Functions keep the client secret server-side, create the order, and capture it after buyer approval. Captured orders are checked for their reference, completed status, amount, and currency before Firestore is marked paid.
 
-## Configure production Firebase Functions
+The current PayPal Orders API currency list does not include KES, so checkout uses USD. PayPal supports business accounts in Kenya. Before enabling live checkout, create a PayPal Business account and a REST app in the PayPal Developer Dashboard, then try the sandbox first.
 
-Set the production Turnstile secret and Flutterwave test-mode key and webhook hash as Firebase Functions secrets. The local `.secret.local` contains only the emulator test secret; do not use that value in production. Do not put provider credentials in source files or send them in chat.
+## Configure local checkout
 
-```powershell
-firebase.cmd functions:secrets:set TURNSTILE_SECRET_KEY --project production
-firebase.cmd functions:secrets:set FLUTTERWAVE_SECRET_KEY --project production
-firebase.cmd functions:secrets:set FLUTTERWAVE_WEBHOOK_HASH --project production
+Add the PayPal sandbox app client ID to each ignored Vite environment file used for local development:
+
+```env
+VITE_PAYPAL_CLIENT_ID=your-sandbox-client-id
 ```
 
-Run each command in a local terminal and paste the value from its provider prompt. Use the production Cloudflare Turnstile secret for the registered website hostname, plus Flutterwave test-mode credentials for the first payment checks.
+For Functions emulators, place the sandbox credentials in `functions/.secret.local` (ignored by Git):
 
-Configure Flutterwave's webhook URL after deploying Functions (project alias: `production`, project ID: `wahome-foundation`):
-
-`https://africa-south1-wahome-foundation.cloudfunctions.net/flutterwavePaymentWebhook`
-
-The webhook secret hash configured in Flutterwave must match `FLUTTERWAVE_WEBHOOK_HASH`.
-
-## Run the local mock payment tests
-
-From the repository root:
-
-```powershell
-npm test --prefix functions
+```env
+PAYPAL_CLIENT_ID=your-sandbox-client-id
+PAYPAL_CLIENT_SECRET=your-sandbox-client-secret
 ```
 
-The tests stub Flutterwave's HTTP responses and verify both M-Pesa and card checkout payloads, plus acceptance/rejection of transaction verification. They make no network requests and do not process real payments.
+The default mode is PayPal sandbox. Use sandbox buyer accounts from the PayPal Developer Dashboard to complete a checkout.
 
-For an optional end-to-end provider sandbox session, configure Flutterwave test-mode credentials. Flutterwave's test environment uses test keys and mock card details; no live credentials should be used in local development.
+## Configure production
+
+Set production PayPal REST app credentials as Firebase Functions secrets, then set the public client ID as the GitHub Actions repository variable `VITE_PAYPAL_CLIENT_ID` so the Pages build can load the PayPal JavaScript SDK:
+
+```powershell
+firebase.cmd functions:secrets:set PAYPAL_CLIENT_ID --project production
+firebase.cmd functions:secrets:set PAYPAL_CLIENT_SECRET --project production
+```
+
+Deploy the updated functions explicitly to the production alias:
+
+```powershell
+firebase.cmd deploy --only functions --project production
+```
+
+The Functions use PayPal sandbox by default. Firebase prompts for `PAYPAL_MODE` when deploying; choose `live` only after sandbox checkout and capture have been confirmed. Use live app credentials and a live client ID for a live Pages build.
+
+Never expose `PAYPAL_CLIENT_SECRET` in Vite variables, source files, GitHub repository variables, or chat. Only `VITE_PAYPAL_CLIENT_ID` is public.

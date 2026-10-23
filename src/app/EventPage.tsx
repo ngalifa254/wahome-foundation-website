@@ -190,7 +190,7 @@ export function EventPage({
       <section className="run-dialog" role="dialog" aria-modal="true" aria-labelledby="run-dialog-title">
         <header className="run-dialog-header"><h2 id="run-dialog-title">{activeDialog === "registration" ? "Participant Registration" : "Become a Sponsor"}</h2><button type="button" className="run-dialog-close" onClick={() => setActiveDialog(null)} aria-label="Close dialog"><X size={20} /></button></header>
         <div className="run-dialog-content">
-          {activeDialog === "registration" ? <><RegistrationForm /><aside className="run-payment-note"><span className="eyebrow">Payment confirmation</span><h2>Secure your race entry</h2><p>After saving participant details, use Flutterwave to pay by M-Pesa or card. The registration fee is KSh 1,000.</p><p>Your entry stays pending until Flutterwave confirms the payment.</p></aside></> : <SponsorForm />}
+          {activeDialog === "registration" ? <><RegistrationForm /><aside className="run-payment-note"><span className="eyebrow">Payment confirmation</span><h2>Secure your race entry</h2><p>The registration fee is KSh 1,000. PayPal checkout charges US$8.00.</p><p>Your entry stays pending until PayPal confirms the payment.</p></aside></> : <SponsorForm />}
         </div>
       </section>
     </div>}
