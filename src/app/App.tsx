@@ -9,6 +9,7 @@ import alexPhoto from "@/imports/Alex.jpeg";
 import jedidahPhoto from "@/imports/Jedidah.jpeg";
 import jamesPhoto from "@/imports/James.jpeg";
 import jamesWachiraPhoto from "@/imports/gallery/Jamesw.jpg";
+import jamesGachugiPhoto from "@/imports/gallery/Jamesg.jpg";
 import wilsonKiriungiPhoto from "@/imports/gallery/Wilson.jpg";
 import newtonPhoto from "@/imports/Newton.jpeg";
 import samuelPhoto from "@/imports/Samuel.jpeg";
@@ -1177,6 +1178,16 @@ function AboutPage({ onNav }: { onNav: (p: Page) => void }) {
                 bio: [
                   "James Wachira is a seasoned finance professional with 26 years of experience in financial management, budgeting, reporting, cash-flow management, and financial controls. As Board Treasurer of Wahome Global Foundation, he provides financial oversight and supports sound governance, transparency, and responsible stewardship of the Foundation’s resources.",
                   "He is committed to ensuring the Foundation’s resources are effectively managed and aligned with its programmes and objectives, guided by integrity, accountability, transparency, teamwork, and financial discipline.",
+                ],
+              },
+              {
+                name: "James Gachugi Ngatia",
+                role: "Education Representative",
+                photo: jamesGachugiPhoto,
+                bio: [
+                  "James Gachugi Ngatia is an experienced education professional with 35 years of service in the teaching profession and school leadership. He is the Principal of Ndemu Comprehensive School and serves as the Secretary to the School’s Board of Management. Throughout his career, he has demonstrated a strong commitment to quality education, effective school administration, learner development, and the promotion of a supportive learning environment.",
+                  "He trained as a professional teacher at Kamwenja Teachers College, where he attained a P1 Certificate. He later advanced his professional qualifications at the Kenya Education Management Institute, obtaining a Diploma in School Management and Financial Management. He has also received training in Guidance and Counselling for Junior School, equipping him with skills to support learners’ academic, social, and personal development.",
+                  "As the Education Representative on the Wahome Foundation Board, James brings extensive practical experience in education management, institutional leadership, financial accountability, and student welfare. His knowledge of the education system will help the Foundation identify educational needs, develop impactful programmes, promote access to quality education, and ensure that its initiatives respond to the realities faced by learners, teachers, and schools. His leadership experience, professional expertise, and longstanding dedication to education will be valuable in guiding the Foundation’s educational initiatives, strengthening partnerships with learning institutions, and advancing its mission of creating meaningful and sustainable opportunities for children and young people.",
                 ],
               },
             ].map((member) => (
