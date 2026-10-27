@@ -16,7 +16,7 @@ import samuelPhoto from "@/imports/Samuel.jpeg";
 import thomasPhoto from "@/imports/thomas.jpg";
 import wellsPhoto from "@/imports/wells.jpg";
 import mentorshipPhoto from "@/imports/mentorship.jpg";
-import dkPhoto from "@/imports/dk.jpg";
+import dkPhoto from "@/imports/dk1.jpg";
 import cynthiaPhoto from "@/imports/cynthia.jpeg";
 import georgePhoto from "@/imports/george.jpg";
 import mainLogo from "@/imports/mainlogo.png";
@@ -88,6 +88,10 @@ import {
   ExternalLink,
   Handshake,
   GraduationCap,
+  Shirt,
+  FileCheck2,
+  HeartHandshake,
+  School,
   TrendingUp,
 } from "lucide-react";
 
@@ -213,8 +217,8 @@ function DonateModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
-      <div className="relative w-full max-w-xl bg-white rounded-3xl shadow-2xl overflow-hidden my-8 border border-[#DDE3E8]">
-        <div className="bg-[#1F3A52] px-6 py-5 text-white flex items-center justify-between">
+      <div className="relative w-full max-w-xl bg-white rounded-3xl shadow-2xl overflow-hidden my-8">
+        <div className="support-modal-header flex items-center justify-between px-6 py-5 text-white">
           <h2
             className="font-bold text-lg"
             style={{ fontFamily: "'Montserrat', Arial, sans-serif" }}
@@ -224,7 +228,7 @@ function DonateModal({
           <button
             type="button"
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
+            className="support-modal-close flex items-center justify-center transition-colors"
           >
             ✕
           </button>
@@ -599,7 +603,7 @@ function PortfolioCarousel({ onNav }: { onNav: (p: Page) => void }) {
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent p-4 flex flex-col justify-end text-white">
-                  <span className="text-[10px] font-extrabold tracking-widest text-[#B9C9D6] uppercase mb-0.5">
+                  <span className="text-xs font-extrabold tracking-widest text-[#B9C9D6] uppercase mb-0.5">
                     {item.category}
                   </span>
                   <h4 className="font-serif text-xs sm:text-sm font-bold line-clamp-2">
@@ -613,7 +617,7 @@ function PortfolioCarousel({ onNav }: { onNav: (p: Page) => void }) {
       </div>
 
       <div className="mt-2 text-center max-w-xl mx-auto space-y-2">
-        <div className="text-[11px] font-serif font-bold tracking-widest text-[#5B6670]">
+        <div className="text-xs font-serif font-bold tracking-widest text-[#5B6670]">
           {currentItem.id} <span className="opacity-40">/ 0{portfolioItems.length}</span>
         </div>
 
@@ -683,10 +687,10 @@ function PastCampaignsShowcase({ onNav }: { onNav: (p: Page) => void }) {
           <div className="col-span-7 flex flex-col justify-between h-full py-1 text-left">
             <div>
               <div className="flex items-center justify-between mb-1">
-                <span className="text-[9px] font-extrabold tracking-widest text-[#2C6E9E] uppercase truncate">
+                <span className="text-xs font-extrabold tracking-widest text-[#2C6E9E] uppercase truncate">
                   BOSTON RUN
                 </span>
-                <span className="text-[10px] font-serif font-bold text-[#5B6670]">
+                <span className="text-xs font-serif font-bold text-[#5B6670]">
                   01/02
                 </span>
               </div>
@@ -697,11 +701,11 @@ function PastCampaignsShowcase({ onNav }: { onNav: (p: Page) => void }) {
               >
                 Boston Marathon
               </h3>
-              <p className="text-[11px] font-semibold text-[#2C6E9E] mb-1.5">
+              <p className="text-xs font-semibold text-[#2C6E9E] mb-1.5">
                 26.2 Miles for Kenya
               </p>
 
-              <p className="text-[11px] text-[#5B6670] leading-snug line-clamp-3">
+              <p className="text-xs text-[#5B6670] leading-snug line-clamp-3">
                 Founding Trustee Wilson Wahome ran the Boston Marathon to raise tuition funds and expand clean water access across regional schools.
               </p>
             </div>
@@ -710,7 +714,7 @@ function PastCampaignsShowcase({ onNav }: { onNav: (p: Page) => void }) {
               <button
                 type="button"
                 onClick={() => onNav("scholarship")}
-                className="inline-flex items-center gap-1.5 text-[#2C6E9E] font-bold text-[10px] uppercase tracking-wider hover:gap-2 transition-all"
+                className="inline-flex items-center gap-1.5 text-[#2C6E9E] font-bold text-xs uppercase tracking-wider hover:gap-2 transition-all"
               >
                 Read Full Story <ArrowRight className="w-3.5 h-3.5" />
               </button>
@@ -733,10 +737,10 @@ function PastCampaignsShowcase({ onNav }: { onNav: (p: Page) => void }) {
           <div className="col-span-7 flex flex-col justify-between h-full py-1 text-left">
             <div>
               <div className="flex items-center justify-between mb-1">
-                <span className="text-[9px] font-extrabold tracking-widest text-[#2C6E9E] uppercase truncate">
+                <span className="text-xs font-extrabold tracking-widest text-[#2C6E9E] uppercase truncate">
                   THANK YOU DINNER
                 </span>
-                <span className="text-[10px] font-serif font-bold text-[#5B6670]">
+                <span className="text-xs font-serif font-bold text-[#5B6670]">
                   02/02
                 </span>
               </div>
@@ -747,11 +751,11 @@ function PastCampaignsShowcase({ onNav }: { onNav: (p: Page) => void }) {
               >
                 Thank You Dinner
               </h3>
-              <p className="text-[11px] font-semibold text-[#2C6E9E] mb-1.5">
+              <p className="text-xs font-semibold text-[#2C6E9E] mb-1.5">
                 Celebrating Donor Impact
               </p>
 
-              <p className="text-[11px] text-[#5B6670] leading-snug line-clamp-3">
+              <p className="text-xs text-[#5B6670] leading-snug line-clamp-3">
                 An evening in Boston honoring U.S. partners and donors, celebrating milestones in scholarship distributions, mentorship, and new water wells.
               </p>
             </div>
@@ -760,7 +764,7 @@ function PastCampaignsShowcase({ onNav }: { onNav: (p: Page) => void }) {
               <button
                 type="button"
                 onClick={() => onNav("about")}
-                className="inline-flex items-center gap-1.5 text-[#2C6E9E] font-bold text-[10px] uppercase tracking-wider hover:gap-2 transition-all"
+                className="inline-flex items-center gap-1.5 text-[#2C6E9E] font-bold text-xs uppercase tracking-wider hover:gap-2 transition-all"
               >
                 Read Full Story <ArrowRight className="w-3.5 h-3.5" />
               </button>
@@ -797,7 +801,7 @@ function PrizeGivingBanner({
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#1F3A52]/90 via-transparent to-black/20" />
               
-              <div className="absolute top-4 left-4 bg-[#16324A] text-white text-[10px] font-extrabold uppercase tracking-widest px-3 py-1.5 rounded-full shadow-lg border border-white/20">
+              <div className="absolute top-4 left-4 bg-[#16324A] text-white text-xs font-extrabold uppercase tracking-widest px-3 py-1.5 rounded-full shadow-lg border border-white/20">
                 Annual Flagship Event
               </div>
 
@@ -835,7 +839,7 @@ function PrizeGivingBanner({
                     📅
                   </div>
                   <div>
-                    <span className="block text-[10px] font-bold text-[#C3CBD1] uppercase tracking-wider">
+                    <span className="block text-xs font-bold text-[#C3CBD1] uppercase tracking-wider">
                       Date & Time
                     </span>
                     <span className="text-xs font-semibold text-white">
@@ -849,7 +853,7 @@ function PrizeGivingBanner({
                     📍
                   </div>
                   <div>
-                    <span className="block text-[10px] font-bold text-[#C3CBD1] uppercase tracking-wider">
+                    <span className="block text-xs font-bold text-[#C3CBD1] uppercase tracking-wider">
                       Venue
                     </span>
                     <span className="text-xs font-semibold text-white line-clamp-1">
@@ -1166,6 +1170,8 @@ function AboutPage({ onNav }: { onNav: (p: Page) => void }) {
                 name: "Wilson Kiriungi",
                 role: "Chairperson",
                 photo: wilsonKiriungiPhoto,
+                zoomClass: "scale-[1.2] origin-[center_35%]",
+                zoomFromTop: false,
                 bio: [
                   "Wilson Kiriungi is the founder and Chairperson of the Wahome Foundation’s Board of Trustees. He has been dedicated to the Foundation since its inception 20 years ago. With his compassion for community wellness, strong networking skills, and ability to bring resources together, he has helped drive the Foundation’s growth and impact.",
                   "Wilson is also a member of the Worcester State University Foundation Board and serves on its Faculty and Staff Research Award Committee. He is the driving force behind brightTARS, an AI-powered practice management platform, and BCBAfinder, a national marketplace that connects families and professionals to ABA services with greater transparency and access.",
@@ -1175,6 +1181,7 @@ function AboutPage({ onNav }: { onNav: (p: Page) => void }) {
                 name: "James Wachira",
                 role: "Vice Chairperson",
                 photo: jamesWachiraPhoto,
+                zoomClass: "scale-100 origin-[center_35%]",
                 bio: [
                   "James Wachira is a seasoned finance professional with 26 years of experience in financial management, budgeting, reporting, cash-flow management, and financial controls. As Board Treasurer of Wahome Global Foundation, he provides financial oversight and supports sound governance, transparency, and responsible stewardship of the Foundation’s resources.",
                   "He is committed to ensuring the Foundation’s resources are effectively managed and aligned with its programmes and objectives, guided by integrity, accountability, transparency, teamwork, and financial discipline.",
@@ -1184,6 +1191,7 @@ function AboutPage({ onNav }: { onNav: (p: Page) => void }) {
                 name: "James Gachugi Ngatia",
                 role: "Education Representative",
                 photo: jamesGachugiPhoto,
+                zoomClass: "scale-[1.2] origin-top",
                 bio: [
                   "James Gachugi Ngatia is an experienced education professional with 35 years of service in the teaching profession and school leadership. He is the Principal of Ndemu Comprehensive School and serves as the Secretary to the School’s Board of Management. Throughout his career, he has demonstrated a strong commitment to quality education, effective school administration, learner development, and the promotion of a supportive learning environment.",
                   "He trained as a professional teacher at Kamwenja Teachers College, where he attained a P1 Certificate. He later advanced his professional qualifications at the Kenya Education Management Institute, obtaining a Diploma in School Management and Financial Management. He has also received training in Guidance and Counselling for Junior School, equipping him with skills to support learners’ academic, social, and personal development.",
@@ -1195,12 +1203,14 @@ function AboutPage({ onNav }: { onNav: (p: Page) => void }) {
                 key={member.name}
                 className="grid md:grid-cols-[280px_minmax(0,1fr)] lg:grid-cols-[360px_minmax(0,1fr)] gap-8 lg:gap-14 items-center text-left"
               >
-                <img
-                  src={member.photo}
-                  alt={member.name}
-                  className="w-full max-w-sm mx-auto md:max-w-none aspect-[3/4] object-cover rounded-2xl shadow-md"
-                  loading="lazy"
-                />
+                <div className="relative mx-auto aspect-[3/4] w-full max-w-sm overflow-hidden rounded-2xl shadow-md md:mx-0 md:max-w-none">
+                  <img
+                    src={member.photo}
+                    alt={member.name}
+                    className={`h-full w-full object-cover object-center ${member.zoomClass}`}
+                    loading="lazy"
+                  />
+                </div>
                 <div>
                   <p className="text-[#2C6E9E] font-semibold text-lg mb-2">
                     {member.role}
@@ -1332,9 +1342,9 @@ function ScholarshipPage({
   onOpenDonate: (amount?: number) => void;
 }) {
   return (
-    <div className="scholarship-page pt-28 md:pt-32 min-h-screen bg-white">
-      <section className="py-6 sm:py-8 px-6 bg-white">
-        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center text-left">
+    <div className="scholarship-page min-h-screen bg-white">
+      <section className="py-6 sm:py-8 px-6 bg-[#F1F4F7]">
+        <div className="max-w-7xl mx-auto grid lg:grid-cols-[1.05fr_0.95fr] gap-8 xl:gap-12 items-start text-left">
           <div>
             <SectionTag>About the Scholarship</SectionTag>
             <h2
@@ -1353,60 +1363,49 @@ function ScholarshipPage({
               ongoing pastoral support throughout their secondary education — giving them the freedom to
               focus entirely on learning.
             </p>
-            <div className="space-y-3">
-              {[
-                "Full secondary school tuition coverage",
-                "School uniforms and study materials",
-                "National examination fee sponsorship",
-                "Pastoral check-ins and mentorship pairing",
-                "University application guidance",
-              ].map((item) => (
-                <div key={item} className="flex items-center gap-3">
-                  <CheckCircle className="w-4 h-4 text-[#2C6E9E] shrink-0" />
-                  <span className="text-[#5B6670] text-xs sm:text-sm font-medium">{item}</span>
-                </div>
-              ))}
+            <div className="mt-8">
+              <p className="mb-3 text-xs font-bold uppercase tracking-[0.16em] text-[#2C6E9E]">
+                Scholarship support includes
+              </p>
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                {[
+                  { label: "Full secondary school tuition coverage", Icon: GraduationCap },
+                  { label: "School uniforms and study materials", Icon: Shirt },
+                  { label: "National examination fee sponsorship", Icon: FileCheck2 },
+                  { label: "Pastoral check-ins and mentorship pairing", Icon: HeartHandshake },
+                  { label: "University application guidance", Icon: School },
+                ].map(({ label, Icon }, index) => (
+                  <div
+                    key={label}
+                    className={`flex min-h-[80px] items-center gap-3 rounded-xl border border-[#DDE8F0] bg-[#F7FAFC] px-3 py-2.5 ${index === 4 ? "sm:col-span-2" : ""}`}
+                  >
+                    <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#DFEAF1] text-[#1F3A52]" aria-hidden="true">
+                      <Icon size={27} strokeWidth={1.7} />
+                    </span>
+                    <span className="text-xs font-medium leading-snug text-[#334155] sm:text-sm">
+                      {label}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 
           <div>
-            <div className="rounded-[28px] overflow-hidden shadow-sm border border-slate-200/80 bg-[#D7E0E8] aspect-[4/3]">
+            <div className="relative mx-auto aspect-[0.92/1] w-full max-h-[780px] overflow-hidden">
               <img
                 src={dkPhoto}
-                alt="Scholarship students studying"
-                className="w-full h-full object-cover object-center"
+                alt="Foundation representative speaking at a scholarship event"
+                className="absolute inset-0 h-full w-full object-cover object-bottom mix-blend-multiply"
               />
             </div>
 
-            {/* Dzianis-Style Floating Metric Cards Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
-              {[
-                { number: "500+", label: "Total Scholars", tag: "Education" },
-                { number: "94%", label: "Completion Rate", tag: "Success" },
-                { number: "68%", label: "University Entry", tag: "Impact" },
-              ].map((stat, idx) => (
-                <div
-                  key={idx}
-                  className="bg-[#F8FAFC] rounded-2xl p-4 border border-slate-200/80 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 text-left"
-                >
-                  <span className="text-[9px] font-extrabold tracking-[0.18em] uppercase text-[#2C6E9E] bg-[#F1F4F7] px-2 py-0.5 rounded-full border border-[#2C6E9E]/15 inline-block mb-1.5">
-                    {stat.tag}
-                  </span>
-                  <h3 className="text-xl font-bold text-[#1F3A52] tracking-tight mb-0.5">
-                    {stat.number}
-                  </h3>
-                  <p className="text-[11px] text-[#5B6670] font-medium leading-tight">
-                    {stat.label}
-                  </p>
-                </div>
-              ))}
-            </div>
           </div>
         </div>
       </section>
 
       {/* 2. Meet Our Scholars */}
-      <section id="meet-our-scholars" className="py-16 px-6 bg-[#F1F4F7]">
+      <section id="meet-our-scholars" className="py-16 px-6 bg-white">
         <div className="max-w-5xl mx-auto">
           <div className="text-center max-w-xl mx-auto mb-8">
             <SectionTag>Meet Our Scholars</SectionTag>
@@ -1464,16 +1463,16 @@ function ScholarshipPage({
             ].map((s) => (
               <div
                 key={s.name}
-                className="group relative flex min-w-0 flex-col text-left md:flex-row md:items-center"
+                className="relative flex min-w-0 flex-col text-left md:flex-row md:items-center"
               >
-                <div className="relative z-10 mx-auto -mb-8 h-56 w-[72%] max-w-[240px] shrink-0 overflow-hidden rounded-xl bg-[#0B0B0B] shadow-xl transition-transform duration-300 group-hover:-translate-y-1 md:mx-0 md:mb-0 md:h-[280px] md:w-[220px]">
+                <div className="relative z-10 mx-auto -mb-8 h-56 w-[72%] max-w-[240px] shrink-0 overflow-hidden rounded-xl bg-[#0B0B0B] md:mx-0 md:mb-0 md:h-[280px] md:w-[220px]">
                   <img
                     src={s.photo}
                     alt={s.name}
-                    className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${s.objectPosition}`}
+                    className={`w-full h-full object-cover ${s.objectPosition}`}
                   />
                 </div>
-                <div className="relative z-0 flex min-h-[230px] flex-col justify-center rounded-3xl border border-[#DDE3E8] bg-white px-6 pb-6 pt-12 shadow-sm transition-shadow duration-300 group-hover:shadow-lg md:-ml-12 md:flex-1 md:py-8 md:pl-20 md:pr-8">
+                <div className="relative z-0 flex min-h-[230px] flex-col justify-center rounded-3xl border border-[#DDE3E8] bg-white px-6 pb-6 pt-12 shadow-sm md:-ml-12 md:flex-1 md:py-8 md:pl-20 md:pr-8">
                   <div className="mb-2 flex items-start justify-between gap-4">
                     <h3
                       className="font-bold text-[#1F3A52] text-lg"
@@ -1481,15 +1480,14 @@ function ScholarshipPage({
                     >
                       {s.name}
                     </h3>
-                    <span className="shrink-0 rounded-full bg-[#F1F4F7] px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider text-[#2C6E9E]">
+                    <span className="shrink-0 rounded-full bg-[#F1F4F7] px-3 py-1 text-xs font-extrabold uppercase tracking-wider text-[#2C6E9E]">
                       Scholar
                     </span>
                   </div>
                   <p className="mb-4 inline-flex w-fit items-center gap-2 rounded-full bg-[#F1F4F7] px-3 py-1 text-xs font-semibold text-[#2C6E9E]">
-                    <span className="h-2 w-2 rounded-full bg-[#4CAB6D]" aria-hidden="true" />
                     {s.meta}
                   </p>
-                  <p className="rounded-l-lg border-l-4 border-[#4CAB6D] pl-4 text-sm leading-relaxed text-[#334155] md:text-base">
+                  <p className="text-sm leading-relaxed text-[#334155] md:text-base" style={{ border: "none", paddingLeft: 0 }}>
                     “{s.message}”
                   </p>
                 </div>
@@ -1939,7 +1937,7 @@ function MentorshipPage({
             </h2>
           </div>
 
-          <div className="space-y-16">
+          <div className="max-w-6xl mx-auto space-y-16">
             {[
               {
                 name: "Cynthia Wachira",
@@ -1956,28 +1954,32 @@ function MentorshipPage({
                 img: georgePhoto,
               },
             ].map((m) => (
-              <div
+              <article
                 key={m.name}
-                className="grid md:grid-cols-[280px_1fr] gap-8 items-start bg-white p-6 rounded-2xl border border-[#DDE3E8] shadow-sm text-left"
+                className="grid md:grid-cols-[280px_minmax(0,1fr)] lg:grid-cols-[360px_minmax(0,1fr)] gap-8 lg:gap-14 items-center text-left"
               >
-                <div className="w-full aspect-[3/4] rounded-xl overflow-hidden bg-[#D7E0E8]">
-                  <img
-                    src={m.img}
-                    alt={m.name}
-                    className="w-full h-full object-cover object-center"
-                  />
-                </div>
+                <img
+                  src={m.img}
+                  alt={m.name}
+                  className="w-full max-w-sm mx-auto md:max-w-none aspect-[3/4] object-cover rounded-2xl shadow-md"
+                  loading="lazy"
+                />
 
-                <div className="pt-2">
-                  <p className="text-xs uppercase tracking-wider font-semibold text-[#2C6E9E] mb-1">
+                <div>
+                  <p className="text-[#2C6E9E] font-semibold text-lg mb-2">
                     {m.role}
                   </p>
-                  <h3 className="text-2xl font-bold text-[#1F3A52] mb-4">{m.name}</h3>
-                  <p className="text-[#5B6670] leading-relaxed italic text-[20px]">
+                  <h3
+                    className="font-bold text-[#1F3A52] text-3xl sm:text-4xl mb-6"
+                    style={{ fontFamily: "'Montserrat', Arial, sans-serif" }}
+                  >
+                    {m.name}
+                  </h3>
+                  <blockquote className="text-[#30465A] leading-relaxed text-base">
                     “{m.quote}”
-                  </p>
+                  </blockquote>
                 </div>
-              </div>
+              </article>
             ))}
           </div>
         </div>

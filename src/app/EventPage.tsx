@@ -187,12 +187,12 @@ export function EventPage({
     <section className="run-info-band"><div className="layout run-info-grid"><div><span className="eyebrow">Event information</span><h2>Details to follow</h2><p>We’ll share more information when it is confirmed.</p></div><dl><div><dt>Route</dt><dd>To be announced</dd></div><div><dt>Registration deadline</dt><dd>To be announced</dd></div><div><dt>Participant capacity</dt><dd>To be announced</dd></div><div><dt>Event-day guidance</dt><dd>To be announced</dd></div></dl></div></section>
     <section className="run-poster-section"><div className="layout run-poster-grid"><div className="run-poster-info"><span className="eyebrow">Save the date</span><h2>Invite someone to run with you</h2><p>The event poster includes full details and a registration QR code.</p><dl className="run-poster-details"><div><dt>Date</dt><dd>Saturday, January 9, 2027</dd></div><div><dt>Time &amp; venue</dt><dd>7:00 AM · Mugumo Center</dd></div><div><dt>Distances</dt><dd>21K · 10K · Children’s 1K</dd></div><div><dt>Registration</dt><dd>KSh 1,000 per participant</dd></div></dl><p className="run-poster-cause">Every step supports children’s education through the Thomas D.K. Wahome Scholarship Program.</p></div><div className="run-poster-preview"><img src={posterImage} alt="Miles for Minds Run 2027 event poster with race distances, date, venue, and registration QR code." /></div></div></section>
     {activeDialog && <div className="run-dialog-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setActiveDialog(null); }}>
-      <section className="run-dialog" role="dialog" aria-modal="true" aria-labelledby="run-dialog-title">
-        <header className="run-dialog-header"><h2 id="run-dialog-title">{activeDialog === "registration" ? "Participant Registration" : "Become a Sponsor"}</h2><button type="button" className="run-dialog-close" onClick={() => setActiveDialog(null)} aria-label="Close dialog"><X size={20} /></button></header>
+      <div className="run-dialog" role="dialog" aria-modal="true" aria-labelledby="run-dialog-title">
+        <header className="run-dialog-header support-modal-header"><h2 id="run-dialog-title">{activeDialog === "registration" ? "Participant Registration" : "Become a Sponsor"}</h2><button type="button" className="run-dialog-close support-modal-close" onClick={() => setActiveDialog(null)} aria-label="Close dialog"><X size={20} /></button></header>
         <div className="run-dialog-content">
           {activeDialog === "registration" ? <><RegistrationForm /><aside className="run-payment-note"><span className="eyebrow">Payment confirmation</span><h2>Secure your race entry</h2><p>The registration fee is KSh 1,000. PayPal checkout charges US$8.00.</p><p>Your entry stays pending until PayPal confirms the payment.</p></aside></> : <SponsorForm />}
         </div>
-      </section>
+      </div>
     </div>}
   </div>;
 }
