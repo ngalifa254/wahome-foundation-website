@@ -12,16 +12,46 @@ export interface PayPalOrderResult {
   id: string;
   status?: string;
   purchase_units?: Array<{
+    reference_id?: string;
     custom_id?: string;
     amount?: {currency_code?: string; value?: string};
     payments?: {
       captures?: Array<{
         id?: string;
         status?: string;
+        custom_id?: string;
         amount?: {currency_code?: string; value?: string};
       }>;
     };
   }>;
+}
+
+export interface PayPalCaptureVerificationDiagnostics {
+  httpStatus: number;
+  paypalDebugId: string | null;
+  expected: {
+    orderStatus: "COMPLETED";
+    captureStatus: "COMPLETED";
+    reference: string;
+    amount: string;
+    currency: string;
+  };
+  received: {
+    orderStatus: string | null;
+    purchaseUnitReferenceId: string | null;
+    purchaseUnitCustomId: string | null;
+    captureCustomId: string | null;
+    captureStatus: string | null;
+    amount: string | null;
+    currency: string | null;
+  };
+  matches: {
+    orderStatus: boolean;
+    reference: boolean;
+    captureStatus: boolean;
+    amount: boolean;
+    currency: boolean;
+  };
 }
 
 const paypalBaseUrl = (mode: string | undefined) => mode === "live" ?
@@ -108,12 +138,17 @@ export async function createPayPalOrder(
  *   server credentials.
  * @param {string} orderId PayPal order ID returned to the browser.
  * @param {string | undefined} mode PayPal environment: sandbox or live.
+ * @param {Function} onVerificationMismatch Optional safe mismatch diagnostics
+ *   callback.
  * @return {Promise<PayPalOrderResult | null>} Valid completed payment or null.
  */
 export async function capturePayPalOrder(
   input: PayPalOrderInput,
   orderId: string,
   mode: string | undefined = "sandbox",
+  onVerificationMismatch?: (
+    diagnostics: PayPalCaptureVerificationDiagnostics,
+  ) => void,
 ): Promise<PayPalOrderResult | null> {
   const fetchImpl = input.fetchImpl ?? fetch;
   const baseUrl = paypalBaseUrl(mode);
@@ -141,11 +176,35 @@ export async function capturePayPalOrder(
   }
   const unit = result.purchase_units?.[0];
   const capture = unit?.payments?.captures?.[0];
-  if (result.status !== "COMPLETED" ||
-    unit?.custom_id !== input.reference ||
-    capture?.status !== "COMPLETED" ||
-    capture.amount?.currency_code !== input.currency ||
-    capture.amount.value !== input.amount) {
+  const matches = {
+    orderStatus: result.status === "COMPLETED",
+    reference: unit?.custom_id === input.reference,
+    captureStatus: capture?.status === "COMPLETED",
+    amount: capture?.amount?.value === input.amount,
+    currency: capture?.amount?.currency_code === input.currency,
+  };
+  if (Object.values(matches).some((matchesExpected) => !matchesExpected)) {
+    onVerificationMismatch?.({
+      httpStatus: response.status,
+      paypalDebugId: response.headers.get("paypal-debug-id"),
+      expected: {
+        orderStatus: "COMPLETED",
+        captureStatus: "COMPLETED",
+        reference: input.reference,
+        amount: input.amount,
+        currency: input.currency,
+      },
+      received: {
+        orderStatus: result.status ?? null,
+        purchaseUnitReferenceId: unit?.reference_id ?? null,
+        purchaseUnitCustomId: unit?.custom_id ?? null,
+        captureCustomId: capture?.custom_id ?? null,
+        captureStatus: capture?.status ?? null,
+        amount: capture?.amount?.value ?? null,
+        currency: capture?.amount?.currency_code ?? null,
+      },
+      matches,
+    });
     return null;
   }
   return result;

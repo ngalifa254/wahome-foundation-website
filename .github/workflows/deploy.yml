@@ -31,6 +31,14 @@ jobs:
           cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+      - name: Check PayPal client ID
+        run: |
+          if [ -z "$VITE_PAYPAL_CLIENT_ID" ]; then
+            echo "::error::Set VITE_PAYPAL_CLIENT_ID as an Actions repository variable or secret before deploying."
+            exit 1
+          fi
+        env:
+          VITE_PAYPAL_CLIENT_ID: ${{ vars.VITE_PAYPAL_CLIENT_ID || secrets.VITE_PAYPAL_CLIENT_ID }}
       - name: Build site
         run: pnpm build
         env:
@@ -43,7 +51,7 @@ jobs:
           VITE_FIREBASE_STORAGE_BUCKET: ${{ vars.VITE_FIREBASE_STORAGE_BUCKET }}
           VITE_FIREBASE_MEASUREMENT_ID: ${{ vars.VITE_FIREBASE_MEASUREMENT_ID }}
           VITE_TURNSTILE_SITE_KEY: ${{ vars.VITE_TURNSTILE_SITE_KEY }}
-          VITE_PAYPAL_CLIENT_ID: ${{ vars.VITE_PAYPAL_CLIENT_ID }}
+          VITE_PAYPAL_CLIENT_ID: ${{ vars.VITE_PAYPAL_CLIENT_ID || secrets.VITE_PAYPAL_CLIENT_ID }}
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload Pages artifact

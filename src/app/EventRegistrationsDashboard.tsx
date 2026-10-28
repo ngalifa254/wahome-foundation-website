@@ -11,9 +11,12 @@ import {
   ShieldCheck,
   ArrowLeft,
   Handshake,
+  Heart,
   Building,
   Target,
   Plus,
+  Pencil,
+  Trash2,
   Eye,
   X,
   PieChart,
@@ -39,59 +42,72 @@ interface ListRegistrationsResponse {
   registrations: Registration[];
 }
 
+export interface GeneralDonation {
+  id: string;
+  donorName: string;
+  donorEmail: string;
+  amount: number;
+  currency: string;
+  paymentStatus: "verified" | "pending" | "failed";
+  paymentProvider: string;
+  paymentReceipt: string;
+  paymentReference: string;
+  createdAt: string;
+}
+
+interface ListGeneralDonationsResponse {
+  donations: GeneralDonation[];
+}
+
+interface ListEventSponsorsResponse {
+  sponsors: Sponsor[];
+}
+
+function formatKshInput(value: string): string {
+  const digits = value.replace(/\D/g, "").replace(/^0+(?=\d)/, "");
+  return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
 export interface Sponsor {
   id: string;
   companyName: string;
   contactPerson: string;
   email: string;
-  tier: "Gold (KSh 100k)" | "Silver (KSh 50k)" | "Bronze (KSh 25k)";
   amount: number;
   status: "Confirmed" | "Pledged";
   logoSubmitted: boolean;
 }
 
 export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: () => Promise<void> }) {
-  const [activeView, setActiveView] = useState<"registrations" | "sponsors">("registrations");
+  const [activeView, setActiveView] = useState<"registrations" | "donations" | "sponsors">("registrations");
   const [signOutError, setSignOutError] = useState("");
   
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [isLoadingRegistrations, setIsLoadingRegistrations] = useState(true);
   const [registrationLoadError, setRegistrationLoadError] = useState("");
 
-  const [sponsors] = useState<Sponsor[]>([
-    {
-      id: "SP-01",
-      companyName: "Autism Allies Kenya",
-      contactPerson: "Dr. Sarah Kimani",
-      email: "sarah@autismallies.co.ke",
-      tier: "Gold (KSh 100k)",
-      amount: 100000,
-      status: "Confirmed",
-      logoSubmitted: true
-    },
-    {
-      id: "SP-02",
-      companyName: "Coffee Bench Nanyuki",
-      contactPerson: "Peter Njuguna",
-      email: "info@coffeebench.co.ke",
-      tier: "Silver (KSh 50k)",
-      amount: 50000,
-      status: "Confirmed",
-      logoSubmitted: true
-    },
-    {
-      id: "SP-03",
-      companyName: "Laikipia Heights Resort",
-      contactPerson: "Grace Wamae",
-      email: "management@laikipiaheights.com",
-      tier: "Bronze (KSh 25k)",
-      amount: 25000,
-      status: "Pledged",
-      logoSubmitted: false
-    }
-  ]);
+  const [donations, setDonations] = useState<GeneralDonation[]>([]);
+  const [isLoadingDonations, setIsLoadingDonations] = useState(false);
+  const [donationLoadError, setDonationLoadError] = useState("");
+
+  const [sponsors, setSponsors] = useState<Sponsor[]>([]);
+  const [isLoadingSponsors, setIsLoadingSponsors] = useState(true);
+  const [sponsorLoadError, setSponsorLoadError] = useState("");
+  const [sponsorSaveError, setSponsorSaveError] = useState("");
+  const [sponsorEditorOpen, setSponsorEditorOpen] = useState(false);
+  const [isSavingSponsor, setIsSavingSponsor] = useState(false);
+  const [editingSponsor, setEditingSponsor] = useState<Sponsor | null>(null);
+  const [sponsorForm, setSponsorForm] = useState({
+    companyName: "",
+    contactPerson: "",
+    email: "",
+    amount: "",
+    status: "Pledged" as Sponsor["status"],
+    logoSubmitted: false,
+  });
 
   const [activeTab, setActiveTab] = useState<"all" | "verified" | "pending">("all");
+  const [activeDonationTab, setActiveDonationTab] = useState<"all" | "verified" | "pending" | "failed">("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedParticipant, setSelectedParticipant] = useState<Registration | null>(null);
@@ -116,9 +132,50 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
     }
   }, []);
 
+  const loadSponsors = useCallback(async () => {
+    if (!functions) {
+      setSponsorLoadError("Sponsor service is not configured.");
+      setIsLoadingSponsors(false);
+      return;
+    }
+
+    setIsLoadingSponsors(true);
+    setSponsorLoadError("");
+    try {
+      const listSponsors = httpsCallable<unknown, ListEventSponsorsResponse>(functions, "listEventSponsors");
+      const response = await listSponsors();
+      setSponsors(response.data.sponsors);
+    } catch (cause) {
+      setSponsorLoadError(cause instanceof Error ? cause.message : "Could not load event sponsors.");
+    } finally {
+      setIsLoadingSponsors(false);
+    }
+  }, []);
+
+  const loadDonations = useCallback(async () => {
+    if (!functions) {
+      setDonationLoadError("Donation service is not configured.");
+      setIsLoadingDonations(false);
+      return;
+    }
+
+    setIsLoadingDonations(true);
+    setDonationLoadError("");
+    try {
+      const listDonations = httpsCallable<unknown, ListGeneralDonationsResponse>(functions, "listGeneralDonations");
+      const response = await listDonations();
+      setDonations(response.data.donations);
+    } catch (cause) {
+      setDonationLoadError(cause instanceof Error ? cause.message : "Could not load general donations.");
+    } finally {
+      setIsLoadingDonations(false);
+    }
+  }, []);
+
   useEffect(() => {
     void loadRegistrations();
-  }, [loadRegistrations]);
+    void loadSponsors();
+  }, [loadRegistrations, loadSponsors]);
 
   const EVENT_CAPACITY = 500;
   const verifiedCount = registrations.filter(r => r.paymentStatus === 'verified').length;
@@ -133,6 +190,71 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
       await onSignOut();
     } catch {
       setSignOutError("Could not sign out. Please try again.");
+    }
+  };
+
+  const openSponsorEditor = (sponsor?: Sponsor) => {
+    setSponsorSaveError("");
+    setEditingSponsor(sponsor ?? null);
+    setSponsorForm(sponsor ? {
+      companyName: sponsor.companyName,
+      contactPerson: sponsor.contactPerson,
+      email: sponsor.email,
+      amount: sponsor.amount.toLocaleString("en-US"),
+      status: sponsor.status,
+      logoSubmitted: sponsor.logoSubmitted,
+    } : {
+      companyName: "",
+      contactPerson: "",
+      email: "",
+      amount: "",
+      status: "Pledged",
+      logoSubmitted: false,
+    });
+    setSponsorEditorOpen(true);
+  };
+
+  const saveSponsor = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!functions) {
+      setSponsorSaveError("Sponsor service is not configured.");
+      return;
+    }
+    setIsSavingSponsor(true);
+    setSponsorSaveError("");
+    try {
+      const save = httpsCallable<{
+        id?: string;
+        companyName: string;
+        contactPerson: string;
+        email: string;
+        amount: number;
+        status: Sponsor["status"];
+        logoSubmitted: boolean;
+      }, {id: string}>(functions, "saveEventSponsor");
+      await save({
+        ...(editingSponsor ? {id: editingSponsor.id} : {}),
+        ...sponsorForm,
+        amount: Number(sponsorForm.amount.replace(/,/g, "")),
+      });
+      setSponsorEditorOpen(false);
+      await loadSponsors();
+    } catch (cause) {
+      setSponsorSaveError(cause instanceof Error ? cause.message : "Could not save this sponsor.");
+    } finally {
+      setIsSavingSponsor(false);
+    }
+  };
+
+  const deleteSponsor = async (sponsor: Sponsor) => {
+    if (!functions || !window.confirm(`Delete ${sponsor.companyName} from the sponsor list?`)) return;
+    setSponsorSaveError("");
+    try {
+      const remove = httpsCallable<{id: string}, {deleted: true}>(functions, "deleteEventSponsor");
+      await remove({id: sponsor.id});
+      await loadSponsors();
+    } catch (cause) {
+      setSponsorSaveError(cause instanceof Error ? cause.message : "Could not delete this sponsor.");
     }
   };
 
@@ -151,6 +273,18 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
 
     return matchesSearch && matchesTab && matchesCategory;
   });
+
+  const filteredDonations = donations.filter((item) => {
+    const matchesSearch =
+      item.donorName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.donorEmail.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.paymentReceipt.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.paymentReference.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesTab = activeDonationTab === "all" || item.paymentStatus === activeDonationTab;
+    return matchesSearch && matchesTab;
+  });
+  const verifiedDonationCount = donations.filter((donation) => donation.paymentStatus === "verified").length;
+  const pendingDonationCount = donations.filter((donation) => donation.paymentStatus === "pending").length;
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 p-4 md:p-8 font-sans antialiased">
@@ -171,11 +305,11 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
                 Wahome Foundation Admin
               </h1>
               <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold px-3 py-1 rounded-full">
-                Miles for Minds 2027
+                {activeView === "donations" ? "General Donations" : "Miles for Minds 2027"}
               </span>
             </div>
             <p className="text-sm text-slate-500 mt-1 pl-11">
-              Event registration portal and PayPal payment ledger.
+              {activeView === "donations" ? "General donor contributions and PayPal payment ledger." : "Event registration portal and PayPal payment ledger."}
             </p>
             <div className="flex flex-wrap items-center gap-3">
               <div className="bg-white p-1 rounded-xl border border-slate-200 shadow-xs flex items-center gap-1">
@@ -201,20 +335,40 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
                   <Handshake className="w-3.5 h-3.5" />
                   Sponsors ({sponsors.length})
                 </button>
+                <button
+                  onClick={() => {
+                    setActiveView("donations");
+                    void loadDonations();
+                  }}
+                  className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition ${
+                    activeView === "donations"
+                      ? "bg-slate-900 text-white font-semibold"
+                      : "text-slate-600 hover:bg-slate-50"
+                  }`}
+                >
+                  <Heart className="w-3.5 h-3.5" />
+                  General Donations ({donations.length})
+                </button>
               </div>
 
               <button
                 onClick={() => {
-                  const csvContent = "data:text/csv;charset=utf-8,"
-                    + ["Name,Age,Gender,Email,Phone,Category,Payment Method,Receipt,Status"]
-                    .concat(registrations.map(r => `"${r.fullName}","${r.age}","${r.gender || ''}","${r.email}","${r.phone}","${r.category}","${r.paymentMethod || ''}","${r.paymentReceipt}","${r.paymentStatus}"`))
-                    .join("\n");
+                  const donationExport = activeView === "donations";
+                  const headers = donationExport
+                    ? ["Donor Name", "Email", "Amount", "Currency", "Payment Provider", "Receipt", "Reference", "Status", "Created At"]
+                    : ["Name", "Age", "Gender", "Email", "Phone", "Category", "Payment Method", "Receipt", "Status"];
+                  const rows = donationExport
+                    ? donations.map((donation) => [donation.donorName, donation.donorEmail, donation.amount.toFixed(2), donation.currency, donation.paymentProvider, donation.paymentReceipt, donation.paymentReference, donation.paymentStatus, donation.createdAt])
+                    : registrations.map((registration) => [registration.fullName, registration.age, registration.gender || "", registration.email, registration.phone, registration.category, registration.paymentMethod || "", registration.paymentReceipt || "", registration.paymentStatus]);
+                  const escapeCsv = (value: string | number) => `"${String(value).replace(/"/g, '""')}"`;
+                  const csvContent = "data:text/csv;charset=utf-8," + [headers, ...rows].map((row) => row.map(escapeCsv).join(",")).join("\r\n");
                   const encodedUri = encodeURI(csvContent);
                   const link = document.createElement("a");
                   link.setAttribute("href", encodedUri);
-                  link.setAttribute("download", "miles_for_minds_ledger.csv");
+                  link.setAttribute("download", donationExport ? "general_donations.csv" : "miles_for_minds_ledger.csv");
                   document.body.appendChild(link);
                   link.click();
+                  link.remove();
                 }}
                 className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-4 py-2 rounded-xl text-xs transition shadow-xs"
               >
@@ -223,12 +377,16 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
               </button>
               <button
                 type="button"
-                onClick={() => void loadRegistrations()}
-                disabled={isLoadingRegistrations}
+                onClick={() => {
+                  if (activeView === "donations") void loadDonations();
+                  else if (activeView === "registrations") void loadRegistrations();
+                  else void loadSponsors();
+                }}
+                disabled={activeView === "donations" ? isLoadingDonations : activeView === "registrations" ? isLoadingRegistrations : isLoadingSponsors}
                 className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 shadow-xs transition hover:bg-slate-50 disabled:opacity-50"
-                title="Refresh participant registrations"
+                title={activeView === "donations" ? "Refresh general donations" : activeView === "registrations" ? "Refresh participant registrations" : "Refresh event sponsors"}
               >
-                <RefreshCw className={`h-3.5 w-3.5 ${isLoadingRegistrations ? "animate-spin" : ""}`} />
+                <RefreshCw className={`h-3.5 w-3.5 ${(activeView === "donations" ? isLoadingDonations : activeView === "registrations" ? isLoadingRegistrations : isLoadingSponsors) ? "animate-spin" : ""}`} />
                 Refresh
               </button>
             </div>
@@ -445,6 +603,96 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
               )}
             </div>
           </div>
+        ) : activeView === "donations" ? (
+          <div className="bg-white border border-slate-200 rounded-2xl p-6 mt-6 shadow-xs">
+            <div className="flex flex-col gap-4 pb-6 border-b border-slate-100">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                <div>
+                  <h2 className="text-base font-bold text-slate-900">General Donations</h2>
+                  <p className="text-xs text-slate-500 mt-0.5">Recent one-time contributions, separate from race tickets and sponsorships. Showing up to 500 records.</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-slate-500">Verified donations</p>
+                  <p className="text-lg font-bold text-slate-900">{verifiedDonationCount} of {donations.length}</p>
+                  <p className="text-[11px] text-slate-400">Pending: {pendingDonationCount}</p>
+                </div>
+              </div>
+
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                <div className="flex flex-wrap items-center gap-1 bg-slate-100 p-1 rounded-xl w-fit">
+                  {(["all", "verified", "pending", "failed"] as const).map((status) => (
+                    <button
+                      key={status}
+                      onClick={() => setActiveDonationTab(status)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold capitalize transition ${
+                        activeDonationTab === status ? "bg-white text-slate-900 shadow-xs" : "text-slate-600 hover:text-slate-900"
+                      }`}
+                    >
+                      {status === "all" ? `All (${donations.length})` : `${status} (${donations.filter((donation) => donation.paymentStatus === status).length})`}
+                    </button>
+                  ))}
+                </div>
+                <div className="relative w-full md:w-72">
+                  <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="text"
+                    placeholder="Search donor, email, or receipt..."
+                    value={searchTerm}
+                    onChange={(event) => setSearchTerm(event.target.value)}
+                    className="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:border-emerald-600 focus:bg-white transition"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 flex flex-col gap-3">
+              {isLoadingDonations ? (
+                <div className="py-16 text-center text-slate-500">Loading general donations…</div>
+              ) : donationLoadError ? (
+                <div role="alert" className="py-10 text-center text-red-700 bg-red-50 rounded-xl border border-red-100">
+                  <p>{donationLoadError}</p>
+                  <p className="mt-1 text-xs text-red-600">Check that this signed-in account has a staff or superadmin record.</p>
+                </div>
+              ) : filteredDonations.length === 0 ? (
+                <div className="py-16 text-center text-slate-400 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                  No general donations found for this filter.
+                </div>
+              ) : (
+                filteredDonations.map((donation) => (
+                  <div key={donation.id} className="bg-slate-50 hover:bg-white border border-slate-200 hover:border-slate-300 rounded-xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 transition shadow-xs">
+                    <div className="flex items-start gap-3.5">
+                      <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-700 border border-rose-100 flex items-center justify-center shrink-0">
+                        <Heart className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="text-sm font-semibold text-slate-900">{donation.donorName}</h3>
+                          <span className="bg-slate-200 text-slate-700 text-[10px] font-medium px-2 py-0.5 rounded">General</span>
+                        </div>
+                        <p className="text-xs text-slate-500 mt-1">{donation.donorEmail || "Email not provided"}</p>
+                        <p className="text-[11px] text-slate-400 mt-1">{donation.createdAt ? new Date(donation.createdAt).toLocaleString() : "Date unavailable"}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3 sm:gap-6 pt-3 md:pt-0 border-t md:border-t-0 border-slate-200">
+                      <div className="sm:text-right">
+                        <p className="text-base font-bold text-slate-900">{donation.currency} {donation.amount.toFixed(2)}</p>
+                        <p className="text-[11px] text-slate-500">{donation.paymentProvider ? `${donation.paymentProvider === "paypal" ? "PayPal" : donation.paymentProvider} · ` : ""}{donation.paymentReceipt || donation.paymentReference}</p>
+                      </div>
+                      <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full w-fit ${
+                        donation.paymentStatus === "verified" ? "text-emerald-700 bg-emerald-50 border border-emerald-200" :
+                          donation.paymentStatus === "failed" ? "text-red-700 bg-red-50 border border-red-200" :
+                            "text-amber-700 bg-amber-50 border border-amber-200"
+                      }`}>
+                        {donation.paymentStatus === "verified" ? <CheckCircle2 className="w-3 h-3" /> : donation.paymentStatus === "pending" ? <Clock className="w-3 h-3" /> : null}
+                        {donation.paymentStatus === "verified" ? "Verified" : donation.paymentStatus === "failed" ? "Failed" : "Pending"}
+                      </span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
         ) : (
           <div className="bg-white border border-slate-200 rounded-2xl p-6 mt-6 shadow-xs">
             <div className="flex items-center justify-between pb-6 border-b border-slate-100">
@@ -452,17 +700,31 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
                 <h2 className="text-base font-bold text-slate-900">Event Partners & Corporate Sponsors</h2>
                 <p className="text-xs text-slate-500 mt-0.5">Track pledged funds and partner logo uploads.</p>
               </div>
-              <button 
-                onClick={() => alert("Add Sponsor form opened")}
+              <button
+                type="button"
+                onClick={() => openSponsorEditor()}
                 className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-3 py-1.5 rounded-xl text-xs font-semibold transition"
               >
                 <Plus className="w-4 h-4" />
-                Add Partner
+                Add Sponsor
               </button>
             </div>
 
+            {sponsorSaveError && <p role="alert" className="mt-4 rounded-xl border border-red-100 bg-red-50 p-3 text-sm text-red-700">{sponsorSaveError}</p>}
+
             <div className="mt-6 flex flex-col gap-3">
-              {sponsors.map((sponsor) => (
+              {isLoadingSponsors ? (
+                <div className="py-16 text-center text-slate-500">Loading sponsors…</div>
+              ) : sponsorLoadError ? (
+                <div role="alert" className="py-10 text-center text-red-700 bg-red-50 rounded-xl border border-red-100">
+                  <p>{sponsorLoadError}</p>
+                  <p className="mt-1 text-xs text-red-600">Check that this signed-in account has a staff or superadmin record.</p>
+                </div>
+              ) : sponsors.length === 0 ? (
+                <div className="py-16 text-center text-slate-400 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                  No event sponsors yet. Add a sponsor to start the list.
+                </div>
+              ) : sponsors.map((sponsor) => (
                 <div
                   key={sponsor.id}
                   className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 transition"
@@ -476,9 +738,6 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
                         <h3 className="text-sm font-semibold text-slate-900">
                           {sponsor.companyName}
                         </h3>
-                        <span className="bg-slate-200 text-slate-700 text-[10px] font-medium px-2 py-0.5 rounded-full">
-                          {sponsor.tier}
-                        </span>
                       </div>
                       <div className="flex items-center gap-3 text-xs text-slate-500 mt-1 flex-wrap">
                         <span>Contact: {sponsor.contactPerson}</span>
@@ -488,10 +747,10 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-6 pt-3 md:pt-0 border-t md:border-t-0 border-slate-200">
+                  <div className="flex items-center justify-between md:justify-end gap-4 pt-3 md:pt-0 border-t md:border-t-0 border-slate-200">
                     <div className="text-right">
                       <div className="text-sm font-bold text-slate-900 mb-0.5">
-                        KSh {sponsor.amount.toLocaleString()}
+                        KSh {sponsor.amount.toLocaleString("en-US")}
                       </div>
                       <div className="flex items-center justify-end gap-2 text-xs">
                         {sponsor.logoSubmitted ? (
@@ -506,10 +765,82 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
                         </span>
                       </div>
                     </div>
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => openSponsorEditor(sponsor)}
+                        className="p-2 text-slate-500 hover:text-slate-900 hover:bg-white rounded-lg border border-transparent hover:border-slate-200"
+                        title={`Edit ${sponsor.companyName}`}
+                        aria-label={`Edit ${sponsor.companyName}`}
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void deleteSponsor(sponsor)}
+                        className="p-2 text-slate-500 hover:text-red-700 hover:bg-white rounded-lg border border-transparent hover:border-red-200"
+                        title={`Delete ${sponsor.companyName}`}
+                        aria-label={`Delete ${sponsor.companyName}`}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {sponsorEditorOpen && (
+          <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+            <form onSubmit={(event) => void saveSponsor(event)} className="bg-white border border-slate-200 rounded-2xl w-full max-w-xl p-6 shadow-xl max-h-[90vh] overflow-y-auto">
+              <div className="flex items-start justify-between gap-4 pb-4 border-b border-slate-100">
+                <div>
+                  <h2 className="text-lg font-bold text-slate-900">{editingSponsor ? "Edit sponsor" : "Add sponsor"}</h2>
+                  <p className="text-xs text-slate-500 mt-1">Changes are saved to the event sponsor list.</p>
+                </div>
+                <button type="button" onClick={() => setSponsorEditorOpen(false)} className="p-2 text-slate-400 hover:text-slate-800 hover:bg-slate-100 rounded-lg" aria-label="Close sponsor editor">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 py-5">
+                <label className="text-xs font-semibold text-slate-700 sm:col-span-2">
+                  Company or organization
+                  <input required maxLength={150} value={sponsorForm.companyName} onChange={(event) => setSponsorForm({...sponsorForm, companyName: event.target.value})} className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-normal text-slate-900 focus:outline-none focus:border-emerald-600" />
+                </label>
+                <label className="text-xs font-semibold text-slate-700">
+                  Contact person
+                  <input required maxLength={150} value={sponsorForm.contactPerson} onChange={(event) => setSponsorForm({...sponsorForm, contactPerson: event.target.value})} className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-normal text-slate-900 focus:outline-none focus:border-emerald-600" />
+                </label>
+                <label className="text-xs font-semibold text-slate-700">
+                  Contact email
+                  <input required type="email" maxLength={254} value={sponsorForm.email} onChange={(event) => setSponsorForm({...sponsorForm, email: event.target.value})} className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-normal text-slate-900 focus:outline-none focus:border-emerald-600" />
+                </label>
+                <label className="text-xs font-semibold text-slate-700">
+                  Amount (KSh)
+                  <input required type="text" inputMode="numeric" placeholder="Enter any amount" value={sponsorForm.amount} onChange={(event) => setSponsorForm({...sponsorForm, amount: formatKshInput(event.target.value)})} className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-normal text-slate-900 focus:outline-none focus:border-emerald-600" />
+                </label>
+                <label className="text-xs font-semibold text-slate-700">
+                  Status
+                  <select value={sponsorForm.status} onChange={(event) => setSponsorForm({...sponsorForm, status: event.target.value as Sponsor["status"]})} className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-normal text-slate-900 focus:outline-none focus:border-emerald-600">
+                    <option value="Pledged">Pledged</option>
+                    <option value="Confirmed">Confirmed</option>
+                  </select>
+                </label>
+                <label className="flex items-center gap-2 self-end pb-2 text-xs font-medium text-slate-700">
+                  <input type="checkbox" checked={sponsorForm.logoSubmitted} onChange={(event) => setSponsorForm({...sponsorForm, logoSubmitted: event.target.checked})} className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-600" />
+                  Sponsor logo received
+                </label>
+              </div>
+
+              {sponsorSaveError && <p role="alert" className="mb-4 rounded-xl border border-red-100 bg-red-50 p-3 text-sm text-red-700">{sponsorSaveError}</p>}
+              <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+                <button type="button" onClick={() => setSponsorEditorOpen(false)} className="px-4 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50">Cancel</button>
+                <button type="submit" disabled={isSavingSponsor} className="px-4 py-2 rounded-xl bg-slate-900 text-xs font-semibold text-white hover:bg-slate-800 disabled:opacity-50">{isSavingSponsor ? "Saving…" : editingSponsor ? "Save changes" : "Add sponsor"}</button>
+              </div>
+            </form>
           </div>
         )}
 

@@ -410,7 +410,12 @@ export const captureRacePayPalOrder = onCall({
       currency: "USD",
       reference: registrationId,
       description: "Miles for Minds Run 2027 registration",
-    }, orderId, paypalMode.value());
+    }, orderId, paypalMode.value(), (diagnostics) => {
+      console.error("PayPal race capture verification mismatch", {
+        environment: paypalMode.value() === "live" ? "live" : "sandbox",
+        ...diagnostics,
+      });
+    });
   } catch (error) {
     console.error("PayPal race capture failed", error instanceof Error ? error.message : "unknown error");
     throw new HttpsError("unavailable", "PayPal could not confirm this registration payment right now. Please try again.");
@@ -485,6 +490,194 @@ export const listEventRegistrations = onCall(async (request) => {
   });
 
   return {registrations};
+});
+
+export const listGeneralDonations = onCall(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Sign in with an administrator account to view donations.");
+  }
+
+  const adminDoc = await db.doc(`admins/${request.auth.uid}`).get();
+  const role = adminDoc.data()?.role;
+  if (!adminDoc.exists || (role !== "superadmin" && role !== "staff")) {
+    throw new HttpsError("permission-denied", "Check that this signed-in account has a staff or superadmin record.");
+  }
+
+  const snapshot = await db.collection("donations")
+    .orderBy("createdAt", "desc")
+    .limit(500)
+    .get();
+
+  const donations = snapshot.docs.map((document) => {
+    const data = document.data();
+    const createdAt = data.createdAt && typeof data.createdAt.toDate === "function" ?
+      data.createdAt.toDate().toISOString() : "";
+    const paymentStatus = data.paymentStatus === "verified" || data.paymentStatus === "failed" ?
+      data.paymentStatus : "pending";
+
+    return {
+      id: document.id,
+      donorName: typeof data.donorName === "string" && data.donorName.trim() ? data.donorName : "Anonymous donor",
+      donorEmail: typeof data.donorEmail === "string" ? data.donorEmail : "",
+      amount: typeof data.amount === "number" ? data.amount : 0,
+      currency: typeof data.currency === "string" ? data.currency : donationCurrency,
+      paymentStatus,
+      paymentProvider: typeof data.provider === "string" ? data.provider : "",
+      paymentReceipt: typeof data.paymentReceipt === "string" ? data.paymentReceipt : "",
+      paymentReference: typeof data.paymentReference === "string" ? data.paymentReference : document.id,
+      createdAt,
+    };
+  });
+
+  return {donations};
+});
+
+const defaultEventSponsors = [
+  {
+    id: "SP-01",
+    companyName: "Autism Allies Kenya",
+    contactPerson: "Dr. Sarah Kimani",
+    email: "sarah@autismallies.co.ke",
+    amount: 100000,
+    status: "Confirmed",
+    logoSubmitted: true,
+  },
+  {
+    id: "SP-02",
+    companyName: "Coffee Bench Nanyuki",
+    contactPerson: "Peter Njuguna",
+    email: "info@coffeebench.co.ke",
+    amount: 50000,
+    status: "Confirmed",
+    logoSubmitted: true,
+  },
+  {
+    id: "SP-03",
+    companyName: "Laikipia Heights Resort",
+    contactPerson: "Grace Wamae",
+    email: "management@laikipiaheights.com",
+    amount: 25000,
+    status: "Pledged",
+    logoSubmitted: false,
+  },
+];
+
+/** Checks whether the caller may manage event sponsor records.
+ * @param {string | undefined} uid Firebase Auth UID for the caller.
+ * @return {Promise<void>} Resolves only for an authorized staff member.
+ */
+async function requireEventSponsorAdmin(uid: string | undefined) {
+  if (!uid) {
+    throw new HttpsError("unauthenticated", "Sign in with an administrator account to manage sponsors.");
+  }
+  const adminDoc = await db.doc(`admins/${uid}`).get();
+  const role = adminDoc.data()?.role;
+  if (!adminDoc.exists || (role !== "superadmin" && role !== "staff")) {
+    throw new HttpsError("permission-denied", "Check that this signed-in account has a staff or superadmin record.");
+  }
+}
+
+export const listEventSponsors = onCall(async (request) => {
+  await requireEventSponsorAdmin(request.auth?.uid);
+  const sponsorsRef = db.collection("eventSponsors");
+  const sponsorSetupRef = db.doc("dashboardSettings/eventSponsors");
+  await db.runTransaction(async (transaction) => {
+    const setup = await transaction.get(sponsorSetupRef);
+    if (setup.exists) return;
+    const currentSponsors = await transaction.get(sponsorsRef.limit(1));
+    transaction.set(sponsorSetupRef, {initializedAt: FieldValue.serverTimestamp()});
+    // Migrate the dashboard's existing starter entries only once.
+    if (currentSponsors.empty) {
+      for (const sponsor of defaultEventSponsors) {
+        transaction.set(sponsorsRef.doc(sponsor.id), {
+          ...sponsor,
+          eventSlug,
+          createdAt: FieldValue.serverTimestamp(),
+          updatedAt: FieldValue.serverTimestamp(),
+        });
+      }
+    }
+  });
+  const snapshot = await sponsorsRef.orderBy("createdAt", "asc").get();
+
+  return {
+    sponsors: snapshot.docs.map((document) => {
+      const data = document.data();
+      return {
+        id: document.id,
+        companyName: data.companyName,
+        contactPerson: data.contactPerson,
+        email: data.email,
+        amount: data.amount,
+        status: data.status,
+        logoSubmitted: data.logoSubmitted === true,
+      };
+    }),
+  };
+});
+
+export const saveEventSponsor = onCall(async (request) => {
+  await requireEventSponsorAdmin(request.auth?.uid);
+  if (typeof request.data !== "object" || request.data === null || Array.isArray(request.data)) {
+    throw new HttpsError("invalid-argument", "Enter valid sponsor details.");
+  }
+  const data = request.data as Record<string, unknown>;
+  const text = (key: string, maxLength: number) => {
+    const value = data[key];
+    if (typeof value !== "string" || !value.trim() || value.trim().length > maxLength) {
+      throw new HttpsError("invalid-argument", `Enter a valid ${key} (up to ${maxLength} characters).`);
+    }
+    return value.trim().replace(/\s+/g, " ");
+  };
+  const companyName = text("companyName", 150);
+  const contactPerson = text("contactPerson", 150);
+  const email = text("email", 254).toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    throw new HttpsError("invalid-argument", "Enter a valid sponsor email address.");
+  }
+  const amount = data.amount;
+  if (typeof amount !== "number" || !Number.isSafeInteger(amount) || amount < 0) {
+    throw new HttpsError("invalid-argument", "Enter a valid sponsor amount in KSh.");
+  }
+  const status = data.status;
+  if (status !== "Confirmed" && status !== "Pledged") {
+    throw new HttpsError("invalid-argument", "Choose Confirmed or Pledged status.");
+  }
+  if (typeof data.logoSubmitted !== "boolean") {
+    throw new HttpsError("invalid-argument", "Choose whether the sponsor logo was submitted.");
+  }
+  const sponsorId = typeof data.id === "string" ? data.id.trim() : "";
+  const sponsorRef = sponsorId ? db.collection("eventSponsors").doc(sponsorId) : db.collection("eventSponsors").doc();
+  const existing = sponsorId ? await sponsorRef.get() : null;
+  if (sponsorId && (!existing?.exists || existing.data()?.eventSlug !== eventSlug)) {
+    throw new HttpsError("not-found", "We could not find this event sponsor.");
+  }
+  await sponsorRef.set({
+    eventSlug,
+    companyName,
+    contactPerson,
+    email,
+    tier: FieldValue.delete(),
+    amount,
+    status,
+    logoSubmitted: data.logoSubmitted,
+    ...(existing?.exists ? {} : {createdAt: FieldValue.serverTimestamp()}),
+    updatedAt: FieldValue.serverTimestamp(),
+  }, {merge: true});
+  return {id: sponsorRef.id};
+});
+
+export const deleteEventSponsor = onCall(async (request) => {
+  await requireEventSponsorAdmin(request.auth?.uid);
+  const sponsorId = typeof request.data?.id === "string" ? request.data.id.trim() : "";
+  if (!sponsorId) throw new HttpsError("invalid-argument", "Choose a valid event sponsor.");
+  const sponsorRef = db.collection("eventSponsors").doc(sponsorId);
+  const sponsor = await sponsorRef.get();
+  if (!sponsor.exists || sponsor.data()?.eventSlug !== eventSlug) {
+    throw new HttpsError("not-found", "We could not find this event sponsor.");
+  }
+  await sponsorRef.delete();
+  return {deleted: true as const};
 });
 
 export const submitSponsorInquiry = onCall({
