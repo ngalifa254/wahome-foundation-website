@@ -178,7 +178,11 @@ export async function capturePayPalOrder(
   const capture = unit?.payments?.captures?.[0];
   const matches = {
     orderStatus: result.status === "COMPLETED",
-    reference: unit?.custom_id === input.reference,
+    // The capture response returns the purchase unit's reference_id. PayPal
+    // does not consistently include custom_id in this response.
+    reference: unit?.reference_id === input.reference ||
+      unit?.custom_id === input.reference ||
+      capture?.custom_id === input.reference,
     captureStatus: capture?.status === "COMPLETED",
     amount: capture?.amount?.value === input.amount,
     currency: capture?.amount?.currency_code === input.currency,
