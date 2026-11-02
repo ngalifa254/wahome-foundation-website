@@ -36,6 +36,18 @@ export interface PayPalCaptureDetails {
   };
 }
 
+export interface PayPalWebhookEvent {
+  id?: string;
+  event_type?: string;
+  resource?: {
+    id?: string;
+    status?: string;
+    custom_id?: string;
+    amount?: {currency_code?: string; value?: string};
+    supplementary_data?: {related_ids?: {order_id?: string}};
+  };
+}
+
 export interface PayPalCaptureVerificationDiagnostics {
   httpStatus: number;
   paypalDebugId: string | null;
@@ -273,4 +285,111 @@ export async function getPayPalCapture(
     );
   }
   return result;
+}
+
+/** Ensures this PayPal app is subscribed to completed payment captures.
+ * @param {PayPalOrderInput} input Server credentials.
+ * @param {string} webhookUrl Public Cloud Function webhook URL.
+ * @param {string | undefined} mode PayPal environment.
+ * @return {Promise<string>} The registered webhook ID.
+ */
+export async function ensurePayPalCaptureWebhook(
+  input: PayPalOrderInput,
+  webhookUrl: string,
+  mode: string | undefined = "sandbox",
+): Promise<string> {
+  const fetchImpl = input.fetchImpl ?? fetch;
+  const baseUrl = paypalBaseUrl(mode);
+  const accessToken = await getAccessToken(input, baseUrl, fetchImpl);
+  const listResponse = await fetchImpl(`${baseUrl}/v1/notifications/webhooks`, {
+    headers: {"Authorization": `Bearer ${accessToken}`},
+    signal: AbortSignal.timeout(15000),
+  });
+  const listResult = await listResponse.json() as {
+    webhooks?: Array<{id?: string; url?: string}>;
+    message?: string;
+  };
+  if (!listResponse.ok) {
+    throw new Error(
+      listResult.message ||
+        "PayPal webhook subscriptions could not be checked.",
+    );
+  }
+  const existing = listResult.webhooks?.find((webhook) =>
+    webhook.url === webhookUrl && webhook.id,
+  );
+  if (existing?.id) return existing.id;
+
+  const createResponse = await fetchImpl(
+    `${baseUrl}/v1/notifications/webhooks`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${accessToken}`,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        url: webhookUrl,
+        event_types: [{name: "PAYMENT.CAPTURE.COMPLETED"}],
+      }),
+      signal: AbortSignal.timeout(15000),
+    });
+  const createResult = await createResponse.json() as {
+    id?: string;
+    message?: string;
+  };
+  if (!createResponse.ok || !createResult.id) {
+    throw new Error(
+      createResult.message || "PayPal could not register the payment webhook.",
+    );
+  }
+  return createResult.id;
+}
+
+/** Verifies a PayPal webhook using PayPal's signature verification API.
+ * @param {PayPalOrderInput} input Server credentials.
+ * @param {string} webhookId Registered PayPal webhook ID.
+ * @param {Record<string, string>} headers PayPal transmission headers.
+ * @param {PayPalWebhookEvent} event Original webhook event.
+ * @param {string | undefined} mode PayPal environment.
+ * @return {Promise<boolean>} Whether PayPal verified the signature.
+ */
+export async function verifyPayPalWebhook(
+  input: PayPalOrderInput,
+  webhookId: string,
+  headers: Record<string, string>,
+  event: PayPalWebhookEvent,
+  mode: string | undefined = "sandbox",
+): Promise<boolean> {
+  const fetchImpl = input.fetchImpl ?? fetch;
+  const baseUrl = paypalBaseUrl(mode);
+  const accessToken = await getAccessToken(input, baseUrl, fetchImpl);
+  const response = await fetchImpl(
+    `${baseUrl}/v1/notifications/verify-webhook-signature`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${accessToken}`,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        auth_algo: headers["paypal-auth-algo"],
+        cert_url: headers["paypal-cert-url"],
+        transmission_id: headers["paypal-transmission-id"],
+        transmission_sig: headers["paypal-transmission-sig"],
+        transmission_time: headers["paypal-transmission-time"],
+        webhook_id: webhookId,
+        webhook_event: event,
+      }),
+      signal: AbortSignal.timeout(15000),
+    },
+  );
+  const result = await response.json() as {
+    verification_status?: string;
+    message?: string;
+  };
+  if (!response.ok) {
+    throw new Error(
+      result.message || "PayPal could not verify the webhook signature.",
+    );
+  }
+  return result.verification_status === "SUCCESS";
 }

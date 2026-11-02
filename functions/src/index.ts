@@ -4,8 +4,8 @@ import {FieldValue, getFirestore} from "firebase-admin/firestore";
 import {randomBytes} from "node:crypto";
 import {setGlobalOptions} from "firebase-functions";
 import {defineSecret, defineString} from "firebase-functions/params";
-import {HttpsError, onCall} from "firebase-functions/v2/https";
-import {capturePayPalOrder, createPayPalOrder, getPayPalCapture, type PayPalOrderResult} from "./paypalClient.js";
+import {HttpsError, onCall, onRequest} from "firebase-functions/v2/https";
+import {capturePayPalOrder, createPayPalOrder, ensurePayPalCaptureWebhook, getPayPalCapture, verifyPayPalWebhook, type PayPalOrderResult, type PayPalWebhookEvent} from "./paypalClient.js";
 
 const turnstileSecret = defineSecret("TURNSTILE_SECRET_KEY");
 const paypalClientId = defineSecret("PAYPAL_CLIENT_ID");
@@ -341,24 +341,26 @@ export const captureDonationPayPalOrder = onCall({
   return {paymentStatus: "verified" as const, receipt: capture?.id || orderId};
 });
 
+// Retained for compatibility with any admin sessions still running the
+// previous recovery interface. New payments are verified by the webhook.
 export const reconcileDonationPayPalCapture = onCall({
   secrets: [paypalClientId, paypalClientSecret],
   timeoutSeconds: 30,
 }, async (request) => {
-  if (!request.auth) throw new HttpsError("unauthenticated", "Sign in with an administrator account to verify this payment.");
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Sign in with an administrator account.");
+  }
   const adminDoc = await db.doc(`admins/${request.auth.uid}`).get();
   const role = adminDoc.data()?.role;
   if (!adminDoc.exists || (role !== "superadmin" && role !== "staff")) {
-    throw new HttpsError("permission-denied", "Only an administrator can verify a PayPal capture ID.");
+    throw new HttpsError("permission-denied", "Only an administrator can verify a PayPal capture.");
   }
-
   const data = request.data as Record<string, unknown> | null;
   const donationId = typeof data?.donationId === "string" ? data.donationId.trim() : "";
   const captureId = typeof data?.captureId === "string" ? data.captureId.trim() : "";
   if (!donationId || !/^[A-Z0-9]{10,20}$/.test(captureId)) {
-    throw new HttpsError("invalid-argument", "Enter a valid PayPal merchant transaction ID.");
+    throw new HttpsError("invalid-argument", "The PayPal capture reference is invalid.");
   }
-
   const donationRef = db.collection("donations").doc(donationId);
   const snapshot = await donationRef.get();
   const donation = snapshot.data();
@@ -369,9 +371,8 @@ export const reconcileDonationPayPalCapture = onCall({
     return {paymentStatus: "verified" as const, receipt: donation.paymentReceipt || captureId};
   }
   if (typeof donation.amount !== "number" || donation.currency !== donationCurrency) {
-    throw new HttpsError("failed-precondition", "The donation amount or currency does not match PayPal.");
+    throw new HttpsError("failed-precondition", "The donation amount or currency does not match.");
   }
-
   let capture;
   try {
     capture = await getPayPalCapture({
@@ -383,24 +384,172 @@ export const reconcileDonationPayPalCapture = onCall({
       description: "Donation to Wahome Foundation",
     }, captureId, paypalMode.value());
   } catch (error) {
-    console.error("PayPal donation capture-ID lookup failed", error instanceof Error ? error.message : "unknown error");
-    throw new HttpsError("unavailable", "PayPal could not look up this merchant transaction ID.");
+    console.error("PayPal donation capture lookup failed", error instanceof Error ? error.message : "unknown error");
+    throw new HttpsError("unavailable", "PayPal could not look up this capture.");
   }
-
-  const captureMatchesDonation = capture.custom_id === donationId ||
+  const matchesDonation = capture.custom_id === donationId ||
     (typeof donation.paypalOrderId === "string" &&
       capture.supplementary_data?.related_ids?.order_id === donation.paypalOrderId);
   if (capture.status !== "COMPLETED" || capture.amount?.value !== donation.amount.toFixed(2) ||
-    capture.amount?.currency_code !== donationCurrency || !captureMatchesDonation) {
-    throw new HttpsError("failed-precondition", "This PayPal capture does not match the pending donation.");
+    capture.amount?.currency_code !== donationCurrency || !matchesDonation) {
+    throw new HttpsError("failed-precondition", "This capture does not match the pending donation.");
   }
-
   await donationRef.update({
     paymentStatus: "verified",
     paymentReceipt: capture.id,
     paidAt: FieldValue.serverTimestamp(),
   });
   return {paymentStatus: "verified" as const, receipt: capture.id};
+});
+
+/** Registers the signed PayPal webhook once for the current REST app.
+ * @param {string | undefined} uid Firebase Auth UID.
+ * @return {Promise<void>} Resolves for an authorized administrator.
+ */
+async function requirePaymentAdmin(uid: string | undefined): Promise<void> {
+  if (!uid) throw new HttpsError("unauthenticated", "Sign in with an administrator account.");
+  const adminDoc = await db.doc(`admins/${uid}`).get();
+  const role = adminDoc.data()?.role;
+  if (!adminDoc.exists || (role !== "superadmin" && role !== "staff")) {
+    throw new HttpsError("permission-denied", "Only an administrator can configure PayPal verification.");
+  }
+}
+
+export const ensurePayPalWebhook = onCall({
+  secrets: [paypalClientId, paypalClientSecret],
+  timeoutSeconds: 30,
+}, async (request) => {
+  await requirePaymentAdmin(request.auth?.uid);
+  const webhookUrl = `https://africa-south1-${process.env.GCLOUD_PROJECT}.cloudfunctions.net/paypalWebhook`;
+  const webhookRef = db.doc("system/paypalWebhook");
+  const existing = await webhookRef.get();
+  if (existing.data()?.url === webhookUrl && typeof existing.data()?.webhookId === "string") {
+    return {configured: true};
+  }
+  try {
+    const webhookId = await ensurePayPalCaptureWebhook({
+      clientId: paypalClientId.value(),
+      clientSecret: paypalClientSecret.value(),
+      amount: "0.00",
+      currency: donationCurrency,
+      reference: "",
+      description: "PayPal payment webhook setup",
+    }, webhookUrl, paypalMode.value());
+    await webhookRef.set({webhookId, url: webhookUrl, updatedAt: FieldValue.serverTimestamp()});
+    return {configured: true};
+  } catch (error) {
+    console.error("PayPal webhook setup failed", error instanceof Error ? error.message : "unknown error");
+    throw new HttpsError("unavailable", "Automatic PayPal verification could not be configured. Check the PayPal app webhook permissions.");
+  }
+});
+
+/** Receives and verifies PayPal capture-completed notifications.
+ * @param {import("firebase-functions/v2/https").Request} request Incoming request.
+ * @param {import("express").Response} response HTTP response.
+ * @return {Promise<void>} Resolves after responding to PayPal.
+ */
+export const paypalWebhook = onRequest({
+  secrets: [paypalClientId, paypalClientSecret],
+  timeoutSeconds: 30,
+}, async (request, response) => {
+  const event = request.body as PayPalWebhookEvent | null;
+  if (!event || typeof event !== "object" || Array.isArray(event)) {
+    response.status(400).send("Invalid webhook event");
+    return;
+  }
+  const config = await db.doc("system/paypalWebhook").get();
+  const webhookId = config.data()?.webhookId;
+  if (typeof webhookId !== "string" || !webhookId) {
+    response.status(503).send("Webhook is not configured");
+    return;
+  }
+  const paypalHeaders: Record<string, string> = {
+    "paypal-auth-algo": String(request.header("paypal-auth-algo") || ""),
+    "paypal-cert-url": String(request.header("paypal-cert-url") || ""),
+    "paypal-transmission-id": String(request.header("paypal-transmission-id") || ""),
+    "paypal-transmission-sig": String(request.header("paypal-transmission-sig") || ""),
+    "paypal-transmission-time": String(request.header("paypal-transmission-time") || ""),
+  };
+  if (Object.values(paypalHeaders).some((value) => !value)) {
+    response.status(400).send("Missing PayPal signature headers");
+    return;
+  }
+
+  try {
+    const signatureValid = await verifyPayPalWebhook({
+      clientId: paypalClientId.value(),
+      clientSecret: paypalClientSecret.value(),
+      amount: "0.00",
+      currency: donationCurrency,
+      reference: "",
+      description: "PayPal webhook verification",
+    }, webhookId, paypalHeaders, event, paypalMode.value());
+    if (!signatureValid) {
+      response.status(400).send("Invalid PayPal signature");
+      return;
+    }
+    if (event.event_type !== "PAYMENT.CAPTURE.COMPLETED") {
+      response.status(200).send("Event ignored");
+      return;
+    }
+    const capture = event.resource;
+    const captureId = capture?.id;
+    const amount = capture?.amount?.value;
+    const currency = capture?.amount?.currency_code;
+    const orderId = capture?.supplementary_data?.related_ids?.order_id;
+    const referenceId = capture?.custom_id;
+    if (!captureId || capture?.status !== "COMPLETED" || !amount || currency !== donationCurrency) {
+      response.status(200).send("Capture does not match a supported payment");
+      return;
+    }
+
+    let docRef = referenceId ? db.collection("donations").doc(referenceId) : null;
+    let docData = docRef ? (await docRef.get()).data() : undefined;
+    let isDonation = docData?.provider === "paypal";
+    if (!docData && orderId) {
+      const donationMatches = await db.collection("donations").where("paypalOrderId", "==", orderId).limit(2).get();
+      if (donationMatches.size === 1) {
+        docRef = donationMatches.docs[0].ref;
+        docData = donationMatches.docs[0].data();
+        isDonation = docData.provider === "paypal";
+      }
+    }
+    if (docRef && isDonation && typeof docData?.amount === "number" && docData.amount.toFixed(2) === amount) {
+      await db.runTransaction(async (transaction) => {
+        const current = await transaction.get(docRef!);
+        if (current.exists && current.data()?.provider === "paypal" && current.data()?.paymentStatus !== "verified") {
+          transaction.update(docRef!, {paymentStatus: "verified", paymentReceipt: captureId, paidAt: FieldValue.serverTimestamp()});
+        }
+      });
+      response.status(200).send("Donation updated");
+      return;
+    }
+
+    docRef = referenceId ? db.collection("eventRegistrations").doc(referenceId) : null;
+    docData = docRef ? (await docRef.get()).data() : undefined;
+    if (!docData && orderId) {
+      const registrationMatches = await db.collection("eventRegistrations").where("paypalOrderId", "==", orderId).limit(2).get();
+      if (registrationMatches.size === 1) {
+        docRef = registrationMatches.docs[0].ref;
+        docData = registrationMatches.docs[0].data();
+      }
+    }
+    if (docRef && docData?.eventSlug === eventSlug && docData.paymentProvider === "paypal" &&
+      docData.feeUsd === Number(amount)) {
+      await db.runTransaction(async (transaction) => {
+        const current = await transaction.get(docRef!);
+        if (current.exists && current.data()?.paymentProvider === "paypal" && current.data()?.paymentStatus !== "verified") {
+          transaction.update(docRef!, {paymentStatus: "verified", paymentReceipt: captureId, paidAt: FieldValue.serverTimestamp()});
+        }
+      });
+      response.status(200).send("Registration updated");
+      return;
+    }
+    response.status(200).send("No matching payment record");
+  } catch (error) {
+    console.error("PayPal webhook processing failed", error instanceof Error ? error.message : "unknown error");
+    response.status(500).send("Webhook processing failed");
+  }
 });
 
 export const startRacePayPalOrder = onCall({
