@@ -5,7 +5,7 @@ import {randomBytes} from "node:crypto";
 import {setGlobalOptions} from "firebase-functions";
 import {defineSecret, defineString} from "firebase-functions/params";
 import {HttpsError, onCall} from "firebase-functions/v2/https";
-import {capturePayPalOrder, createPayPalOrder, type PayPalOrderResult} from "./paypalClient.js";
+import {capturePayPalOrder, createPayPalOrder, getPayPalCapture, type PayPalOrderResult} from "./paypalClient.js";
 
 const turnstileSecret = defineSecret("TURNSTILE_SECRET_KEY");
 const paypalClientId = defineSecret("PAYPAL_CLIENT_ID");
@@ -339,6 +339,68 @@ export const captureDonationPayPalOrder = onCall({
     paidAt: FieldValue.serverTimestamp(),
   });
   return {paymentStatus: "verified" as const, receipt: capture?.id || orderId};
+});
+
+export const reconcileDonationPayPalCapture = onCall({
+  secrets: [paypalClientId, paypalClientSecret],
+  timeoutSeconds: 30,
+}, async (request) => {
+  if (!request.auth) throw new HttpsError("unauthenticated", "Sign in with an administrator account to verify this payment.");
+  const adminDoc = await db.doc(`admins/${request.auth.uid}`).get();
+  const role = adminDoc.data()?.role;
+  if (!adminDoc.exists || (role !== "superadmin" && role !== "staff")) {
+    throw new HttpsError("permission-denied", "Only an administrator can verify a PayPal capture ID.");
+  }
+
+  const data = request.data as Record<string, unknown> | null;
+  const donationId = typeof data?.donationId === "string" ? data.donationId.trim() : "";
+  const captureId = typeof data?.captureId === "string" ? data.captureId.trim() : "";
+  if (!donationId || !/^[A-Z0-9]{10,20}$/.test(captureId)) {
+    throw new HttpsError("invalid-argument", "Enter a valid PayPal merchant transaction ID.");
+  }
+
+  const donationRef = db.collection("donations").doc(donationId);
+  const snapshot = await donationRef.get();
+  const donation = snapshot.data();
+  if (!snapshot.exists || donation?.provider !== "paypal") {
+    throw new HttpsError("not-found", "We could not find this PayPal donation.");
+  }
+  if (donation.paymentStatus === "verified") {
+    return {paymentStatus: "verified" as const, receipt: donation.paymentReceipt || captureId};
+  }
+  if (typeof donation.amount !== "number" || donation.currency !== donationCurrency) {
+    throw new HttpsError("failed-precondition", "The donation amount or currency does not match PayPal.");
+  }
+
+  let capture;
+  try {
+    capture = await getPayPalCapture({
+      clientId: paypalClientId.value(),
+      clientSecret: paypalClientSecret.value(),
+      amount: donation.amount.toFixed(2),
+      currency: donationCurrency,
+      reference: donationId,
+      description: "Donation to Wahome Foundation",
+    }, captureId, paypalMode.value());
+  } catch (error) {
+    console.error("PayPal donation capture-ID lookup failed", error instanceof Error ? error.message : "unknown error");
+    throw new HttpsError("unavailable", "PayPal could not look up this merchant transaction ID.");
+  }
+
+  const captureMatchesDonation = capture.custom_id === donationId ||
+    (typeof donation.paypalOrderId === "string" &&
+      capture.supplementary_data?.related_ids?.order_id === donation.paypalOrderId);
+  if (capture.status !== "COMPLETED" || capture.amount?.value !== donation.amount.toFixed(2) ||
+    capture.amount?.currency_code !== donationCurrency || !captureMatchesDonation) {
+    throw new HttpsError("failed-precondition", "This PayPal capture does not match the pending donation.");
+  }
+
+  await donationRef.update({
+    paymentStatus: "verified",
+    paymentReceipt: capture.id,
+    paidAt: FieldValue.serverTimestamp(),
+  });
+  return {paymentStatus: "verified" as const, receipt: capture.id};
 });
 
 export const startRacePayPalOrder = onCall({

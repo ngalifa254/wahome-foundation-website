@@ -115,6 +115,7 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
   const [selectedParticipant, setSelectedParticipant] = useState<Registration | null>(null);
   const [reconcilingPayment, setReconcilingPayment] = useState("");
   const [paymentRecoveryError, setPaymentRecoveryError] = useState("");
+  const [paypalCaptureIds, setPaypalCaptureIds] = useState<Record<string, string>>({});
 
   const loadRegistrations = useCallback(async () => {
     if (!functions) {
@@ -203,6 +204,31 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
       }
     } catch (cause) {
       setPaymentRecoveryError(cause instanceof Error ? cause.message : "Could not verify this PayPal payment.");
+    } finally {
+      setReconcilingPayment("");
+    }
+  };
+
+  const reconcileDonationByCaptureId = async (donationId: string) => {
+    if (!functions) return;
+    const captureId = paypalCaptureIds[donationId]?.trim() ?? "";
+    if (!captureId) {
+      setPaymentRecoveryError("Enter the PayPal merchant transaction ID from the receipt.");
+      return;
+    }
+    const recoveryKey = `capture:${donationId}`;
+    setReconcilingPayment(recoveryKey);
+    setPaymentRecoveryError("");
+    try {
+      const reconcile = httpsCallable<
+        {donationId: string; captureId: string},
+        {paymentStatus: "verified"; receipt: string}
+      >(functions, "reconcileDonationPayPalCapture");
+      await reconcile({donationId, captureId});
+      setPaypalCaptureIds((current) => ({...current, [donationId]: ""}));
+      await loadDonations();
+    } catch (cause) {
+      setPaymentRecoveryError(cause instanceof Error ? cause.message : "Could not verify this PayPal capture.");
     } finally {
       setReconcilingPayment("");
     }
@@ -728,16 +754,35 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
                         <p className="text-[11px] text-slate-500">{donation.paymentProvider ? `${donation.paymentProvider === "paypal" ? "PayPal" : donation.paymentProvider} · ` : ""}{donation.paymentReceipt || donation.paymentReference}</p>
                       </div>
                       <div className="flex items-center gap-2">
-                      {donation.paymentStatus === "pending" && donation.paymentProvider === "paypal" && donation.paypalOrderId && (
-                        <button
-                          type="button"
-                          onClick={() => void reconcilePayPalPayment("donation", donation.id, donation.paypalOrderId)}
-                          disabled={Boolean(reconcilingPayment)}
-                          className="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
-                          title="Check the existing PayPal order and update this donation if payment completed"
-                        >
-                          {reconcilingPayment === `donation:${donation.id}` ? "Checking…" : "Verify PayPal"}
-                        </button>
+                      {donation.paymentStatus === "pending" && donation.paymentProvider === "paypal" && (
+                        <div className="flex flex-wrap items-center justify-end gap-2">
+                          {donation.paypalOrderId && (
+                          <button
+                            type="button"
+                            onClick={() => void reconcilePayPalPayment("donation", donation.id, donation.paypalOrderId)}
+                            disabled={Boolean(reconcilingPayment)}
+                            className="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                            title="Check the existing PayPal order and update this donation if payment completed"
+                          >
+                            {reconcilingPayment === `donation:${donation.id}` ? "Checking…" : "Verify PayPal"}
+                          </button>
+                          )}
+                          <input
+                            aria-label="PayPal merchant transaction ID"
+                            value={paypalCaptureIds[donation.id] ?? ""}
+                            onChange={(event) => setPaypalCaptureIds((current) => ({...current, [donation.id]: event.target.value.toUpperCase()}))}
+                            placeholder="Merchant transaction ID"
+                            className="w-44 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[11px] font-mono text-slate-700 placeholder:font-sans placeholder:text-slate-400"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => void reconcileDonationByCaptureId(donation.id)}
+                            disabled={Boolean(reconcilingPayment)}
+                            className="rounded-lg bg-slate-900 px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-slate-800 disabled:opacity-50"
+                          >
+                            {reconcilingPayment === `capture:${donation.id}` ? "Checking…" : "Verify capture"}
+                          </button>
+                        </div>
                       )}
                       <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full w-fit ${
                         donation.paymentStatus === "verified" ? "text-emerald-700 bg-emerald-50 border border-emerald-200" :

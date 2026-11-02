@@ -26,6 +26,16 @@ export interface PayPalOrderResult {
   }>;
 }
 
+export interface PayPalCaptureDetails {
+  id: string;
+  status?: string;
+  custom_id?: string;
+  amount?: {currency_code?: string; value?: string};
+  supplementary_data?: {
+    related_ids?: {order_id?: string};
+  };
+}
+
 export interface PayPalCaptureVerificationDiagnostics {
   httpStatus: number;
   paypalDebugId: string | null;
@@ -227,6 +237,40 @@ export async function capturePayPalOrder(
       matches,
     });
     return null;
+  }
+  return result;
+}
+
+/** Retrieves a completed PayPal capture by its merchant transaction ID.
+ * @param {PayPalOrderInput} input Server credentials and expected payment data.
+ * @param {string} captureId PayPal merchant transaction/capture ID.
+ * @param {string | undefined} mode PayPal environment: sandbox or live.
+ * @return {Promise<PayPalCaptureDetails>} PayPal capture details.
+ */
+export async function getPayPalCapture(
+  input: PayPalOrderInput,
+  captureId: string,
+  mode: string | undefined = "sandbox",
+): Promise<PayPalCaptureDetails> {
+  const fetchImpl = input.fetchImpl ?? fetch;
+  const baseUrl = paypalBaseUrl(mode);
+  const accessToken = await getAccessToken(input, baseUrl, fetchImpl);
+  const response = await fetchImpl(
+    `${baseUrl}/v2/payments/captures/${encodeURIComponent(captureId)}`,
+    {
+      method: "GET",
+      headers: {"Authorization": `Bearer ${accessToken}`},
+      signal: AbortSignal.timeout(15000),
+    },
+  );
+  const result = await response.json() as PayPalCaptureDetails & {
+    message?: string;
+    name?: string;
+  };
+  if (!response.ok || result.id !== captureId) {
+    throw new Error(
+      result.message || result.name || "PayPal capture could not be found.",
+    );
   }
   return result;
 }
