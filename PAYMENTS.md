@@ -4,6 +4,12 @@ Donations and Miles for Minds Run registration use PayPal Checkout. Donors enter
 
 The current PayPal Orders API currency list does not include KES, so checkout uses USD. PayPal supports business accounts in Kenya. Before enabling live checkout, create a PayPal Business account and a REST app in the PayPal Developer Dashboard, then try the sandbox first.
 
+## When PayPal says paid but the dashboard says pending
+
+The admin dashboard can verify an existing PayPal order or reconcile directly with the Merchant Transaction ID from the PayPal receipt. Use the capture ID on the matching pending donation or registration row and choose **Verify capture**. The server looks up the capture through the PayPal Payments API and only marks the Firestore record verified when the capture is completed, its USD amount is exact, and PayPal's custom or related order ID matches the selected record.
+
+An order ID and a capture/transaction ID are different PayPal identifiers. If PayPal cannot find the saved order ID, use the receipt's Merchant Transaction ID. If the capture lookup succeeds but says it does not match the record, confirm that the transaction was paid through the same live PayPal REST app configured in Firebase and that the capture belongs to that donation or registration. Do not mark a payment verified from a receipt alone when the PayPal API cannot confirm its capture.
+
 ## Configure local checkout
 
 Add the PayPal sandbox app client ID to each ignored Vite environment file used for local development:

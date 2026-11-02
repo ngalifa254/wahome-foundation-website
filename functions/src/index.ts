@@ -358,7 +358,7 @@ export const reconcileDonationPayPalCapture = onCall({
   const data = request.data as Record<string, unknown> | null;
   const donationId = typeof data?.donationId === "string" ? data.donationId.trim() : "";
   const captureId = typeof data?.captureId === "string" ? data.captureId.trim() : "";
-  if (!donationId || !/^[A-Z0-9]{10,20}$/.test(captureId)) {
+  if (!donationId || !/^[A-Z0-9]{10,20}$/i.test(captureId)) {
     throw new HttpsError("invalid-argument", "The PayPal capture reference is invalid.");
   }
   const donationRef = db.collection("donations").doc(donationId);
@@ -422,13 +422,15 @@ export const reconcileRacePayPalCapture = onCall({
   const registrationRef = db.collection("eventRegistrations").doc(registrationId);
   const snapshot = await registrationRef.get();
   const registration = snapshot.data();
-  if (!snapshot.exists || registration?.eventSlug !== eventSlug || registration.paymentProvider !== "paypal") {
+  if (!snapshot.exists || registration?.eventSlug !== eventSlug) {
     throw new HttpsError("not-found", "We could not find this PayPal race registration.");
   }
   if (registration.paymentStatus === "verified") {
     return {paymentStatus: "verified" as const, paymentReceipt: registration.paymentReceipt || captureId};
   }
-  if (registration.feeUsd !== Number(registrationFeeUsd)) {
+  const expectedRegistrationFee = registration.feeUsd === Number(registrationFeeUsd) ||
+    registration.feeKes === registrationFeeKes;
+  if (!expectedRegistrationFee) {
     throw new HttpsError("failed-precondition", "The PayPal capture amount does not match this registration.");
   }
   let capture;
@@ -459,6 +461,10 @@ export const reconcileRacePayPalCapture = onCall({
     throw new HttpsError("failed-precondition", "This completed capture does not match the selected race registration.");
   }
   await registrationRef.update({
+    paymentMethod: "paypal",
+    paymentProvider: "paypal",
+    feeKes: registrationFeeKes,
+    feeUsd: Number(registrationFeeUsd),
     paymentStatus: "verified",
     paymentReceipt: capture.id,
     paidAt: FieldValue.serverTimestamp(),
@@ -598,12 +604,21 @@ export const paypalWebhook = onRequest({
         docData = registrationMatches.docs[0].data();
       }
     }
-    if (docRef && docData?.eventSlug === eventSlug && docData.paymentProvider === "paypal" &&
-      docData.feeUsd === Number(amount)) {
+    const registrationHasExpectedFee = docData?.feeUsd === Number(registrationFeeUsd) ||
+      docData?.feeKes === registrationFeeKes;
+    if (docRef && docData?.eventSlug === eventSlug && registrationHasExpectedFee &&
+      amount === registrationFeeUsd) {
       await db.runTransaction(async (transaction) => {
         const current = await transaction.get(docRef!);
-        if (current.exists && current.data()?.paymentProvider === "paypal" && current.data()?.paymentStatus !== "verified") {
-          transaction.update(docRef!, {paymentStatus: "verified", paymentReceipt: captureId, paidAt: FieldValue.serverTimestamp()});
+        if (current.exists && current.data()?.paymentStatus !== "verified") {
+          transaction.update(docRef!, {
+            paymentMethod: "paypal",
+            paymentProvider: "paypal",
+            feeUsd: Number(registrationFeeUsd),
+            paymentStatus: "verified",
+            paymentReceipt: captureId,
+            paidAt: FieldValue.serverTimestamp(),
+          });
         }
       });
       response.status(200).send("Registration updated");
@@ -758,7 +773,7 @@ export const listEventRegistrations = onCall(async (request) => {
       email: data.contactEmail || data.email || "",
       phone: data.contactPhone || data.phone || "",
       paymentStatus: data.paymentStatus || "pending",
-      paymentMethod: data.paymentMethod || "",
+      paymentMethod: data.paymentMethod || data.paymentProvider || "",
       paypalOrderId: typeof data.paypalOrderId === "string" ? data.paypalOrderId : "",
       paymentReceipt: data.paymentReceipt || "",
       createdAt,

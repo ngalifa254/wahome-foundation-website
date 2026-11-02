@@ -680,23 +680,26 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
                       </div>
 
                       <div className="flex flex-col items-end gap-2 sm:flex-row sm:items-center">
-                        {item.paymentStatus === "pending" && item.paymentMethod === "paypal" && item.paypalOrderId && (
+                        {item.paymentStatus === "pending" && (
                           <div className="flex flex-wrap items-center justify-end gap-2">
-                            <button
-                              type="button"
-                              onClick={() => void reconcilePayPalPayment("registration", item.id, item.paypalOrderId!)}
-                              disabled={Boolean(reconcilingPayment)}
-                              className="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
-                              title="Check the existing PayPal order and update this registration if payment completed"
-                            >
-                              {reconcilingPayment === `registration:${item.id}` ? "Checking…" : "Verify PayPal"}
-                            </button>
+                            {item.paymentMethod === "paypal" && item.paypalOrderId && (
+                              <button
+                                type="button"
+                                onClick={() => void reconcilePayPalPayment("registration", item.id, item.paypalOrderId!)}
+                                disabled={Boolean(reconcilingPayment)}
+                                className="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                                title="Check the existing PayPal order and update this registration if payment completed"
+                              >
+                                {reconcilingPayment === `registration:${item.id}` ? "Checking…" : "Verify PayPal"}
+                              </button>
+                            )}
                             <input
                               aria-label={`PayPal capture ID for ${item.fullName}`}
                               value={paypalCaptureIds[`registration:${item.id}`] ?? ""}
                               onChange={(event) => setPaypalCaptureIds((current) => ({...current, [`registration:${item.id}`]: event.target.value.toUpperCase()}))}
                               placeholder="Capture / transaction ID"
                               className="w-44 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[11px] font-mono text-slate-700 placeholder:font-sans placeholder:text-slate-400"
+                              title="Use this if the PayPal payment completed but this registration is still pending"
                             />
                             <button
                               type="button"
