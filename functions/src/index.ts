@@ -385,7 +385,13 @@ export const reconcileDonationPayPalCapture = onCall({
     }, captureId, paypalMode.value());
   } catch (error) {
     console.error("PayPal donation capture lookup failed", error instanceof Error ? error.message : "unknown error");
-    throw new HttpsError("unavailable", "PayPal could not look up this capture.");
+    const missing = error instanceof Error && /does not exist|not found/i.test(error.message);
+    throw new HttpsError(
+      missing ? "not-found" : "unavailable",
+      missing ?
+        "PayPal could not find that capture ID in this live account. Check the Merchant Transaction ID on the receipt." :
+        "PayPal could not look up this capture. Please try again.",
+    );
   }
   const matchesDonation = capture.custom_id === donationId ||
     (typeof donation.paypalOrderId === "string" &&
@@ -400,6 +406,64 @@ export const reconcileDonationPayPalCapture = onCall({
     paidAt: FieldValue.serverTimestamp(),
   });
   return {paymentStatus: "verified" as const, receipt: capture.id};
+});
+
+export const reconcileRacePayPalCapture = onCall({
+  secrets: [paypalClientId, paypalClientSecret],
+  timeoutSeconds: 30,
+}, async (request) => {
+  await requirePaymentAdmin(request.auth?.uid);
+  const data = request.data as Record<string, unknown> | null;
+  const registrationId = typeof data?.registrationId === "string" ? data.registrationId.trim() : "";
+  const captureId = typeof data?.captureId === "string" ? data.captureId.trim() : "";
+  if (!registrationId || !/^[A-Z0-9]{10,20}$/i.test(captureId)) {
+    throw new HttpsError("invalid-argument", "Enter a valid PayPal Merchant Transaction ID.");
+  }
+  const registrationRef = db.collection("eventRegistrations").doc(registrationId);
+  const snapshot = await registrationRef.get();
+  const registration = snapshot.data();
+  if (!snapshot.exists || registration?.eventSlug !== eventSlug || registration.paymentProvider !== "paypal") {
+    throw new HttpsError("not-found", "We could not find this PayPal race registration.");
+  }
+  if (registration.paymentStatus === "verified") {
+    return {paymentStatus: "verified" as const, paymentReceipt: registration.paymentReceipt || captureId};
+  }
+  if (registration.feeUsd !== Number(registrationFeeUsd)) {
+    throw new HttpsError("failed-precondition", "The PayPal capture amount does not match this registration.");
+  }
+  let capture;
+  try {
+    capture = await getPayPalCapture({
+      clientId: paypalClientId.value(),
+      clientSecret: paypalClientSecret.value(),
+      amount: registrationFeeUsd,
+      currency: donationCurrency,
+      reference: registrationId,
+      description: "Miles for Minds Run 2027 registration",
+    }, captureId, paypalMode.value());
+  } catch (error) {
+    console.error("PayPal race capture lookup failed", error instanceof Error ? error.message : "unknown error");
+    const missing = error instanceof Error && /does not exist|not found/i.test(error.message);
+    throw new HttpsError(
+      missing ? "not-found" : "unavailable",
+      missing ?
+        "PayPal could not find that capture ID in this live account. Check the Merchant Transaction ID on the receipt." :
+        "PayPal could not look up this capture. Please try again.",
+    );
+  }
+  const matchesRegistration = capture.custom_id === registrationId ||
+    (typeof registration.paypalOrderId === "string" &&
+      capture.supplementary_data?.related_ids?.order_id === registration.paypalOrderId);
+  if (capture.status !== "COMPLETED" || capture.amount?.value !== registrationFeeUsd ||
+    capture.amount?.currency_code !== donationCurrency || !matchesRegistration) {
+    throw new HttpsError("failed-precondition", "This completed capture does not match the selected race registration.");
+  }
+  await registrationRef.update({
+    paymentStatus: "verified",
+    paymentReceipt: capture.id,
+    paidAt: FieldValue.serverTimestamp(),
+  });
+  return {paymentStatus: "verified" as const, paymentReceipt: capture.id};
 });
 
 /** Registers the signed PayPal webhook once for the current REST app.
