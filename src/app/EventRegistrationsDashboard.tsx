@@ -796,51 +796,40 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
                       </div>
                     </div>
 
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3 sm:gap-6 pt-3 md:pt-0 border-t md:border-t-0 border-slate-200">
-                      <div className="sm:text-right">
-                        <p className="text-base font-bold text-slate-900">{donation.currency} {donation.amount.toFixed(2)}</p>
-                        <p className="text-[11px] text-slate-500">{donation.paymentProvider ? `${donation.paymentProvider === "paypal" ? "PayPal" : donation.paymentProvider} · ` : ""}{donation.paymentReceipt || donation.paymentReference}</p>
+                    <div className="flex min-w-0 flex-col gap-3 pt-3 md:pt-0 border-t md:border-t-0 border-slate-200 md:w-[min(100%,34rem)]">
+                      <div className="flex items-center justify-between gap-3 md:justify-end md:gap-6">
+                        <div className="min-w-0 md:text-right">
+                          <p className="text-base font-bold text-slate-900">{donation.currency} {donation.amount.toFixed(2)}</p>
+                          <p className="truncate text-[11px] text-slate-500">{donation.paymentProvider ? `${donation.paymentProvider === "paypal" ? "PayPal" : donation.paymentProvider} · ` : ""}{donation.paymentReceipt || donation.paymentReference}</p>
+                        </div>
+                        <span className={`inline-flex shrink-0 items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full w-fit ${
+                          donation.paymentStatus === "verified" ? "text-emerald-700 bg-emerald-50 border border-emerald-200" :
+                            donation.paymentStatus === "failed" ? "text-red-700 bg-red-50 border border-red-200" :
+                              "text-amber-700 bg-amber-50 border border-amber-200"
+                        }`}>
+                          {donation.paymentStatus === "verified" ? <CheckCircle2 className="w-3 h-3" /> : donation.paymentStatus === "pending" ? <Clock className="w-3 h-3" /> : null}
+                          {donation.paymentStatus === "verified" ? "Verified" : donation.paymentStatus === "failed" ? "Failed" : "Pending"}
+                        </span>
                       </div>
-                      <div className="flex items-center gap-2">
                       {donation.paymentStatus === "pending" && (
-                        <div className="flex flex-wrap items-center justify-end gap-2">
-                          {donation.paypalOrderId && (
-                          <button
-                            type="button"
-                            onClick={() => void reconcilePayPalPayment("donation", donation.id, donation.paypalOrderId)}
-                            disabled={Boolean(reconcilingPayment)}
-                            className="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
-                            title="Check the existing PayPal order and update this donation if payment completed"
-                          >
-                            {reconcilingPayment === `donation:${donation.id}` ? "Checking…" : "Verify PayPal"}
-                          </button>
-                          )}
+                        <div className="flex w-full flex-wrap items-center justify-end gap-2">
                           <input
                             aria-label={`PayPal capture ID for ${donation.donorName}`}
                             value={paypalCaptureIds[`donation:${donation.id}`] ?? ""}
                             onChange={(event) => setPaypalCaptureIds((current) => ({...current, [`donation:${donation.id}`]: event.target.value.toUpperCase()}))}
                             placeholder="Capture / transaction ID"
-                            className="w-44 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[11px] font-mono text-slate-700 placeholder:font-sans placeholder:text-slate-400"
+                            className="min-w-0 flex-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[11px] font-mono text-slate-700 placeholder:font-sans placeholder:text-slate-400"
                           />
                           <button
                             type="button"
                             onClick={() => void reconcileByCaptureId("donation", donation.id)}
                             disabled={Boolean(reconcilingPayment)}
-                            className="rounded-lg bg-slate-900 px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-slate-800 disabled:opacity-50"
+                            className="shrink-0 rounded-lg bg-slate-900 px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-slate-800 disabled:opacity-50"
                           >
                             {reconcilingPayment === `capture:donation:${donation.id}` ? "Checking…" : "Verify capture"}
                           </button>
                         </div>
                       )}
-                      <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full w-fit ${
-                        donation.paymentStatus === "verified" ? "text-emerald-700 bg-emerald-50 border border-emerald-200" :
-                          donation.paymentStatus === "failed" ? "text-red-700 bg-red-50 border border-red-200" :
-                            "text-amber-700 bg-amber-50 border border-amber-200"
-                      }`}>
-                        {donation.paymentStatus === "verified" ? <CheckCircle2 className="w-3 h-3" /> : donation.paymentStatus === "pending" ? <Clock className="w-3 h-3" /> : null}
-                        {donation.paymentStatus === "verified" ? "Verified" : donation.paymentStatus === "failed" ? "Failed" : "Pending"}
-                      </span>
-                      </div>
                     </div>
                   </div>
                 ))
