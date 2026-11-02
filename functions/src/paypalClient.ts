@@ -153,7 +153,7 @@ export async function capturePayPalOrder(
   const fetchImpl = input.fetchImpl ?? fetch;
   const baseUrl = paypalBaseUrl(mode);
   const accessToken = await getAccessToken(input, baseUrl, fetchImpl);
-  const response = await fetchImpl(
+  let response = await fetchImpl(
     `${baseUrl}/v2/checkout/orders/${encodeURIComponent(orderId)}/capture`,
     {
       method: "POST",
@@ -165,10 +165,27 @@ export async function capturePayPalOrder(
       signal: AbortSignal.timeout(15000),
     },
   );
-  const result = await response.json() as PayPalOrderResult & {
+  let result = await response.json() as PayPalOrderResult & {
     message?: string;
     name?: string;
   };
+  // If this order was captured successfully before verification failed, a
+  // second capture returns 422. Read the existing order so an admin retry can
+  // verify that already-completed payment without charging the buyer again.
+  if (!response.ok && response.status === 422) {
+    const orderResponse = await fetchImpl(
+      `${baseUrl}/v2/checkout/orders/${encodeURIComponent(orderId)}`,
+      {
+        method: "GET",
+        headers: {"Authorization": `Bearer ${accessToken}`},
+        signal: AbortSignal.timeout(15000),
+      },
+    );
+    if (orderResponse.ok) {
+      response = orderResponse;
+      result = await orderResponse.json() as PayPalOrderResult;
+    }
+  }
   if (!response.ok) {
     throw new Error(
       result.message || result.name || "PayPal payment could not be captured.",

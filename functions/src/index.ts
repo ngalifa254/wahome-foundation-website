@@ -484,6 +484,7 @@ export const listEventRegistrations = onCall(async (request) => {
       phone: data.contactPhone || data.phone || "",
       paymentStatus: data.paymentStatus || "pending",
       paymentMethod: data.paymentMethod || "",
+      paypalOrderId: typeof data.paypalOrderId === "string" ? data.paypalOrderId : "",
       paymentReceipt: data.paymentReceipt || "",
       createdAt,
     };
@@ -523,6 +524,7 @@ export const listGeneralDonations = onCall(async (request) => {
       currency: typeof data.currency === "string" ? data.currency : donationCurrency,
       paymentStatus,
       paymentProvider: typeof data.provider === "string" ? data.provider : "",
+      paypalOrderId: typeof data.paypalOrderId === "string" ? data.paypalOrderId : "",
       paymentReceipt: typeof data.paymentReceipt === "string" ? data.paymentReceipt : "",
       paymentReference: typeof data.paymentReference === "string" ? data.paymentReference : document.id,
       createdAt,

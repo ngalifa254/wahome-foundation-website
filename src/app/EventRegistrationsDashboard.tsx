@@ -34,6 +34,7 @@ export interface Registration {
   phone: string;
   paymentStatus: "verified" | "pending" | "failed";
   paymentMethod?: string;
+  paypalOrderId?: string;
   paymentReceipt?: string;
   createdAt: string;
 }
@@ -50,6 +51,7 @@ export interface GeneralDonation {
   currency: string;
   paymentStatus: "verified" | "pending" | "failed";
   paymentProvider: string;
+  paypalOrderId: string;
   paymentReceipt: string;
   paymentReference: string;
   createdAt: string;
@@ -111,6 +113,8 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedParticipant, setSelectedParticipant] = useState<Registration | null>(null);
+  const [reconcilingPayment, setReconcilingPayment] = useState("");
+  const [paymentRecoveryError, setPaymentRecoveryError] = useState("");
 
   const loadRegistrations = useCallback(async () => {
     if (!functions) {
@@ -171,6 +175,38 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
       setIsLoadingDonations(false);
     }
   }, []);
+
+  const reconcilePayPalPayment = async (
+    kind: "donation" | "registration",
+    id: string,
+    orderId: string,
+  ) => {
+    if (!functions) return;
+    const recoveryKey = `${kind}:${id}`;
+    setReconcilingPayment(recoveryKey);
+    setPaymentRecoveryError("");
+    try {
+      if (kind === "donation") {
+        const capture = httpsCallable<
+          {donationId: string; orderId: string},
+          {paymentStatus: "verified"; receipt: string}
+        >(functions, "captureDonationPayPalOrder");
+        await capture({donationId: id, orderId});
+        await loadDonations();
+      } else {
+        const capture = httpsCallable<
+          {registrationId: string; orderId: string},
+          {paymentStatus: "verified"; paymentReceipt: string}
+        >(functions, "captureRacePayPalOrder");
+        await capture({registrationId: id, orderId});
+        await loadRegistrations();
+      }
+    } catch (cause) {
+      setPaymentRecoveryError(cause instanceof Error ? cause.message : "Could not verify this PayPal payment.");
+    } finally {
+      setReconcilingPayment("");
+    }
+  };
 
   useEffect(() => {
     void loadRegistrations();
@@ -404,6 +440,7 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
           </div>
         </div>
         {signOutError && <p role="alert" className="mt-3 text-right text-sm text-red-600">{signOutError}</p>}
+        {paymentRecoveryError && <p role="alert" className="mt-3 text-right text-sm text-red-600">{paymentRecoveryError}</p>}
         {/* Seamless Horizontal Divider Stat Banner (Replaces AI Boxes) */}
         <div className="bg-white border border-slate-200 rounded-2xl p-6 mt-6 shadow-xs">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-slate-100 gap-4 sm:gap-0">
@@ -589,6 +626,17 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
                       </div>
 
                       <div className="flex items-center gap-1">
+                        {item.paymentStatus === "pending" && item.paymentMethod === "paypal" && item.paypalOrderId && (
+                          <button
+                            type="button"
+                            onClick={() => void reconcilePayPalPayment("registration", item.id, item.paypalOrderId!)}
+                            disabled={Boolean(reconcilingPayment)}
+                            className="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                            title="Check the existing PayPal order and update this registration if payment completed"
+                          >
+                            {reconcilingPayment === `registration:${item.id}` ? "Checking…" : "Verify PayPal"}
+                          </button>
+                        )}
                         <button
                           onClick={() => setSelectedParticipant(item)}
                           className="p-2 text-slate-400 hover:text-slate-800 hover:bg-white rounded-lg transition border border-transparent hover:border-slate-200"
@@ -679,6 +727,18 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
                         <p className="text-base font-bold text-slate-900">{donation.currency} {donation.amount.toFixed(2)}</p>
                         <p className="text-[11px] text-slate-500">{donation.paymentProvider ? `${donation.paymentProvider === "paypal" ? "PayPal" : donation.paymentProvider} · ` : ""}{donation.paymentReceipt || donation.paymentReference}</p>
                       </div>
+                      <div className="flex items-center gap-2">
+                      {donation.paymentStatus === "pending" && donation.paymentProvider === "paypal" && donation.paypalOrderId && (
+                        <button
+                          type="button"
+                          onClick={() => void reconcilePayPalPayment("donation", donation.id, donation.paypalOrderId)}
+                          disabled={Boolean(reconcilingPayment)}
+                          className="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                          title="Check the existing PayPal order and update this donation if payment completed"
+                        >
+                          {reconcilingPayment === `donation:${donation.id}` ? "Checking…" : "Verify PayPal"}
+                        </button>
+                      )}
                       <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full w-fit ${
                         donation.paymentStatus === "verified" ? "text-emerald-700 bg-emerald-50 border border-emerald-200" :
                           donation.paymentStatus === "failed" ? "text-red-700 bg-red-50 border border-red-200" :
@@ -687,6 +747,7 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
                         {donation.paymentStatus === "verified" ? <CheckCircle2 className="w-3 h-3" /> : donation.paymentStatus === "pending" ? <Clock className="w-3 h-3" /> : null}
                         {donation.paymentStatus === "verified" ? "Verified" : donation.paymentStatus === "failed" ? "Failed" : "Pending"}
                       </span>
+                      </div>
                     </div>
                   </div>
                 ))
