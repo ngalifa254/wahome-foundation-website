@@ -36,6 +36,18 @@ export interface PayPalCaptureDetails {
   };
 }
 
+interface PayPalTransactionSearchResult {
+  transaction_details?: Array<{
+    transaction_info?: {
+      transaction_id?: string;
+      paypal_reference_id?: string;
+      paypal_reference_id_type?: string;
+      transaction_status?: string;
+      transaction_amount?: {currency_code?: string; value?: string};
+    };
+  }>;
+}
+
 export interface PayPalWebhookEvent {
   id?: string;
   event_type?: string;
@@ -285,6 +297,77 @@ export async function getPayPalCapture(
     );
   }
   return result;
+}
+
+/** Finds the capture transaction for a known PayPal order without asking the
+ * donor to copy its transaction ID from a receipt. PayPal transaction search
+ * can lag behind a capture, so the signed capture webhook remains the real-time
+ * path and callers should present this as an on-demand recovery action.
+ * @param {PayPalOrderInput} input Server credentials and expected payment data.
+ * @param {string} orderId PayPal order ID saved on the pending record.
+ * @param {string | undefined} mode PayPal environment.
+ * @return {Promise<string>} The matching PayPal transaction/capture ID.
+ */
+export async function findPayPalCaptureIdByOrderId(
+  input: PayPalOrderInput,
+  orderId: string,
+  mode: string | undefined = "sandbox",
+): Promise<string> {
+  const fetchImpl = input.fetchImpl ?? fetch;
+  const baseUrl = paypalBaseUrl(mode);
+  const accessToken = await getAccessToken(input, baseUrl, fetchImpl);
+  const end = new Date();
+  const start = new Date(end.getTime() - 30 * 24 * 60 * 60 * 1000);
+  const query = new URLSearchParams({
+    transaction_id: orderId,
+    start_date: start.toISOString(),
+    end_date: end.toISOString(),
+    fields: "transaction_info",
+    page_size: "100",
+  });
+  const response = await fetchImpl(
+    `${baseUrl}/v1/reporting/transactions?${query.toString()}`,
+    {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${accessToken}`,
+        "PayPal-Enforce-ISO8601-Format": "true",
+      },
+      signal: AbortSignal.timeout(15000),
+    },
+  );
+  const result = await response.json() as PayPalTransactionSearchResult & {
+    message?: string;
+    name?: string;
+  };
+  if (!response.ok) {
+    throw new Error(
+      result.message || result.name ||
+        "PayPal transaction search is unavailable.",
+    );
+  }
+
+  const matchingIds = new Set(
+    (result.transaction_details ?? []).flatMap(
+      ({transaction_info: transaction}) => {
+        if (!transaction?.transaction_id ||
+          transaction.paypal_reference_id !== orderId ||
+          transaction.paypal_reference_id_type !== "ODR" ||
+          transaction.transaction_status !== "S" ||
+          transaction.transaction_amount?.value !== input.amount ||
+          transaction.transaction_amount?.currency_code !== input.currency) {
+          return [];
+        }
+        return [transaction.transaction_id];
+      },
+    ),
+  );
+  if (matchingIds.size !== 1) {
+    throw new Error(matchingIds.size > 1 ?
+      "More than one completed PayPal transaction matched this order." :
+      "PayPal has not returned a completed transaction for this order yet.");
+  }
+  return [...matchingIds][0];
 }
 
 /** Ensures this PayPal app is subscribed to completed payment captures.

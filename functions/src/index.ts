@@ -5,7 +5,7 @@ import {randomBytes} from "node:crypto";
 import {setGlobalOptions} from "firebase-functions";
 import {defineSecret, defineString} from "firebase-functions/params";
 import {HttpsError, onCall, onRequest} from "firebase-functions/v2/https";
-import {capturePayPalOrder, createPayPalOrder, ensurePayPalCaptureWebhook, getPayPalCapture, verifyPayPalWebhook, type PayPalOrderResult, type PayPalWebhookEvent} from "./paypalClient.js";
+import {capturePayPalOrder, createPayPalOrder, ensurePayPalCaptureWebhook, findPayPalCaptureIdByOrderId, getPayPalCapture, verifyPayPalWebhook, type PayPalOrderResult, type PayPalWebhookEvent} from "./paypalClient.js";
 
 const turnstileSecret = defineSecret("TURNSTILE_SECRET_KEY");
 const paypalClientId = defineSecret("PAYPAL_CLIENT_ID");
@@ -365,8 +365,8 @@ export const reconcileDonationPayPalCapture = onCall({
   const data = request.data as Record<string, unknown> | null;
   const donationId = typeof data?.donationId === "string" ? data.donationId.trim() : "";
   const captureId = typeof data?.captureId === "string" ? data.captureId.trim() : "";
-  if (!donationId || !/^[A-Z0-9]{10,20}$/i.test(captureId)) {
-    throw new HttpsError("invalid-argument", "The PayPal capture reference is invalid.");
+  if (!donationId || (captureId && !/^[A-Z0-9]{10,24}$/i.test(captureId))) {
+    throw new HttpsError("invalid-argument", "The PayPal donation or capture reference is invalid.");
   }
   const donationRef = db.collection("donations").doc(donationId);
   const snapshot = await donationRef.get();
@@ -385,6 +385,25 @@ export const reconcileDonationPayPalCapture = onCall({
   if (typeof donation.amount !== "number" || donation.currency !== donationCurrency) {
     throw new HttpsError("failed-precondition", "The donation amount or currency does not match.");
   }
+  let resolvedCaptureId = captureId;
+  if (!resolvedCaptureId) {
+    if (!hasPayPalOrder) {
+      throw new HttpsError("failed-precondition", "This donation has no saved PayPal order to search automatically.");
+    }
+    try {
+      resolvedCaptureId = await findPayPalCaptureIdByOrderId({
+        clientId: paypalClientId.value(),
+        clientSecret: paypalClientSecret.value(),
+        amount: donation.amount.toFixed(2),
+        currency: donationCurrency,
+        reference: donationId,
+        description: "Donation to Wahome Foundation",
+      }, donation.paypalOrderId as string, paypalMode.value());
+    } catch (error) {
+      console.error("PayPal donation transaction search failed", error instanceof Error ? error.message : "unknown error");
+      throw new HttpsError("unavailable", error instanceof Error ? error.message : "PayPal could not find this donation automatically. Try again later.");
+    }
+  }
   let capture;
   try {
     capture = await getPayPalCapture({
@@ -394,7 +413,7 @@ export const reconcileDonationPayPalCapture = onCall({
       currency: donationCurrency,
       reference: donationId,
       description: "Donation to Wahome Foundation",
-    }, captureId, paypalMode.value());
+    }, resolvedCaptureId, paypalMode.value());
   } catch (error) {
     console.error("PayPal donation capture lookup failed", error instanceof Error ? error.message : "unknown error");
     const missing = error instanceof Error && /does not exist|not found/i.test(error.message);
@@ -429,8 +448,8 @@ export const reconcileRacePayPalCapture = onCall({
   const data = request.data as Record<string, unknown> | null;
   const registrationId = typeof data?.registrationId === "string" ? data.registrationId.trim() : "";
   const captureId = typeof data?.captureId === "string" ? data.captureId.trim() : "";
-  if (!registrationId || !/^[A-Z0-9]{10,20}$/i.test(captureId)) {
-    throw new HttpsError("invalid-argument", "Enter a valid PayPal Merchant Transaction ID.");
+  if (!registrationId || (captureId && !/^[A-Z0-9]{10,24}$/i.test(captureId))) {
+    throw new HttpsError("invalid-argument", "The PayPal registration or capture reference is invalid.");
   }
   const registrationRef = db.collection("eventRegistrations").doc(registrationId);
   const snapshot = await registrationRef.get();
@@ -446,6 +465,25 @@ export const reconcileRacePayPalCapture = onCall({
   if (!expectedRegistrationFee) {
     throw new HttpsError("failed-precondition", "The PayPal capture amount does not match this registration.");
   }
+  let resolvedCaptureId = captureId;
+  if (!resolvedCaptureId) {
+    if (typeof registration.paypalOrderId !== "string" || !registration.paypalOrderId) {
+      throw new HttpsError("failed-precondition", "This registration has no saved PayPal order to search automatically.");
+    }
+    try {
+      resolvedCaptureId = await findPayPalCaptureIdByOrderId({
+        clientId: paypalClientId.value(),
+        clientSecret: paypalClientSecret.value(),
+        amount: registrationFeeUsd,
+        currency: donationCurrency,
+        reference: registrationId,
+        description: "Miles for Minds Run 2027 registration",
+      }, registration.paypalOrderId, paypalMode.value());
+    } catch (error) {
+      console.error("PayPal race transaction search failed", error instanceof Error ? error.message : "unknown error");
+      throw new HttpsError("unavailable", error instanceof Error ? error.message : "PayPal could not find this registration automatically. Try again later.");
+    }
+  }
   let capture;
   try {
     capture = await getPayPalCapture({
@@ -455,7 +493,7 @@ export const reconcileRacePayPalCapture = onCall({
       currency: donationCurrency,
       reference: registrationId,
       description: "Miles for Minds Run 2027 registration",
-    }, captureId, paypalMode.value());
+    }, resolvedCaptureId, paypalMode.value());
   } catch (error) {
     console.error("PayPal race capture lookup failed", error instanceof Error ? error.message : "unknown error");
     const missing = error instanceof Error && /does not exist|not found/i.test(error.message);

@@ -6,9 +6,11 @@ The current PayPal Orders API currency list does not include KES, so checkout us
 
 ## When PayPal says paid but the dashboard says pending
 
-The admin dashboard can verify an existing PayPal order or reconcile directly with the Merchant Transaction ID from the PayPal receipt. Use the capture ID on the matching pending donation or registration row and choose **Verify capture**. The server looks up the capture through the PayPal Payments API and only marks the Firestore record verified when the capture is completed, its USD amount is exact, and PayPal's custom or related order ID matches the selected record.
+The admin dashboard verifies new orders through the PayPal capture callback and a signed `PAYMENT.CAPTURE.COMPLETED` webhook. For older pending records, choose **Auto verify** to search PayPal's transaction report using the saved order ID; the server then fetches the matching capture and checks its status, USD amount, currency, and related order before updating Firestore. PayPal's transaction report may take up to three hours to include a capture. If the report cannot find it, enter the receipt's Merchant Transaction ID and choose **Verify capture** as a fallback.
 
 An order ID and a capture/transaction ID are different PayPal identifiers. If PayPal cannot find the saved order ID, use the receipt's Merchant Transaction ID. If the capture lookup succeeds but says it does not match the record, confirm that the transaction was paid through the same live PayPal REST app configured in Firebase and that the capture belongs to that donation or registration. Do not mark a payment verified from a receipt alone when the PayPal API cannot confirm its capture.
+
+Automatic recovery by order ID uses PayPal Transaction Search. Enable the **Transaction Search** permission for the REST app used by Firebase Functions. The webhook and checkout capture callback continue to verify payments immediately; transaction search is the recovery path for earlier payments or missed callbacks.
 
 ## Configure local checkout
 

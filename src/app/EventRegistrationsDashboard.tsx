@@ -212,15 +212,16 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
   const reconcileByCaptureId = async (
     kind: "donation" | "registration",
     id: string,
+    automatic = false,
   ) => {
     if (!functions) return;
     const captureKey = `${kind}:${id}`;
-    const captureId = paypalCaptureIds[captureKey]?.trim() ?? "";
-    if (!/^[A-Z0-9]{10,20}$/i.test(captureId)) {
+    const captureId = automatic ? "" : paypalCaptureIds[captureKey]?.trim() ?? "";
+    if (!automatic && !/^[A-Z0-9]{10,24}$/i.test(captureId)) {
       setPaymentRecoveryError("Enter the Merchant Transaction ID from the PayPal receipt.");
       return;
     }
-    const recoveryKey = `capture:${captureKey}`;
+    const recoveryKey = `${automatic ? "auto" : "capture"}:${captureKey}`;
     setReconcilingPayment(recoveryKey);
     setPaymentRecoveryError("");
     try {
@@ -707,8 +708,17 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
                               disabled={Boolean(reconcilingPayment)}
                               className="rounded-lg bg-slate-900 px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-slate-800 disabled:opacity-50"
                             >
-                              {reconcilingPayment === `capture:registration:${item.id}` ? "Checking…" : "Verify capture"}
+                            {reconcilingPayment === `capture:registration:${item.id}` ? "Checking…" : "Verify capture"}
                             </button>
+                          <button
+                            type="button"
+                            onClick={() => void reconcileByCaptureId("registration", item.id, true)}
+                            disabled={Boolean(reconcilingPayment)}
+                            className="rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-[11px] font-semibold text-emerald-800 hover:bg-emerald-100 disabled:opacity-50"
+                            title="Find the completed PayPal capture automatically from this saved order"
+                          >
+                            {reconcilingPayment === `auto:registration:${item.id}` ? "Searching…" : "Auto verify"}
+                          </button>
                           </div>
                         )}
                         <button
@@ -827,6 +837,15 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
                             className="shrink-0 rounded-lg bg-slate-900 px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-slate-800 disabled:opacity-50"
                           >
                             {reconcilingPayment === `capture:donation:${donation.id}` ? "Checking…" : "Verify capture"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => void reconcileByCaptureId("donation", donation.id, true)}
+                            disabled={Boolean(reconcilingPayment)}
+                            className="shrink-0 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-[11px] font-semibold text-emerald-800 hover:bg-emerald-100 disabled:opacity-50"
+                            title="Find the completed PayPal capture automatically from this saved order"
+                          >
+                            {reconcilingPayment === `auto:donation:${donation.id}` ? "Searching…" : "Auto verify"}
                           </button>
                         </div>
                       )}
