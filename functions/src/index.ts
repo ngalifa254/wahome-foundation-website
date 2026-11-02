@@ -329,7 +329,14 @@ export const captureDonationPayPalOrder = onCall({
     }, orderId, paypalMode.value());
   } catch (error) {
     console.error("PayPal donation capture failed", error instanceof Error ? error.message : "unknown error");
-    throw new HttpsError("unavailable", "PayPal could not confirm this donation right now. Please try again.");
+    const missingOrder = error instanceof Error &&
+      /specified resource does not exist|resource not found/i.test(error.message);
+    throw new HttpsError(
+      missingOrder ? "not-found" : "unavailable",
+      missingOrder ?
+        "PayPal could not find this checkout order. If the payment completed, use the receipt's Merchant Transaction ID with Verify capture." :
+        "PayPal could not confirm this donation right now. Please try again.",
+    );
   }
   if (!capturedOrder) throw new HttpsError("failed-precondition", "PayPal could not verify the completed donation amount.");
   const capture = capturedOrder.purchase_units?.[0]?.payments?.captures?.[0];
@@ -364,7 +371,12 @@ export const reconcileDonationPayPalCapture = onCall({
   const donationRef = db.collection("donations").doc(donationId);
   const snapshot = await donationRef.get();
   const donation = snapshot.data();
-  if (!snapshot.exists || donation?.provider !== "paypal") {
+  if (!snapshot.exists || !donation) {
+    throw new HttpsError("not-found", "We could not find this PayPal donation.");
+  }
+  const provider = typeof donation.provider === "string" ? donation.provider.toLowerCase() : "";
+  const hasPayPalOrder = typeof donation.paypalOrderId === "string" && donation.paypalOrderId.length > 0;
+  if (provider !== "paypal" && !hasPayPalOrder) {
     throw new HttpsError("not-found", "We could not find this PayPal donation.");
   }
   if (donation.paymentStatus === "verified") {
@@ -401,6 +413,7 @@ export const reconcileDonationPayPalCapture = onCall({
     throw new HttpsError("failed-precondition", "This capture does not match the pending donation.");
   }
   await donationRef.update({
+    provider: "paypal",
     paymentStatus: "verified",
     paymentReceipt: capture.id,
     paidAt: FieldValue.serverTimestamp(),
@@ -813,7 +826,8 @@ export const listGeneralDonations = onCall(async (request) => {
       amount: typeof data.amount === "number" ? data.amount : 0,
       currency: typeof data.currency === "string" ? data.currency : donationCurrency,
       paymentStatus,
-      paymentProvider: typeof data.provider === "string" ? data.provider : "",
+      paymentProvider: typeof data.provider === "string" && data.provider.toLowerCase() === "paypal" ?
+        "paypal" : typeof data.provider === "string" ? data.provider : "",
       paypalOrderId: typeof data.paypalOrderId === "string" ? data.paypalOrderId : "",
       paymentReceipt: typeof data.paymentReceipt === "string" ? data.paymentReceipt : "",
       paymentReference: typeof data.paymentReference === "string" ? data.paymentReference : document.id,

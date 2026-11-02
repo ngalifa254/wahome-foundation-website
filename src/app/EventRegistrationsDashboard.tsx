@@ -802,7 +802,7 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
                         <p className="text-[11px] text-slate-500">{donation.paymentProvider ? `${donation.paymentProvider === "paypal" ? "PayPal" : donation.paymentProvider} · ` : ""}{donation.paymentReceipt || donation.paymentReference}</p>
                       </div>
                       <div className="flex items-center gap-2">
-                      {donation.paymentStatus === "pending" && donation.paymentProvider === "paypal" && (
+                      {donation.paymentStatus === "pending" && (
                         <div className="flex flex-wrap items-center justify-end gap-2">
                           {donation.paypalOrderId && (
                           <button
