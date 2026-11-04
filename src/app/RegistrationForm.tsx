@@ -3,6 +3,7 @@ import { ArrowRight, CheckCircle2, Loader2, Sparkles } from "lucide-react";
 import { httpsCallable } from "firebase/functions";
 import { functions } from "../lib/firebase"; // Uses existing functions export from lib/firebase.ts
 import PayPalCheckoutButton from "./components/PayPalCheckoutButton";
+import PesapalCheckoutButton from "./components/PesapalCheckoutButton";
 
 type Category = "21K" | "10K" | "Children's 1K";
 type Gender = "male" | "female";
@@ -487,7 +488,20 @@ export default function RegistrationForm() {
           )}
 
           {paymentLoading && <p className="mt-3 flex items-center justify-center gap-2 text-xs text-slate-500"><Loader2 className="h-4 w-4 animate-spin" /> Contacting PayPal…</p>}
-          {!paymentDisabled && paymentStatus !== "verified" && <div className="mt-4"><PayPalCheckoutButton createOrder={handleCreatePayPalOrder} onApprove={handlePayPalApproval} onError={handlePayPalError} /></div>}
+          {!paymentDisabled && paymentStatus !== "verified" && (
+            <div className="mt-4 space-y-3">
+              <PayPalCheckoutButton createOrder={handleCreatePayPalOrder} onApprove={handlePayPalApproval} onError={handlePayPalError} />
+              <div className="border-t border-blue-200 pt-3">
+                <PesapalCheckoutButton
+                  createOrder={async () => {
+                    throw new Error("Pesapal checkout is not configured yet. Please use PayPal.");
+                  }}
+                  onError={handlePayPalError}
+                />
+                <p className="mt-1 text-center text-xs text-slate-500">Pesapal checkout setup is not complete yet.</p>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
