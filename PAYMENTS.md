@@ -29,6 +29,8 @@ PAYPAL_CLIENT_SECRET=your-sandbox-client-secret
 
 The default mode is PayPal sandbox. Use sandbox buyer accounts from the PayPal Developer Dashboard to complete a checkout.
 
+The current `.env.development.local` is missing `VITE_PAYPAL_CLIENT_ID`, which is why the local PayPal button reports that it is not configured. Add a PayPal **sandbox** app client ID there to use PayPal locally; do not copy a live client ID into development. `functions/.secret.local` is also absent, so local Firebase Functions need PayPal sandbox credentials there if you want to test PayPal order creation locally.
+
 ## Configure production
 
 Set production PayPal REST app credentials as Firebase Functions secrets, then set the public client ID as the GitHub Actions repository variable `VITE_PAYPAL_CLIENT_ID` so the Pages build can load the PayPal JavaScript SDK:
@@ -54,18 +56,22 @@ This repository includes a reusable redirect button at `src/app/components/Pesap
 
 ### Configure credentials
 
-Pesapal's consumer key and secret are server credentials. Keep them out of all `VITE_` variables and the browser bundle. For local Functions emulator use, add these to `functions/.secret.local` (this is ignored by Git):
+Pesapal's consumer key and secret are server credentials. Keep them out of all `VITE_` variables and the browser bundle. For local Functions emulator use, add the two secrets to `functions/.secret.local` (this is ignored by Git):
 
 ```env
 PESAPAL_CONSUMER_KEY=your-sandbox-consumer-key
 PESAPAL_CONSUMER_SECRET=your-sandbox-consumer-secret
-PESAPAL_MODE=sandbox
-PESAPAL_IPN_ID=your-registered-sandbox-ipn-guid
-PESAPAL_CALLBACK_URL=http://localhost:5173/#/payment/pesapal
-PESAPAL_IPN_URL=https://your-public-https-functions-url/pesapalIpn
 ```
 
-`PESAPAL_CALLBACK_URL` must be a real public HTTPS URL for a hosted checkout (localhost is suitable only for local testing). `PESAPAL_IPN_URL` must be publicly reachable by Pesapal even if the donor closes their browser. Register that IPN URL against the matching sandbox or live merchant account and save the returned `ipn_id` as `PESAPAL_IPN_ID`. For Firebase deployment, store the key and secret with `firebase functions:secrets:set PESAPAL_CONSUMER_KEY` and `... PESAPAL_CONSUMER_SECRET`; use Firebase function parameters/secrets for the mode and URLs/IPN ID. Use separate credentials, IPN registration, and callback/IPN URLs for sandbox and production. Do not put any Pesapal credentials in `.env.development.local` or `.env.cloud.local`; no client environment variable is needed.
+The other three values are non-secret Firebase Functions parameters. Put them in `functions/.env.local` for the emulator (also ignored by Git):
+
+```env
+PESAPAL_MODE=sandbox
+PESAPAL_IPN_ID=your-registered-sandbox-ipn-guid
+PESAPAL_CALLBACK_URL=https://your-public-https-site.example/payment-return
+```
+
+`PESAPAL_CALLBACK_URL` must be a public HTTPS URL configured to return to your site after checkout. Register the deployed `pesapalIpn` endpoint URL (`https://africa-south1-<firebase-project-id>.cloudfunctions.net/pesapalIpn`) against the matching sandbox/live merchant account; put the returned `ipn_id` in `PESAPAL_IPN_ID`. IPNs are sent to the HTTPS Function and payment status is confirmed by querying Pesapal's API. For Firebase deployment, store only the key and secret with `firebase functions:secrets:set PESAPAL_CONSUMER_KEY` and `firebase functions:secrets:set PESAPAL_CONSUMER_SECRET`. Store the mode, IPN ID, and callback URL in `functions/.env.<project-or-alias>` or answer the Firebase parameter prompts at deploy. Use separate sandbox/live settings. Do not put Pesapal credentials in `.env.development.local` or `.env.cloud.local`; no client environment variable is needed.
 
 ### Wire the component to the donation flow
 
@@ -86,14 +92,29 @@ The `createOrder` callback passed to the component must call a Firebase callable
 />
 ```
 
-This component is the browser control only; the Firebase Functions endpoint names and server handlers above must be implemented before it can accept payments. Do not mark a donation paid from the redirect URL or data stored in `sessionStorage`.
+The donation and run buttons now call `startDonationPesapalOrder` and `startRacePesapalOrder` Firebase Functions. These handlers keep prices on the server, create pending Firestore records, submit Pesapal API 3.0 orders, and return the hosted checkout URL. Do not mark a payment paid from the redirect URL or browser storage.
 
 ### Confirm the result on the server
 
-Implement both a callback/status check and an IPN handler in `functions/src/index.ts` (with Pesapal REST helpers in a separate `functions/src/pesapalClient.ts`). Pesapal API 3.0 uses `https://cybqa.pesapal.com/pesapalv3` for sandbox and `https://pay.pesapal.com/v3` for live. The backend authenticates with `POST /api/Auth/RequestToken`, creates orders with `POST /api/Transactions/SubmitOrderRequest`, and checks them using `GET /api/Transactions/GetTransactionStatus?orderTrackingId=...`. Register the IPN URL first; its returned GUID is required as `notification_id` on every order.
+The IPN handler is `pesapalIpn` in `functions/src/index.ts`; Pesapal REST helpers are in `functions/src/pesapalClient.ts`. API 3.0 uses `https://cybqa.pesapal.com/pesapalv3` for sandbox and `https://pay.pesapal.com/v3` for live. The backend authenticates with `POST /api/Auth/RequestToken`, creates orders with `POST /api/Transactions/SubmitOrderRequest`, and checks them using `GET /api/Transactions/GetTransactionStatus?orderTrackingId=...`. Register the IPN URL first; its returned GUID is required as `notification_id` on every order.
 
-Pesapal redirects to the callback and calls the IPN with `OrderTrackingId`, `OrderMerchantReference`, and a notification type. Those values identify the transaction but do not prove payment. In both paths, the backend must query Pesapal's status endpoint, match the returned `merchant_reference`, expected amount, and currency to the pending Firestore record, and only set `paymentStatus: "verified"` when the returned `status_code` is `1` (`COMPLETED`). Leave pending payments pending; handle failed/reversed statuses explicitly. The IPN should return Pesapal's required acknowledgement after processing. The callback should show a “checking payment” state and ask a server endpoint to confirm; it can poll briefly for a pending mobile money result. Treat the IPN as the durable update path if the customer closes the browser.
+Pesapal calls the IPN with `OrderTrackingId` and `OrderMerchantReference`. Those values identify the transaction but do not prove payment. The backend queries Pesapal's status endpoint, matches the returned `merchant_reference`, expected amount, and currency to the pending Firestore record, and sets `paymentStatus: "verified"` only when `status_code` is `1` (`COMPLETED`). Pending transactions remain pending; failed/reversed statuses are recorded as failed. The IPN returns Pesapal's acknowledgement after processing. The IPN is the durable update path if the customer closes the browser; race registration polls the Firestore payment status after returning to the site.
 
-The existing donation record uses USD for PayPal. Pesapal's sample order uses KES, so choose the Pesapal currency/amount from server-side policy and display it to the donor; never let the browser choose the amount/currency that gets written as paid. If adding Pesapal for run registrations too, implement a separate validation path using the existing fixed registration fee, not a client-supplied price.
+The existing donation modal accepts USD; the Pesapal donation handler currently submits that server-validated amount in USD and therefore requires a Pesapal merchant account enabled for USD. Run registration uses the server-fixed KSh 1,000 fee. Never let the browser choose the amount/currency that gets written as paid.
+
+### Sandbox setup checklist
+
+1. In the Pesapal Sandbox Developer Dashboard, create/find the sandbox merchant account and copy its **Consumer Key** and **Consumer Secret** into `functions/.secret.local` locally. For cloud Functions use Firebase Secrets:
+
+   ```powershell
+   firebase.cmd functions:secrets:set PESAPAL_CONSUMER_KEY --project <dev-project-id>
+   firebase.cmd functions:secrets:set PESAPAL_CONSUMER_SECRET --project <dev-project-id>
+   ```
+
+2. Deploy Functions to the development Firebase project so `pesapalIpn` has a public HTTPS URL, or use an HTTPS tunnel during local testing. In Pesapal **IPN Settings**, register that URL with method **GET**, then copy the returned **IPN ID / notification_id** to `PESAPAL_IPN_ID`.
+3. Set `PESAPAL_MODE=sandbox`, `PESAPAL_IPN_ID=<the GUID>`, and `PESAPAL_CALLBACK_URL=<your public HTTPS return page>` in `functions/.env.local` for the emulator or `functions/.env.<project-or-alias>` for deploy.
+4. Confirm the sandbox merchant supports the two configured currencies (USD donations and KES run registration). If USD is not enabled, decide whether donations should also be entered/displayed in KES before changing the backend currency policy.
+5. Deploy Functions, complete a sandbox donation and registration, then confirm Firestore only changes to `verified` after the IPN's server-side status lookup reports `COMPLETED` with the saved amount/currency.
+6. For production, repeat with live Consumer Key/Secret, live IPN registration and GUID, `PESAPAL_MODE=live`, and production callback URL. Keep the sandbox/live credentials and settings separate.
 
 Pesapal API 3.0 references: [Authentication](https://developer.pesapal.com/how-to-integrate/e-commerce/api-30-json/authentication), [Register IPN URL](https://developer.pesapal.com/how-to-integrate/e-commerce/api-30-json/registeripnurl), [Submit Order Request](https://developer.pesapal.com/how-to-integrate/e-commerce/api-30-json/submitorderrequest), [Get Transaction Status](https://developer.pesapal.com/how-to-integrate/e-commerce/api-30-json/gettransactionstatus), and [Pesapal's Node sample](https://github.com/Pesapal-Ltd/Sample_Api3_node).

@@ -198,6 +198,18 @@ function DonateModal({
     return result.data.orderId;
   }, [amount, email, firstName, lastName]);
 
+  const handleCreatePesapalDonationOrder = useCallback(async () => {
+    if (!functions) throw new Error("Donations are unavailable because the payment service is not configured.");
+    setPaymentError("");
+    const startDonation = httpsCallable<
+      {amount: number; firstName: string; lastName: string; email: string},
+      {donationId: string; merchantReference: string; redirectUrl: string}
+    >(functions, "startDonationPesapalOrder");
+    const result = await startDonation({amount: Number(amount), firstName, lastName, email});
+    donationIdRef.current = result.data.donationId;
+    return {redirectUrl: result.data.redirectUrl};
+  }, [amount, email, firstName, lastName]);
+
   const handleDonationApproval = useCallback(async ({orderID}: {orderID: string}) => {
     if (!functions || !donationIdRef.current) throw new Error("We could not match this PayPal payment to the donation.");
     const captureDonation = httpsCallable<
@@ -339,7 +351,7 @@ function DonateModal({
 
             <div className="space-y-4">
               <h3 className="font-bold text-base text-[#1F3A52]">Choose a payment method</h3>
-              <p className="text-xs text-[#5B6670]">PayPal charges your donation in US dollars. Pesapal checkout is shown below and will be available after its server setup is complete.</p>
+              <p className="text-xs text-[#5B6670]">PayPal charges your donation in US dollars. Pesapal charges in US dollars too; its sandbox merchant credentials and IPN setup are required before checkout can start.</p>
 
               <div className="bg-[#F8FAFC] p-4 rounded-xl border border-[#E2E8F0] space-y-2 text-sm">
                 <div className="flex justify-between text-[#5B6670]">
@@ -368,12 +380,10 @@ function DonateModal({
               <PayPalCheckoutButton createOrder={handleCreateDonationOrder} onApprove={handleDonationApproval} onError={handleDonationError} />
               <div className="border-t border-[#E2E8F0] pt-3">
                 <PesapalCheckoutButton
-                  createOrder={async () => {
-                    throw new Error("Pesapal checkout is not configured yet. Please use PayPal.");
-                  }}
+                  createOrder={handleCreatePesapalDonationOrder}
                   onError={handlePesapalDonationError}
                 />
-                <p className="mt-1 text-center text-xs text-[#5B6670]">Pesapal checkout setup is not complete yet.</p>
+                <p className="mt-1 text-center text-xs text-[#5B6670]">Pesapal checkout requires a donor email address.</p>
               </div>
             </div>
           </form>

@@ -37,6 +37,13 @@ interface StartPaymentResponse {
   paymentStatus: "pending";
 }
 
+interface StartPesapalPaymentResponse {
+  merchantReference: string;
+  redirectUrl: string;
+  amountKes: number;
+  paymentStatus: "pending";
+}
+
 interface PaymentInstructions {
   message: string;
   reference: string;
@@ -262,6 +269,29 @@ export default function RegistrationForm() {
   const handlePayPalError = useCallback((cause: unknown) => {
     setError(cause instanceof Error ? cause.message : "PayPal checkout could not complete. Please try again.");
   }, []);
+
+  const handleCreatePesapalOrder = useCallback(async () => {
+    if (!functions || !registrationId) throw new Error("Pesapal checkout is unavailable right now.");
+    setError("");
+    setPaymentLoading(true);
+    try {
+      const startPayment = httpsCallable<{registrationId: string}, StartPesapalPaymentResponse>(functions, "startRacePesapalOrder");
+      const result = await startPayment({registrationId});
+      const instructions: PaymentInstructions = {
+        message: `Complete the KSh ${result.data.amountKes.toLocaleString()} Pesapal payment to finish registration.`,
+        reference: registrationId,
+      };
+      setPaymentStatus("pending");
+      setPaymentInstructions(instructions);
+      sessionStorage.setItem("miles-for-minds-payment", JSON.stringify(instructions));
+      return {redirectUrl: result.data.redirectUrl};
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Could not start Pesapal checkout. Please try again.");
+      throw cause;
+    } finally {
+      setPaymentLoading(false);
+    }
+  }, [registrationId]);
 
   return (
     <div className="relative overflow-hidden rounded-3xl border border-slate-200/80 bg-gradient-to-b from-white via-slate-50/50 to-slate-100/30 p-8 shadow-2xl shadow-slate-200/50 backdrop-blur-xl transition-all duration-300">
@@ -493,12 +523,10 @@ export default function RegistrationForm() {
               <PayPalCheckoutButton createOrder={handleCreatePayPalOrder} onApprove={handlePayPalApproval} onError={handlePayPalError} />
               <div className="border-t border-blue-200 pt-3">
                 <PesapalCheckoutButton
-                  createOrder={async () => {
-                    throw new Error("Pesapal checkout is not configured yet. Please use PayPal.");
-                  }}
+                  createOrder={handleCreatePesapalOrder}
                   onError={handlePayPalError}
                 />
-                <p className="mt-1 text-center text-xs text-slate-500">Pesapal checkout setup is not complete yet.</p>
+                <p className="mt-1 text-center text-xs text-slate-500">Pay KSh 1,000 using Pesapal.</p>
               </div>
             </div>
           )}

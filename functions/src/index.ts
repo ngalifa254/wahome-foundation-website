@@ -6,11 +6,17 @@ import {setGlobalOptions} from "firebase-functions";
 import {defineSecret, defineString} from "firebase-functions/params";
 import {HttpsError, onCall, onRequest} from "firebase-functions/v2/https";
 import {capturePayPalOrder, createPayPalOrder, ensurePayPalCaptureWebhook, findPayPalCaptureIdByOrderId, getPayPalCapture, verifyPayPalWebhook, type PayPalOrderResult, type PayPalWebhookEvent} from "./paypalClient.js";
+import {createPesapalOrder, getPesapalTransactionStatus} from "./pesapalClient.js";
 
 const turnstileSecret = defineSecret("TURNSTILE_SECRET_KEY");
 const paypalClientId = defineSecret("PAYPAL_CLIENT_ID");
 const paypalClientSecret = defineSecret("PAYPAL_CLIENT_SECRET");
 const paypalMode = defineString("PAYPAL_MODE", {default: "sandbox"});
+const pesapalConsumerKey = defineSecret("PESAPAL_CONSUMER_KEY");
+const pesapalConsumerSecret = defineSecret("PESAPAL_CONSUMER_SECRET");
+const pesapalMode = defineString("PESAPAL_MODE", {default: "sandbox"});
+const pesapalIpnId = defineString("PESAPAL_IPN_ID", {default: ""});
+const pesapalCallbackUrl = defineString("PESAPAL_CALLBACK_URL", {default: ""});
 const eventSlug = "miles-for-minds-2027";
 const privacyNoticeVersion = "miles-for-minds-2027-v1";
 const registrationClosesAt = Date.parse("2027-01-06T00:00:00+03:00");
@@ -297,6 +303,67 @@ export const startDonationPayPalOrder = onCall({
     await donationRef.update({paymentStatus: "failed", paymentError: "checkout_creation_failed"});
     console.error("PayPal donation order creation failed", error instanceof Error ? error.message : "unknown error");
     throw new HttpsError("unavailable", "PayPal checkout could not start right now. Please try again.");
+  }
+});
+
+export const startDonationPesapalOrder = onCall({
+  secrets: [pesapalConsumerKey, pesapalConsumerSecret],
+  timeoutSeconds: 45,
+}, async (request) => {
+  if (typeof request.data !== "object" || request.data === null || Array.isArray(request.data)) {
+    throw new HttpsError("invalid-argument", "The donation details are invalid.");
+  }
+  const data = request.data as Record<string, unknown>;
+  const firstName = requiredText(data, "firstName", 80);
+  const lastName = typeof data.lastName === "string" ? data.lastName.trim().replace(/\s+/g, " ").slice(0, 80) : "";
+  const email = validateEmail(data.email);
+  const amount = data.amount;
+  if (typeof amount !== "number" || !Number.isFinite(amount) || amount < 1 || amount > 10000) {
+    throw new HttpsError("invalid-argument", "Enter a donation amount between $1 and $10,000.");
+  }
+  if (!pesapalIpnId.value() || !pesapalCallbackUrl.value()) {
+    throw new HttpsError("failed-precondition", "Pesapal checkout is not configured yet.");
+  }
+  const roundedAmount = Math.round(amount * 100) / 100;
+  const donationRef = db.collection("donations").doc();
+  const merchantReference = `WFD-${donationRef.id}-${randomBytes(4).toString("hex").toUpperCase()}`;
+  const displayName = `${firstName} ${lastName}`.trim();
+  await donationRef.set({
+    provider: "pesapal",
+    paymentProvider: "pesapal",
+    paymentStatus: "pending",
+    paymentReference: merchantReference,
+    pesapalMerchantReference: merchantReference,
+    amount: roundedAmount,
+    currency: donationCurrency,
+    donorName: displayName,
+    donorEmail: email,
+    givingFrequency: "One time",
+    createdAt: FieldValue.serverTimestamp(),
+  });
+
+  try {
+    const order = await createPesapalOrder({
+      consumerKey: pesapalConsumerKey.value(),
+      consumerSecret: pesapalConsumerSecret.value(),
+      mode: pesapalMode.value(),
+      merchantReference,
+      amount: roundedAmount,
+      currency: donationCurrency,
+      description: "Donation to Wahome Foundation",
+      callbackUrl: pesapalCallbackUrl.value(),
+      ipnId: pesapalIpnId.value(),
+      billingAddress: {email_address: email, country_code: "KE", first_name: firstName, last_name: lastName},
+    });
+    await donationRef.update({
+      pesapalOrderTrackingId: order.order_tracking_id,
+      paymentStartedAt: FieldValue.serverTimestamp(),
+    });
+    return {donationId: donationRef.id, merchantReference, redirectUrl: order.redirect_url};
+  } catch (error) {
+    await donationRef.update({paymentStatus: "failed", paymentError: "checkout_creation_failed"});
+    console.error("Pesapal donation order creation failed", error instanceof Error ? error.message : "unknown error");
+    throw new HttpsError("unavailable", "Pesapal checkout could not start right now. Please try again.");
   }
 });
 
@@ -725,6 +792,81 @@ export const startRacePayPalOrder = onCall({
   }
 });
 
+export const startRacePesapalOrder = onCall({
+  secrets: [pesapalConsumerKey, pesapalConsumerSecret],
+  timeoutSeconds: 45,
+}, async (request) => {
+  const data = request.data as Record<string, unknown> | null;
+  const registrationId = typeof data?.registrationId === "string" ? data.registrationId.trim() : "";
+  if (!registrationId) throw new HttpsError("invalid-argument", "The registration reference is invalid.");
+  if (!pesapalIpnId.value() || !pesapalCallbackUrl.value()) {
+    throw new HttpsError("failed-precondition", "Pesapal checkout is not configured yet.");
+  }
+  const registrationRef = db.collection("eventRegistrations").doc(registrationId);
+  const snapshot = await registrationRef.get();
+  const registration = snapshot.data();
+  if (!snapshot.exists || registration?.eventSlug !== eventSlug) {
+    throw new HttpsError("not-found", "We could not find this race registration.");
+  }
+  if (registration.paymentStatus === "verified") {
+    throw new HttpsError("failed-precondition", "This registration has already been paid.");
+  }
+  if (registration.paymentProvider === "pesapal" &&
+      registration.paymentStatus === "pending" &&
+      typeof registration.pesapalOrderTrackingId === "string" &&
+      typeof registration.pesapalMerchantReference === "string" &&
+      typeof registration.pesapalRedirectUrl === "string") {
+    return {
+      merchantReference: registration.pesapalMerchantReference,
+      redirectUrl: registration.pesapalRedirectUrl,
+      amountKes: registrationFeeKes,
+      paymentStatus: "pending" as const,
+    };
+  }
+  const email = validateEmail(registration.contactEmail);
+  const phone = typeof registration.contactPhone === "string" ? registration.contactPhone.trim() : "";
+  const participantName = typeof registration.participantName === "string" ? registration.participantName.trim() : "Participant";
+  const [firstName, ...lastNameParts] = participantName.split(/\s+/);
+  const merchantReference = `WFR-${registrationId}-${randomBytes(4).toString("hex").toUpperCase()}`;
+
+  try {
+    const order = await createPesapalOrder({
+      consumerKey: pesapalConsumerKey.value(),
+      consumerSecret: pesapalConsumerSecret.value(),
+      mode: pesapalMode.value(),
+      merchantReference,
+      amount: registrationFeeKes,
+      currency: "KES",
+      description: "Miles for Minds Run 2027 registration",
+      callbackUrl: pesapalCallbackUrl.value(),
+      ipnId: pesapalIpnId.value(),
+      billingAddress: {
+        email_address: email,
+        phone_number: phone || undefined,
+        country_code: "KE",
+        first_name: firstName || "Participant",
+        last_name: lastNameParts.join(" "),
+      },
+    });
+    await registrationRef.update({
+      paymentMethod: "pesapal",
+      paymentProvider: "pesapal",
+      paymentStatus: "pending",
+      feeKes: registrationFeeKes,
+      pesapalMerchantReference: merchantReference,
+      pesapalOrderTrackingId: order.order_tracking_id,
+      pesapalRedirectUrl: order.redirect_url,
+      paymentReference: merchantReference,
+      paymentStartedAt: FieldValue.serverTimestamp(),
+      paymentError: FieldValue.delete(),
+    });
+    return {merchantReference, redirectUrl: order.redirect_url, amountKes: registrationFeeKes, paymentStatus: "pending" as const};
+  } catch (error) {
+    console.error("Pesapal race order creation failed", error instanceof Error ? error.message : "unknown error");
+    throw new HttpsError("unavailable", "Pesapal checkout could not start right now. Please try again.");
+  }
+});
+
 export const captureRacePayPalOrder = onCall({
   secrets: [paypalClientId, paypalClientSecret],
   timeoutSeconds: 30,
@@ -784,6 +926,97 @@ export const getRacePaymentStatus = onCall(async (request) => {
     paymentStatus: details.paymentStatus || "pending",
     paymentReceipt: details.paymentReceipt || null,
   };
+});
+
+async function processPesapalIpn(trackingId: string, merchantReference: string): Promise<void> {
+  const [donations, registrations] = await Promise.all([
+    db.collection("donations").where("pesapalMerchantReference", "==", merchantReference).limit(1).get(),
+    db.collection("eventRegistrations").where("pesapalMerchantReference", "==", merchantReference).limit(1).get(),
+  ]);
+  const matches = [
+    ...donations.docs.map((document) => ({ref: document.ref, data: document.data()})),
+    ...registrations.docs.map((document) => ({ref: document.ref, data: document.data()})),
+  ];
+  if (matches.length !== 1) throw new Error("Pesapal merchant reference did not match one pending payment.");
+  const payment = matches[0];
+  if (payment.data.pesapalOrderTrackingId !== trackingId) {
+    throw new Error("Pesapal tracking ID did not match the saved order.");
+  }
+
+  const result = await getPesapalTransactionStatus(
+    pesapalConsumerKey.value(), pesapalConsumerSecret.value(), pesapalMode.value(), trackingId,
+  );
+  if (result.order_tracking_id !== trackingId || result.merchant_reference !== merchantReference) {
+    throw new Error("Pesapal status response did not match the notified order.");
+  }
+
+  const expectedCurrency = typeof payment.data.currency === "string" ? payment.data.currency : "KES";
+  const expectedAmount = typeof payment.data.amount === "number" ? payment.data.amount :
+    typeof payment.data.feeKes === "number" ? payment.data.feeKes : null;
+  if (expectedAmount === null || result.currency !== expectedCurrency ||
+      typeof result.amount !== "number" || Math.round(result.amount * 100) !== Math.round(expectedAmount * 100)) {
+    throw new Error("Pesapal status amount or currency did not match the saved payment.");
+  }
+
+  if (result.status_code === 1) {
+    await payment.ref.update({
+      paymentStatus: "verified",
+      paymentReceipt: result.confirmation_code || trackingId,
+      paymentMethod: result.payment_method || "pesapal",
+      paidAt: FieldValue.serverTimestamp(),
+      paymentError: FieldValue.delete(),
+    });
+  } else if (result.status_code === 2 || result.status_code === 3) {
+    await payment.ref.update({
+      paymentStatus: "failed",
+      paymentError: result.status_code === 3 ? "transaction_reversed" : "transaction_failed",
+      paymentStatusDescription: result.payment_status_description || null,
+      paymentFailedAt: FieldValue.serverTimestamp(),
+    });
+  }
+  // Other statuses remain pending; Pesapal will send another IPN on a later change.
+}
+
+/** Receives Pesapal IPN notifications and verifies status directly with Pesapal.
+ * @param {import("firebase-functions/v2/https").Request} request Incoming request.
+ * @param {import("express").Response} response HTTP response.
+ * @return {Promise<void>} Resolves after acknowledging the notification.
+ */
+export const pesapalIpn = onRequest({
+  secrets: [pesapalConsumerKey, pesapalConsumerSecret],
+  timeoutSeconds: 45,
+}, async (request, response) => {
+  if (request.method !== "GET" && request.method !== "POST") {
+    response.status(405).json({status: 500, message: "Method not allowed"});
+    return;
+  }
+  const body = typeof request.body === "object" && request.body !== null ? request.body as Record<string, unknown> : {};
+  const trackingIdValue = request.query.OrderTrackingId ?? body.OrderTrackingId;
+  const merchantReferenceValue = request.query.OrderMerchantReference ?? body.OrderMerchantReference;
+  const trackingId = typeof trackingIdValue === "string" ? trackingIdValue.trim() : "";
+  const merchantReference = typeof merchantReferenceValue === "string" ? merchantReferenceValue.trim() : "";
+  if (!trackingId || !merchantReference) {
+    response.status(400).json({status: 500, message: "Missing Pesapal order identifiers"});
+    return;
+  }
+
+  try {
+    await processPesapalIpn(trackingId, merchantReference);
+    response.status(200).json({
+      orderNotificationType: "IPNCHANGE",
+      orderTrackingId: trackingId,
+      orderMerchantReference: merchantReference,
+      status: 200,
+    });
+  } catch (error) {
+    console.error("Pesapal IPN processing failed", error instanceof Error ? error.message : "unknown error");
+    response.status(500).json({
+      orderNotificationType: "IPNCHANGE",
+      orderTrackingId: trackingId,
+      orderMerchantReference: merchantReference,
+      status: 500,
+    });
+  }
 });
 
 export const listEventRegistrations = onCall(async (request) => {
