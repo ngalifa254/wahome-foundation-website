@@ -400,6 +400,9 @@ export const startDonationPesapalOrder = onRequest({
     if (error instanceof Error && /specified IPN ID is invalid/i.test(error.message)) {
       throw new HttpsError("failed-precondition", "The Pesapal sandbox IPN ID is invalid. Register the IPN URL in the sandbox merchant account and update PESAPAL_IPN_ID.");
     }
+    if (error instanceof Error && /specified callback url is invalid/i.test(error.message)) {
+      throw new HttpsError("failed-precondition", "Pesapal rejected PESAPAL_CALLBACK_URL. Set it to a valid public HTTPS return page and restart the Functions emulator.");
+    }
     throw new HttpsError("unavailable", "Pesapal checkout could not start right now. Please try again.");
   }
 }));
@@ -902,6 +905,9 @@ export const startRacePesapalOrder = onRequest({
     console.error("Pesapal race order creation failed", error instanceof Error ? error.message : "unknown error");
     if (error instanceof Error && /specified IPN ID is invalid/i.test(error.message)) {
       throw new HttpsError("failed-precondition", "The Pesapal sandbox IPN ID is invalid. Register the IPN URL in the sandbox merchant account and update PESAPAL_IPN_ID.");
+    }
+    if (error instanceof Error && /specified callback url is invalid/i.test(error.message)) {
+      throw new HttpsError("failed-precondition", "Pesapal rejected PESAPAL_CALLBACK_URL. Set it to a valid public HTTPS return page and restart the Functions emulator.");
     }
     throw new HttpsError("unavailable", "Pesapal checkout could not start right now. Please try again.");
   }
