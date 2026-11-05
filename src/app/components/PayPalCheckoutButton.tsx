@@ -89,7 +89,7 @@ export default function PayPalCheckoutButton({
     };
   }, [clientId]);
 
-  if (!clientId) return <p className="text-sm text-red-700">PayPal checkout is not configured yet.</p>;
+  if (!clientId) return null;
   return <div>
     {loading && <p className="mb-2 text-center text-xs text-slate-500">Loading secure PayPal checkout…</p>}
     <div ref={containerRef} />

@@ -7,7 +7,7 @@
     "build": "vite build",
     "dev": "vite",
     "dev:cloud": "vite --mode cloud",
-    "emulators": "firebase emulators:start --only functions,firestore"
+    "emulators": "firebase emulators:start --only functions,firestore --project wahome-foundation"
   },
   "dependencies": {
     "@emotion/react": "11.14.0",

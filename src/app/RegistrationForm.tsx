@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowRight, CheckCircle2, Loader2, Sparkles } from "lucide-react";
 import { httpsCallable } from "firebase/functions";
-import { functions } from "../lib/firebase"; // Uses existing functions export from lib/firebase.ts
+import { functions, postHttpFunction } from "../lib/firebase"; // Uses existing functions export from lib/firebase.ts
 import PayPalCheckoutButton from "./components/PayPalCheckoutButton";
 import PesapalCheckoutButton from "./components/PesapalCheckoutButton";
 
@@ -275,16 +275,17 @@ export default function RegistrationForm() {
     setError("");
     setPaymentLoading(true);
     try {
-      const startPayment = httpsCallable<{registrationId: string}, StartPesapalPaymentResponse>(functions, "startRacePesapalOrder");
-      const result = await startPayment({registrationId});
+      const result = await postHttpFunction<{registrationId: string}, StartPesapalPaymentResponse>(
+        "startRacePesapalOrder", {registrationId},
+      );
       const instructions: PaymentInstructions = {
-        message: `Complete the KSh ${result.data.amountKes.toLocaleString()} Pesapal payment to finish registration.`,
+        message: `Complete the KSh ${result.amountKes.toLocaleString()} Pesapal payment to finish registration.`,
         reference: registrationId,
       };
       setPaymentStatus("pending");
       setPaymentInstructions(instructions);
       sessionStorage.setItem("miles-for-minds-payment", JSON.stringify(instructions));
-      return {redirectUrl: result.data.redirectUrl};
+      return {redirectUrl: result.redirectUrl};
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Could not start Pesapal checkout. Please try again.");
       throw cause;

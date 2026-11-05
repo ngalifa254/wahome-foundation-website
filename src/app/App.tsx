@@ -46,7 +46,7 @@ import AdminLoginForm from "./components/AdminLoginForm";
 import PayPalCheckoutButton from "./components/PayPalCheckoutButton";
 import PesapalCheckoutButton from "./components/PesapalCheckoutButton";
 import { onAuthStateChanged, auth, signOutAdmin } from "../lib/adminAuth";
-import { functions } from "../lib/firebase";
+import { functions, postHttpFunction } from "../lib/firebase";
 function useHashLocation() {
   const [hash, setHash] = useState(window.location.hash);
   useEffect(() => {
@@ -201,13 +201,12 @@ function DonateModal({
   const handleCreatePesapalDonationOrder = useCallback(async () => {
     if (!functions) throw new Error("Donations are unavailable because the payment service is not configured.");
     setPaymentError("");
-    const startDonation = httpsCallable<
+    const result = await postHttpFunction<
       {amount: number; firstName: string; lastName: string; email: string},
       {donationId: string; merchantReference: string; redirectUrl: string}
-    >(functions, "startDonationPesapalOrder");
-    const result = await startDonation({amount: Number(amount), firstName, lastName, email});
-    donationIdRef.current = result.data.donationId;
-    return {redirectUrl: result.data.redirectUrl};
+    >("startDonationPesapalOrder", {amount: Number(amount), firstName, lastName, email});
+    donationIdRef.current = result.donationId;
+    return {redirectUrl: result.redirectUrl};
   }, [amount, email, firstName, lastName]);
 
   const handleDonationApproval = useCallback(async ({orderID}: {orderID: string}) => {
@@ -382,8 +381,9 @@ function DonateModal({
                 <PesapalCheckoutButton
                   createOrder={handleCreatePesapalDonationOrder}
                   onError={handlePesapalDonationError}
+                  email={email}
+                  requireEmail
                 />
-                <p className="mt-1 text-center text-xs text-[#5B6670]">Pesapal checkout requires a donor email address.</p>
               </div>
             </div>
           </form>

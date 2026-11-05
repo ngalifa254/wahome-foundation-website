@@ -11,18 +11,24 @@ export interface PesapalOrder {
 export default function PesapalCheckoutButton({
   createOrder,
   onError,
+  email,
+  requireEmail = false,
   disabled = false,
   label = "Pay with Pesapal",
 }: {
   createOrder: () => Promise<PesapalOrder>;
   onError: (error: unknown) => void;
+  email?: string;
+  requireEmail?: boolean;
   disabled?: boolean;
   label?: string;
 }) {
   const [loading, setLoading] = useState(false);
+  const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email?.trim() || "");
+  const emailBlocksCheckout = requireEmail && !isEmailValid;
 
   const startCheckout = async () => {
-    if (loading || disabled) return;
+    if (loading || disabled || emailBlocksCheckout) return;
     setLoading(true);
     try {
       const order = await createOrder();
@@ -38,13 +44,21 @@ export default function PesapalCheckoutButton({
   };
 
   return (
-    <button
-      type="button"
-      onClick={() => void startCheckout()}
-      disabled={disabled || loading}
-      className="w-full rounded-xl bg-[#2C6E9E] px-5 py-3 font-semibold text-white transition-colors hover:bg-[#16324A] disabled:cursor-not-allowed disabled:opacity-60"
-    >
-      {loading ? "Connecting to Pesapal…" : label}
-    </button>
+    <div>
+      <button
+        type="button"
+        onClick={() => void startCheckout()}
+        disabled={disabled || loading || emailBlocksCheckout}
+        aria-describedby={requireEmail ? "pesapal-email-hint" : undefined}
+        className="w-full rounded-xl bg-[#2C6E9E] px-5 py-3 font-semibold text-white transition-colors hover:bg-[#16324A] disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        {loading ? "Connecting to Pesapal..." : label}
+      </button>
+      {emailBlocksCheckout && (
+        <p id="pesapal-email-hint" className="mt-1 text-center text-xs text-slate-500" role="status">
+          Enter a valid email address to continue with Pesapal.
+        </p>
+      )}
+    </div>
   );
 }

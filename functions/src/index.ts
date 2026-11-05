@@ -2,6 +2,8 @@
 import {getApps, initializeApp} from "firebase-admin/app";
 import {FieldValue, getFirestore} from "firebase-admin/firestore";
 import {randomBytes} from "node:crypto";
+import cors from "cors";
+import type {Request as ExpressRequest, Response as ExpressResponse} from "express";
 import {setGlobalOptions} from "firebase-functions";
 import {defineSecret, defineString} from "firebase-functions/params";
 import {HttpsError, onCall, onRequest} from "firebase-functions/v2/https";
@@ -17,6 +19,7 @@ const pesapalConsumerSecret = defineSecret("PESAPAL_CONSUMER_SECRET");
 const pesapalMode = defineString("PESAPAL_MODE", {default: "sandbox"});
 const pesapalIpnId = defineString("PESAPAL_IPN_ID", {default: ""});
 const pesapalCallbackUrl = defineString("PESAPAL_CALLBACK_URL", {default: ""});
+const corsHandler = cors({origin: true, optionsSuccessStatus: 200});
 const eventSlug = "miles-for-minds-2027";
 const privacyNoticeVersion = "miles-for-minds-2027-v1";
 const registrationClosesAt = Date.parse("2027-01-06T00:00:00+03:00");
@@ -88,6 +91,37 @@ function validatePhone(value: unknown): string {
     throw new HttpsError("invalid-argument", "Please enter a valid phone number.");
   }
   return phone;
+}
+
+/** Runs a standard JSON HTTP handler after CORS middleware has handled preflight.
+ * @param {(request: Request) => Promise<unknown>} handler Business logic.
+ * @return {(request: Request, response: Response) => void} HTTP function handler.
+ */
+function withCors(handler: (request: ExpressRequest) => Promise<unknown>) {
+  return (request: ExpressRequest, response: ExpressResponse): void => {
+    corsHandler(request, response, () => {
+      if (request.method !== "POST") {
+        response.status(405).json({error: "Method not allowed."});
+        return;
+      }
+      void handler(request).then((result) => {
+        response.status(200).json(result);
+      }).catch((error: unknown) => {
+        const statusByCode: Record<string, number> = {
+          "invalid-argument": 400,
+          "failed-precondition": 409,
+          "not-found": 404,
+          "permission-denied": 403,
+          "unauthenticated": 401,
+          "unavailable": 503,
+        };
+        const status = error instanceof HttpsError ? statusByCode[error.code] || 500 : 500;
+        const message = error instanceof Error ? error.message : "The request could not be completed.";
+        if (status === 500) console.error("Pesapal HTTP handler failed", message);
+        response.status(status).json({error: message});
+      });
+    });
+  };
 }
 
 /**
@@ -306,14 +340,14 @@ export const startDonationPayPalOrder = onCall({
   }
 });
 
-export const startDonationPesapalOrder = onCall({
+export const startDonationPesapalOrder = onRequest({
   secrets: [pesapalConsumerKey, pesapalConsumerSecret],
   timeoutSeconds: 45,
-}, async (request) => {
-  if (typeof request.data !== "object" || request.data === null || Array.isArray(request.data)) {
+}, withCors(async (request) => {
+  if (typeof request.body !== "object" || request.body === null || Array.isArray(request.body)) {
     throw new HttpsError("invalid-argument", "The donation details are invalid.");
   }
-  const data = request.data as Record<string, unknown>;
+  const data = request.body as Record<string, unknown>;
   const firstName = requiredText(data, "firstName", 80);
   const lastName = typeof data.lastName === "string" ? data.lastName.trim().replace(/\s+/g, " ").slice(0, 80) : "";
   const email = validateEmail(data.email);
@@ -363,9 +397,12 @@ export const startDonationPesapalOrder = onCall({
   } catch (error) {
     await donationRef.update({paymentStatus: "failed", paymentError: "checkout_creation_failed"});
     console.error("Pesapal donation order creation failed", error instanceof Error ? error.message : "unknown error");
+    if (error instanceof Error && /specified IPN ID is invalid/i.test(error.message)) {
+      throw new HttpsError("failed-precondition", "The Pesapal sandbox IPN ID is invalid. Register the IPN URL in the sandbox merchant account and update PESAPAL_IPN_ID.");
+    }
     throw new HttpsError("unavailable", "Pesapal checkout could not start right now. Please try again.");
   }
-});
+}));
 
 export const captureDonationPayPalOrder = onCall({
   secrets: [paypalClientId, paypalClientSecret],
@@ -792,11 +829,11 @@ export const startRacePayPalOrder = onCall({
   }
 });
 
-export const startRacePesapalOrder = onCall({
+export const startRacePesapalOrder = onRequest({
   secrets: [pesapalConsumerKey, pesapalConsumerSecret],
   timeoutSeconds: 45,
-}, async (request) => {
-  const data = request.data as Record<string, unknown> | null;
+}, withCors(async (request) => {
+  const data = request.body as Record<string, unknown> | null;
   const registrationId = typeof data?.registrationId === "string" ? data.registrationId.trim() : "";
   if (!registrationId) throw new HttpsError("invalid-argument", "The registration reference is invalid.");
   if (!pesapalIpnId.value() || !pesapalCallbackUrl.value()) {
@@ -863,9 +900,12 @@ export const startRacePesapalOrder = onCall({
     return {merchantReference, redirectUrl: order.redirect_url, amountKes: registrationFeeKes, paymentStatus: "pending" as const};
   } catch (error) {
     console.error("Pesapal race order creation failed", error instanceof Error ? error.message : "unknown error");
+    if (error instanceof Error && /specified IPN ID is invalid/i.test(error.message)) {
+      throw new HttpsError("failed-precondition", "The Pesapal sandbox IPN ID is invalid. Register the IPN URL in the sandbox merchant account and update PESAPAL_IPN_ID.");
+    }
     throw new HttpsError("unavailable", "Pesapal checkout could not start right now. Please try again.");
   }
-});
+}));
 
 export const captureRacePayPalOrder = onCall({
   secrets: [paypalClientId, paypalClientSecret],

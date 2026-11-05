@@ -20,7 +20,7 @@ Add the PayPal sandbox app client ID to each ignored Vite environment file used 
 VITE_PAYPAL_CLIENT_ID=your-sandbox-client-id
 ```
 
-For Functions emulators, place the sandbox credentials in `functions/.secret.local` (ignored by Git):
+For Functions emulators, place the sandbox credentials in the project root `.secret.local` beside `firebase.json` (ignored by Git):
 
 ```env
 PAYPAL_CLIENT_ID=your-sandbox-client-id
@@ -29,7 +29,7 @@ PAYPAL_CLIENT_SECRET=your-sandbox-client-secret
 
 The default mode is PayPal sandbox. Use sandbox buyer accounts from the PayPal Developer Dashboard to complete a checkout.
 
-The current `.env.development.local` is missing `VITE_PAYPAL_CLIENT_ID`, which is why the local PayPal button reports that it is not configured. Add a PayPal **sandbox** app client ID there to use PayPal locally; do not copy a live client ID into development. `functions/.secret.local` is also absent, so local Firebase Functions need PayPal sandbox credentials there if you want to test PayPal order creation locally.
+The current `.env.development.local` is missing `VITE_PAYPAL_CLIENT_ID`, which is why the local PayPal button reports that it is not configured. Add a PayPal **sandbox** app client ID there to use PayPal locally; do not copy a live client ID into development. The project root `.secret.local` currently has only the Turnstile secret, so add PayPal sandbox credentials there if you want to test PayPal order creation locally.
 
 ## Configure production
 
@@ -56,7 +56,7 @@ This repository includes a reusable redirect button at `src/app/components/Pesap
 
 ### Configure credentials
 
-Pesapal's consumer key and secret are server credentials. Keep them out of all `VITE_` variables and the browser bundle. For local Functions emulator use, add the two secrets to `functions/.secret.local` (this is ignored by Git):
+Pesapal's consumer key and secret are server credentials. Keep them out of all `VITE_` variables and the browser bundle. For local Functions emulator use, add the two secrets to the project root `.secret.local` beside `firebase.json` (this is ignored by Git):
 
 ```env
 PESAPAL_CONSUMER_KEY=your-sandbox-consumer-key
@@ -73,26 +73,13 @@ PESAPAL_CALLBACK_URL=https://your-public-https-site.example/payment-return
 
 `PESAPAL_CALLBACK_URL` must be a public HTTPS URL configured to return to your site after checkout. Register the deployed `pesapalIpn` endpoint URL (`https://africa-south1-<firebase-project-id>.cloudfunctions.net/pesapalIpn`) against the matching sandbox/live merchant account; put the returned `ipn_id` in `PESAPAL_IPN_ID`. IPNs are sent to the HTTPS Function and payment status is confirmed by querying Pesapal's API. For Firebase deployment, store only the key and secret with `firebase functions:secrets:set PESAPAL_CONSUMER_KEY` and `firebase functions:secrets:set PESAPAL_CONSUMER_SECRET`. Store the mode, IPN ID, and callback URL in `functions/.env.<project-or-alias>` or answer the Firebase parameter prompts at deploy. Use separate sandbox/live settings. Do not put Pesapal credentials in `.env.development.local` or `.env.cloud.local`; no client environment variable is needed.
 
+If checkout reports that the IPN ID is invalid, register the IPN URL while signed into the same Pesapal sandbox merchant account used for the sandbox consumer credentials. Copy that registration's GUID into `PESAPAL_IPN_ID`; a live account's IPN ID will not work with sandbox credentials.
+
 ### Wire the component to the donation flow
 
-The `createOrder` callback passed to the component must call a Firebase callable (for example, `startDonationPesapalOrder`) which validates the donation, creates a pending Firestore record, obtains an API 3.0 bearer token, submits the order, stores Pesapal's tracking ID, and returns `{ donationId, merchantReference, redirectUrl }`. A caller can use it like this in `DonateModal` in `src/app/App.tsx`:
+The `createOrder` callback in the donation modal calls `startDonationPesapalOrder`, a standard HTTP function with CORS middleware. It validates the donation, creates a pending Firestore record, obtains an API 3.0 bearer token, submits the order, stores Pesapal's tracking ID, and returns `{ donationId, merchantReference, redirectUrl }`. The client uses `postHttpFunction` in `src/lib/firebase.ts` to target either the local emulator or the deployed function URL. The race button uses the same HTTP transport for `startRacePesapalOrder`.
 
-```tsx
-<PesapalCheckoutButton
-  createOrder={async () => {
-    const startOrder = httpsCallable<
-      {amount: number; firstName: string; lastName: string; email: string},
-      {donationId: string; merchantReference: string; redirectUrl: string}
-    >(functions!, "startDonationPesapalOrder");
-    const result = await startOrder({amount: Number(amount), firstName, lastName, email});
-    sessionStorage.setItem("pesapal-donation", JSON.stringify(result.data));
-    return {redirectUrl: result.data.redirectUrl};
-  }}
-  onError={(error) => setPaymentError(error instanceof Error ? error.message : "Pesapal checkout could not start.")}
-/>
-```
-
-The donation and run buttons now call `startDonationPesapalOrder` and `startRacePesapalOrder` Firebase Functions. These handlers keep prices on the server, create pending Firestore records, submit Pesapal API 3.0 orders, and return the hosted checkout URL. Do not mark a payment paid from the redirect URL or browser storage.
+The CORS middleware reflects the request origin and responds to `OPTIONS` preflight with HTTP 200 before the order logic runs. Do not mark a payment paid from the redirect URL or browser storage.
 
 ### Confirm the result on the server
 
@@ -104,7 +91,7 @@ The existing donation modal accepts USD; the Pesapal donation handler currently 
 
 ### Sandbox setup checklist
 
-1. In the Pesapal Sandbox Developer Dashboard, create/find the sandbox merchant account and copy its **Consumer Key** and **Consumer Secret** into `functions/.secret.local` locally. For cloud Functions use Firebase Secrets:
+1. In the Pesapal Sandbox Developer Dashboard, create/find the sandbox merchant account and copy its **Consumer Key** and **Consumer Secret** into the root `.secret.local` locally. For cloud Functions use Firebase Secrets:
 
    ```powershell
    firebase.cmd functions:secrets:set PESAPAL_CONSUMER_KEY --project <dev-project-id>
