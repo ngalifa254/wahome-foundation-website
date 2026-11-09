@@ -1188,6 +1188,18 @@ function AboutPage({ onNav }: { onNav: (p: Page) => void }) {
                 ],
               },
               {
+                name: "Cynthia Wanjiru Wachira",
+                role: "Board Secretary",
+                photo: cynthiaPhoto,
+                zoomClass: "scale-100 origin-[center_35%]",
+                zoomFromTop: false,
+                bio: [
+                  "Cynthia Wanjiru Wachira serves as the Board Secretary of Wahome Foundation. She holds a Bachelor of Commerce (BCOM) degree in Finance and is a Certified Public Accountant (CPA). With experience in record keeping, organization, and administration, she brings valuable skills in documentation, financial accountability, and governance to support the Foundation’s effective operations.",
+                  "In her role, Cynthia helps ensure proper documentation of Board meetings, accurate record management, and effective coordination of the Foundation’s activities. Her financial expertise and attention to detail contribute to transparency, accountability, and responsible stewardship of resources.",
+                  "Cynthia is passionate about education and believes every child deserves an opportunity to learn and reach their full potential. She is committed to advancing Wahome Foundation’s mission of supporting children in need through education and creating lasting, positive change in their lives and communities.",
+                ],
+              },
+              {
                 name: "James Gachugi Ngatia",
                 role: "Education Representative",
                 photo: jamesGachugiPhoto,
