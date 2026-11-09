@@ -52,6 +52,17 @@ jobs:
           VITE_FIREBASE_MEASUREMENT_ID: ${{ vars.VITE_FIREBASE_MEASUREMENT_ID }}
           VITE_TURNSTILE_SITE_KEY: ${{ vars.VITE_TURNSTILE_SITE_KEY }}
           VITE_PAYPAL_CLIENT_ID: ${{ vars.VITE_PAYPAL_CLIENT_ID || secrets.VITE_PAYPAL_CLIENT_ID }}
+      - name: Verify Pages build output
+        run: |
+          test -f dist/index.html
+          if grep -q '/src/main.tsx' dist/index.html; then
+            echo "::error::dist/index.html is the unbuilt Vite source page. Refusing to publish it."
+            exit 1
+          fi
+          if ! grep -q '/wahome-foundation-website/assets/index-' dist/index.html; then
+            echo "::error::dist/index.html does not reference the GitHub Pages production bundle."
+            exit 1
+          fi
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload Pages artifact
