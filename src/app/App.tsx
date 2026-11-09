@@ -1436,7 +1436,7 @@ function ScholarshipPage({
                 name: "Alex Karani",
                 meta: "Grade 10 · Ontilili Boys",
                 message:
-                  "The Foundation came at a defining time when I was uncertain of my future education. They helped me join High School and gave me hope of pursuing a career in Agricultural Engineering.",
+                  "The Foundation helped me join high school and gave me hope of pursuing a career in Agricultural Engineering.",
                 photo: alexPhoto,
                 objectPosition: "object-[center_15%]",
               },
@@ -1444,7 +1444,7 @@ function ScholarshipPage({
                 name: "Jedidah Watetu",
                 meta: "Grade 10 · St Rita Kiaragana Girls",
                 message:
-                  "I got a scholarship to join High School through the intervention of the Wahome Foundation. Now aspiring to be a Doctor in the future.",
+                  "The Wahome Foundation’s support helped me join high school. I hope to become a doctor in the future.",
                 photo: jedidahPhoto,
                 objectPosition: "object-[center_15%]",
               },
@@ -1452,7 +1452,7 @@ function ScholarshipPage({
                 name: "James Ndungu",
                 meta: "Grade 10 · Endarasha Boys",
                 message:
-                  "The Wahome Foundation offered me the Thomas D.K. Wahome scholarship which enabled me to join Endarasha Senior school. I aspire to be a neurosurgeon in the future.",
+                  "The Thomas D.K. Wahome Scholarship helped me join Endarasha Senior School. I hope to become a neurosurgeon.",
                 photo: jamesPhoto,
                 objectPosition: "object-[center_15%]",
               },
@@ -1460,7 +1460,7 @@ function ScholarshipPage({
                 name: "Newton Njenga",
                 meta: "Grade 10 · Kaheti Boys",
                 message:
-                  "The foundation helped me join Highschool and now I can fulfill my aspiration of joining the army as a Cadet officer in the future.",
+                  "The Foundation helped me join high school and move closer to my dream of becoming an army cadet officer.",
                 photo: newtonPhoto,
                 objectPosition: "object-[center_15%]",
               },
@@ -1468,7 +1468,7 @@ function ScholarshipPage({
                 name: "Samuel Mutero",
                 meta: "Grade 10 · Naromuru Boys",
                 message:
-                  "I am truly thankful to the Wahome Foundation for enabling me to join High school. Their support has given me a chance to chase my dream of becoming a Biologist.",
+                  "I’m grateful to the Wahome Foundation for helping me join high school. Its support gives me the chance to pursue my dream of becoming a biologist.",
                 photo: samuelPhoto,
                 objectPosition: "object-[center_15%]",
               },
