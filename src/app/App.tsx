@@ -5,6 +5,7 @@ import image_DSC_0445 from "@/imports/DSC_0445.jpg";
 import image_Prizegiving_What_we_do from "@/imports/Prizegiving-What-we-do.png";
 import image_wells_of_hope from "@/imports/wells_of_hope.jpg";
 import image_fundeducation from "@/imports/fundeducation.jpg";
+import scholarshipPhoto from "@/imports/Scholarship.png";
 import alexPhoto from "@/imports/Alex.jpeg";
 import jedidahPhoto from "@/imports/Jedidah.jpeg";
 import jamesPhoto from "@/imports/James.jpeg";
@@ -1412,8 +1413,8 @@ function ScholarshipPage({
           <div>
             <div className="relative mx-auto aspect-[0.92/1] w-full max-h-[780px] overflow-hidden">
               <img
-                src={dkPhoto}
-                alt="Foundation representative speaking at a scholarship event"
+                src={scholarshipPhoto}
+                alt="Wahome Foundation team presenting a school backpack to a scholarship student"
                 className="absolute inset-0 h-full w-full object-cover object-bottom mix-blend-multiply"
               />
             </div>
