@@ -19,7 +19,9 @@ import wellsPhoto from "@/imports/wells.jpg";
 import mentorshipPhoto from "@/imports/mentorship.jpg";
 import dkPhoto from "@/imports/dk1.jpg";
 import cynthiaPhoto from "@/imports/cynthia.jpeg";
+import amandaPhoto from "@/imports/Amanda.jpg";
 import georgePhoto from "@/imports/george.jpg";
+import issacKagunyaPhoto from "@/imports/Isaac.jpg";
 import mainLogo from "@/imports/mainlogo.png";
 import marathon1 from "@/imports/marathon1.jpg";
 import marathon2 from "@/imports/marathon2.jpg";
@@ -1222,18 +1224,62 @@ function AboutPage({ onNav }: { onNav: (p: Page) => void }) {
                   "As the Education Representative on the Wahome Foundation Board, James brings extensive practical experience in education management, institutional leadership, financial accountability, and student welfare. His knowledge of the education system will help the Foundation identify educational needs, develop impactful programmes, promote access to quality education, and ensure that its initiatives respond to the realities faced by learners, teachers, and schools. His leadership experience, professional expertise, and longstanding dedication to education will be valuable in guiding the Foundation’s educational initiatives, strengthening partnerships with learning institutions, and advancing its mission of creating meaningful and sustainable opportunities for children and young people.",
                 ],
               },
+              {
+                name: "Amanda-Louise Smith",
+                role: "Member",
+                photo: amandaPhoto,
+                zoomClass: "scale-100 origin-[center_35%]",
+                bio: [
+                  "Amanda-Louise brings 18 years of frontline policing and 4 years of education experience to the Wahome Foundation, where she draws on her leadership, communication, and people-engagement skills to support the Foundation's work within the community. Her journey into conservation began unexpectedly after watching a television documentary about the plight of rhinos and the devastating impact of poaching. The documentary inspired her to leave her career in UK policing and dedicate herself to supporting anti-poaching efforts in South Africa. She subsequently trained and worked alongside anti-poaching teams, developing a strong understanding of the challenges faced by rangers on the frontline.",
+                  "Her conservation journey eventually brought her to Kenya, where she now works as a ranger fitness and anti-poaching instructor, using her background as a competitive sprinter, fitness professional, and former police officer to help develop the physical and operational capabilities of wildlife rangers.",
+                  "Alongside her work in conservation, Amanda-Louise has also worked in education, supporting autistic young people aged 16–19 as they completed their college education. She balanced this role with her work in Africa, spending periods in the UK during college term time and returning to Africa during the holidays. This experience gave her a deeper understanding of the importance of education and the additional support some young people need to overcome barriers and achieve their potential.",
+                  "Amanda-Louise is passionate about people, community, and creating opportunities for those who may otherwise be disadvantaged or overlooked. She believes that strong communities are built through personal responsibility, teamwork, leadership, and meaningful engagement. She brings these values to her role with the Wahome Foundation, supporting its commitment to helping young people access education and creating opportunities for individuals and communities to build a better future and lasting impact.",
+                ],
+              },
+              {
+                name: "Isaac Kagunya",
+                role: "Member",
+                photo: issacKagunyaPhoto,
+                zoomClass: "scale-100 origin-[center_35%]",
+                bio: [
+                  "Isaac Kagunya is a community development professional who knows how to get people moving in the same direction. He has served as a Ward Administrator in Laikipia County, where he worked at the front line of public service, bringing government, community leaders, and residents together to get things done.",
+                  "A respected community leader and a gifted mobiliser, Isaac has a rare talent for turning people’s goodwill into action. He understands how villages and wards really work, who needs to be at the table, and how to earn the trust that makes lasting change possible. That grassroots credibility helps the Foundation connect with the communities it serves and keep its programmes rooted in real needs.",
+                  "On the Board, Isaac brings a practical, people-first perspective. He believes strong communities are built when everyone is heard and every child has a fair chance to learn, and he is committed to helping the Foundation reach more families, open more doors, and leave a lasting mark on the lives of the children it supports.",
+                ],
+              },
+              {
+                name: "George Nganga",
+                role: "Member",
+                photo: georgePhoto,
+                zoomClass: "scale-100 origin-[center_35%]",
+                bio: [
+                  "George Nganga is an electrical engineer who turns good intentions into systems that actually work. He brings strong project planning experience and has spent years working alongside community-based organizations on rural development and small-scale farming, where ideas only count if they deliver results on the ground.",
+                  "George is also a builder. He designs and develops the digital tools and platforms that power the Foundation’s work, including the scholarship management system that helps the Foundation reach and support students more efficiently, with greater transparency and accountability.",
+                  "On the Board, George brings a practical, engineer’s mindset: plan carefully, build smart, measure what matters, and keep going until the work delivers for the families the Foundation serves. He believes every child deserves a real opportunity to learn, and he is committed to making sure that opportunity reaches the communities that need it most.",
+                ],
+              },
             ].map((member) => (
               <article
                 key={member.name}
                 className="grid md:grid-cols-[280px_minmax(0,1fr)] lg:grid-cols-[360px_minmax(0,1fr)] gap-8 lg:gap-14 items-center text-left"
               >
                 <div className="relative mx-auto aspect-[3/4] w-full max-w-sm overflow-hidden rounded-2xl shadow-md md:mx-0 md:max-w-none">
-                  <img
-                    src={member.photo}
-                    alt={member.name}
-                    className={`h-full w-full object-cover object-center ${member.zoomClass}`}
-                    loading="lazy"
-                  />
+                  {member.photo ? (
+                    <img
+                      src={member.photo}
+                      alt={member.name}
+                      className={`h-full w-full object-cover object-center ${member.zoomClass ?? ""}`}
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div
+                      role="img"
+                      aria-label={`${member.name} photo placeholder`}
+                      className="flex h-full w-full items-center justify-center bg-[#DDE3E8] font-serif text-6xl font-bold text-[#2C6E9E]"
+                    >
+                      AS
+                    </div>
+                  )}
                 </div>
                 <div>
                   <p className="text-[#2C6E9E] font-semibold text-lg mb-2">
