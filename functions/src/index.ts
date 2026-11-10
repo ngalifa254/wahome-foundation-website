@@ -14,7 +14,7 @@ const paypalMode = defineString("PAYPAL_MODE", {default: "sandbox"});
 const eventSlug = "miles-for-minds-2027";
 const privacyNoticeVersion = "miles-for-minds-2027-v1";
 const registrationClosesAt = Date.parse("2027-01-06T00:00:00+03:00");
-const allowedCategories = new Set(["21k", "10k", "children_5k"]);
+const allowedCategories = new Set(["21k", "10k", "5k", "children_fun_run", "children_5k"]);
 
 setGlobalOptions({maxInstances: 10, region: "africa-south1"});
 
@@ -172,9 +172,20 @@ export const registerEvent = onCall({
     throw new HttpsError("invalid-argument", "Please choose a valid race category.");
   }
   const participantIsMinor = participantAge < 18;
-  if (raceCategory === "children_5k" && !participantIsMinor) {
-    throw new HttpsError("invalid-argument", "The Children’s 1K is for participants under 18.");
+  if ((raceCategory === "children_fun_run" || raceCategory === "children_5k") && !participantIsMinor) {
+    throw new HttpsError("invalid-argument", "The Children's Fun Run is for participants under 18.");
   }
+
+  const registrationTier = data.registrationTier;
+  const tierFees: Record<string, number> = {Regular: 500, VIP: 1000, VVIP: 1500, "Beneficiary school student": 0};
+  if (typeof registrationTier !== "string" || !Object.prototype.hasOwnProperty.call(tierFees, registrationTier)) {
+    throw new HttpsError("invalid-argument", "Please choose a valid registration package.");
+  }
+  const isBeneficiaryStudent = registrationTier === "Beneficiary school student";
+  const beneficiarySchoolName = isBeneficiaryStudent ? requiredText(data, "beneficiarySchoolName", 150) : null;
+  const schoolRepresentativeName = isBeneficiaryStudent ? requiredText(data, "schoolRepresentativeName", 150) : null;
+  const schoolRepresentativeEmail = isBeneficiaryStudent ? validateEmail(data.schoolRepresentativeEmail) : null;
+  const schoolRepresentativePhone = isBeneficiaryStudent ? validatePhone(data.schoolRepresentativePhone) : null;
 
   const guardianRequired = participantIsMinor;
   let guardianName: string | null = null;
@@ -229,6 +240,11 @@ export const registerEvent = onCall({
     gender,
     participantIsMinor,
     raceCategory,
+    registrationTier,
+    beneficiarySchoolName,
+    schoolRepresentativeName,
+    schoolRepresentativeEmail,
+    schoolRepresentativePhone,
     guardianName,
     guardianRelationship,
     guardianAuthorized: guardianRequired,
@@ -237,7 +253,7 @@ export const registerEvent = onCall({
     privacyNoticeAcceptedAt: FieldValue.serverTimestamp(),
     privacyNoticeVersion,
     futureEventUpdates: data.futureEventUpdates,
-    feeKes: registrationFeeKes,
+    feeKes: tierFees[registrationTier],
     paymentStatus: "pending",
     paymentReference: `WF${randomBytes(5).toString("hex").toUpperCase()}`,
     paymentMethod: null,
@@ -697,32 +713,7 @@ export const startRacePayPalOrder = onCall({
   if (registration.paymentProvider === "paypal" && typeof registration.paypalOrderId === "string" && registration.feeUsd === Number(registrationFeeUsd)) {
     return {orderId: registration.paypalOrderId, amountUsd: Number(registrationFeeUsd), paymentStatus: "pending" as const};
   }
-
-  try {
-    const order = await createPayPalOrder({
-      clientId: paypalClientId.value(),
-      clientSecret: paypalClientSecret.value(),
-      amount: registrationFeeUsd,
-      currency: "USD",
-      reference: registrationId,
-      description: "Miles for Minds Run 2027 registration",
-    }, paypalMode.value());
-    await registrationRef.update({
-      paymentMethod: "paypal",
-      paymentProvider: "paypal",
-      paymentStatus: "pending",
-      feeKes: registrationFeeKes,
-      feeUsd: Number(registrationFeeUsd),
-      paypalOrderId: order.id,
-      paymentReference: typeof registration.paymentReference === "string" ? registration.paymentReference : `WF${randomBytes(5).toString("hex").toUpperCase()}`,
-      paymentStartedAt: FieldValue.serverTimestamp(),
-      paymentError: FieldValue.delete(),
-    });
-    return {orderId: order.id, amountUsd: Number(registrationFeeUsd), paymentStatus: "pending" as const};
-  } catch (error) {
-    console.error("PayPal race order creation failed", error instanceof Error ? error.message : "unknown error");
-    throw new HttpsError("unavailable", "PayPal checkout could not start right now. Please try again.");
-  }
+  throw new HttpsError("failed-precondition", "Online checkout is no longer available for race registrations. An administrator will confirm your payment.");
 });
 
 export const captureRacePayPalOrder = onCall({
@@ -786,6 +777,34 @@ export const getRacePaymentStatus = onCall(async (request) => {
   };
 });
 
+export const confirmRaceRegistration = onCall(async (request) => {
+  if (!request.auth) throw new HttpsError("unauthenticated", "Sign in with an administrator account to confirm race registrations.");
+  const adminDoc = await db.doc(`admins/${request.auth.uid}`).get();
+  const role = adminDoc.data()?.role;
+  if (!adminDoc.exists || (role !== "superadmin" && role !== "staff")) {
+    throw new HttpsError("permission-denied", "Only event staff can confirm race registrations.");
+  }
+  const data = request.data as Record<string, unknown> | null;
+  const registrationId = typeof data?.registrationId === "string" ? data.registrationId.trim() : "";
+  if (!registrationId) throw new HttpsError("invalid-argument", "The race registration reference is invalid.");
+  const registrationRef = db.collection("eventRegistrations").doc(registrationId);
+  const snapshot = await registrationRef.get();
+  const registration = snapshot.data();
+  if (!snapshot.exists || registration?.eventSlug !== eventSlug) throw new HttpsError("not-found", "We could not find this race registration.");
+  if (registration.paymentStatus === "verified") return {paymentStatus: "verified" as const};
+  if (registration.paymentProvider === "paypal" && typeof registration.paypalOrderId === "string") {
+    throw new HttpsError("failed-precondition", "This registration has an existing PayPal order. Verify that payment through the PayPal reconciliation tools.");
+  }
+  await registrationRef.update({
+    paymentStatus: "verified",
+    paymentMethod: registration.registrationTier === "Beneficiary school student" ? "school_sponsored" : "admin_confirmed",
+    paidAt: registration.registrationTier === "Beneficiary school student" ? null : FieldValue.serverTimestamp(),
+    adminConfirmedAt: FieldValue.serverTimestamp(),
+    adminConfirmedBy: request.auth.uid,
+  });
+  return {paymentStatus: "verified" as const};
+});
+
 export const listEventRegistrations = onCall(async (request) => {
   if (!request.auth) {
     throw new HttpsError("unauthenticated", "Sign in with an administrator account to view registrations.");
@@ -812,8 +831,11 @@ export const listEventRegistrations = onCall(async (request) => {
       submittedAt.toDate().toISOString() :
       new Date().toISOString();
 
-    const category = data.raceCategory === "21k" || data.category === "21K" ? "21K" :
-      data.raceCategory === "10k" || data.category === "10K" ? "10K" : "Children's 1K";
+    const storedCategory = data.raceCategory ?? data.category;
+    const category = storedCategory === "21k" || storedCategory === "21K" || storedCategory === "21KM Half Marathon" ? "21KM Half Marathon" :
+      storedCategory === "10k" || storedCategory === "10K" || storedCategory === "10KM Run" ? "10KM Run" :
+        storedCategory === "5k" || storedCategory === "5k_run_walk" || storedCategory === "5KM Run/Walk" ? "5KM Run/Walk" :
+          "Children's Fun Run";
 
     return {
       id: document.id,
@@ -821,6 +843,12 @@ export const listEventRegistrations = onCall(async (request) => {
       age: data.participantAge || data.age || 0,
       gender: data.gender === "male" || data.gender === "female" ? data.gender : "",
       category,
+      registrationTier: typeof data.registrationTier === "string" ? data.registrationTier : "Legacy registration",
+      feeKes: typeof data.feeKes === "number" ? data.feeKes : registrationFeeKes,
+      beneficiarySchoolName: typeof data.beneficiarySchoolName === "string" ? data.beneficiarySchoolName : "",
+      schoolRepresentativeName: typeof data.schoolRepresentativeName === "string" ? data.schoolRepresentativeName : "",
+      schoolRepresentativeEmail: typeof data.schoolRepresentativeEmail === "string" ? data.schoolRepresentativeEmail : "",
+      schoolRepresentativePhone: typeof data.schoolRepresentativePhone === "string" ? data.schoolRepresentativePhone : "",
       email: data.contactEmail || data.email || "",
       phone: data.contactPhone || data.phone || "",
       paymentStatus: data.paymentStatus || "pending",
