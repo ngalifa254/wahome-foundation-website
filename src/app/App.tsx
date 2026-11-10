@@ -1085,6 +1085,17 @@ function HomePage({ onNav, onOpenEventDialog }: { onNav: (p: Page) => void; onOp
 // ─── ABOUT PAGE ───────────
 
 function AboutPage({ onNav }: { onNav: (p: Page) => void }) {
+  const partners = [
+    { name: "Autism Allies", src: logoAutismAllies },
+    { name: "Coffee Bench", src: logoCoffeeBench },
+    { name: "Laikipia Heights", src: logoLaikipiaHeights },
+    { name: "Luxo", src: logoLuxo },
+    { name: "Lioness", src: logoLioness },
+    { name: "Prestige AFC", src: logoPrestigeAFC },
+    { name: "Sneakerama", src: logoSneakerama },
+    { name: "Tufaha Resort", src: logoTufahaResort },
+  ];
+
   return (
     <div className="about-page pt-28 md:pt-32 min-h-screen bg-white">
       <section className="py-6 sm:py-8 px-6 bg-white">
@@ -1252,28 +1263,23 @@ function AboutPage({ onNav }: { onNav: (p: Page) => void }) {
             Powered by our partners
           </p>
 
-          <div className="flex flex-wrap items-center justify-center gap-12 sm:gap-16 md:gap-20">
-            {[
-              { name: "Autism Allies", src: logoAutismAllies },
-              { name: "Coffee Bench", src: logoCoffeeBench },
-              { name: "Laikipia Heights", src: logoLaikipiaHeights },
-              { name: "Luxo", src: logoLuxo },
-              { name: "Lioness", src: logoLioness },
-              { name: "Prestige AFC", src: logoPrestigeAFC },
-              { name: "Sneakerama", src: logoSneakerama },
-              { name: "Tufaha Resort", src: logoTufahaResort },
-            ].map((partner) => (
-              <div
-                key={partner.name}
-                className="flex items-center justify-center p-2 transition-transform duration-300 hover:scale-105"
-              >
-                <img
-                  src={partner.src}
-                  alt={partner.name}
-                  className="h-15 sm:h-18 w-auto max-w-[210px] object-contain opacity-100"
-                />
-              </div>
-            ))}
+          <div className="partner-marquee" role="region" aria-label="Foundation partners">
+            <div className="partner-marquee-track">
+              {[0, 1].map((copy) => (
+                <div
+                  key={copy}
+                  className="partner-marquee-group"
+                  role={copy === 0 ? "list" : undefined}
+                  aria-hidden={copy === 1 ? "true" : undefined}
+                >
+                  {partners.map((partner) => (
+                    <div key={partner.name} role={copy === 0 ? "listitem" : undefined} className="flex shrink-0 items-center justify-center p-2">
+                      <img src={partner.src} alt={copy === 0 ? partner.name : ""} className="h-15 sm:h-18 w-auto max-w-[210px] object-contain opacity-100" />
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -1434,74 +1440,95 @@ function ScholarshipPage({
             {[
               {
                 name: "Alex Karani",
-                meta: "Grade 10 · Ontilili Boys",
-                message:
+                label: "FUTURE AGRONOMIST",
+                headline: "A chance to learn.\nA future to imagine.",
+                quote:
                   "The Foundation helped me join high school and gave me hope of pursuing a career in Agricultural Engineering.",
+                context:
+                  "Alex is now in Grade 10 at Ontilili Boys. With the Foundation’s support covering for his education, he is working toward his goals, with his sights set on Agricultural Engineering.",
                 photo: alexPhoto,
                 objectPosition: "object-[center_15%]",
+                headlineSize: "text-[clamp(2.15rem,3.4vw,3.15rem)]",
               },
               {
                 name: "Jedidah Watetu",
-                meta: "Grade 10 · St Rita Kiaragana Girls",
-                message:
+                label: "FUTURE DOCTOR",
+                headline: "Today a student.\nTomorrow a doctor.",
+                quote:
                   "The Wahome Foundation’s support helped me join high school. I hope to become a doctor in the future.",
+                context:
+                  "Jedidah is now in Grade 10 at St Rita Kiaragana Girls. With the Foundation’s support, she has taken her place in high school and is working toward her dream of becoming a doctor.",
                 photo: jedidahPhoto,
                 objectPosition: "object-[center_15%]",
+                headlineSize: "text-[clamp(2.05rem,3.1vw,2.9rem)]",
               },
               {
                 name: "James Ndungu",
-                meta: "Grade 10 · Endarasha Boys",
-                message:
+                label: "FUTURE NEUROSURGEON",
+                headline: "A sharp mind.\nA steady hand.",
+                quote:
                   "The Thomas D.K. Wahome Scholarship helped me join Endarasha Senior School. I hope to become a neurosurgeon.",
+                context:
+                  "James is in Grade 10 at Endarasha Boys, where the Thomas D.K. Wahome Scholarship opened the door to senior school. He is aiming high, with his sights set on becoming a neurosurgeon.",
                 photo: jamesPhoto,
                 objectPosition: "object-[center_15%]",
+                headlineSize: "text-[clamp(2.2rem,3.2vw,3rem)]",
               },
               {
                 name: "Newton Njenga",
-                meta: "Grade 10 · Kaheti Boys",
-                message:
+                label: "FUTURE ARMY CADET OFFICER",
+                headline: "Discipline today.\nLeadership tomorrow.",
+                quote:
                   "The Foundation helped me join high school and move closer to my dream of becoming an army cadet officer.",
+                context:
+                  "Newton is in Grade 10 at Kaheti Boys. The Foundation’s support helped him start high school, bringing him a step closer to a future as an army cadet officer.",
                 photo: newtonPhoto,
                 objectPosition: "object-[center_15%]",
+                headlineSize: "text-[clamp(2rem,3vw,2.75rem)]",
               },
               {
                 name: "Samuel Mutero",
-                meta: "Grade 10 · Naromuru Boys",
-                message:
+                label: "FUTURE BIOLOGIST",
+                headline: "Curious about life.\nReady to study it.",
+                quote:
                   "I’m grateful to the Wahome Foundation for helping me join high school. Its support gives me the chance to pursue my dream of becoming a biologist.",
+                context:
+                  "Samuel is in Grade 10 at Naromuru Boys. Grateful for the Foundation’s support, he is using his place in high school to pursue his dream of becoming a biologist.",
                 photo: samuelPhoto,
                 objectPosition: "object-[center_15%]",
+                headlineSize: "text-[clamp(2.1rem,3.2vw,2.95rem)]",
               },
             ].map((s) => (
               <div
                 key={s.name}
-                className="relative flex min-w-0 flex-col text-left md:flex-row md:items-center"
+                className="relative flex min-w-0 flex-col text-left md:flex-row md:items-center md:py-5"
               >
-                <div className="relative z-10 mx-auto -mb-8 h-56 w-[72%] max-w-[240px] shrink-0 overflow-hidden rounded-xl bg-[#0B0B0B] md:mx-0 md:mb-0 md:h-[280px] md:w-[220px]">
+                <div className="relative z-10 mx-auto -mb-8 h-56 w-[72%] max-w-[280px] shrink-0 overflow-hidden rounded-lg bg-[#0B0B0B] md:mx-0 md:mb-0 md:h-[340px] md:w-[34%]">
                   <img
                     src={s.photo}
                     alt={s.name}
                     className={`w-full h-full object-cover ${s.objectPosition}`}
                   />
                 </div>
-                <div className="relative z-0 flex min-h-[230px] flex-col justify-center rounded-3xl border border-[#DDE3E8] bg-white px-6 pb-6 pt-12 shadow-sm md:-ml-12 md:flex-1 md:py-8 md:pl-20 md:pr-8">
-                  <div className="mb-2 flex items-start justify-between gap-4">
-                    <h3
-                      className="font-bold text-[#1F3A52] text-lg"
-                      style={{ fontFamily: "'Montserrat', Arial, sans-serif" }}
-                    >
-                      {s.name}
-                    </h3>
-                    <span className="shrink-0 rounded-full bg-[#F1F4F7] px-3 py-1 text-xs font-extrabold uppercase tracking-wider text-[#2C6E9E]">
-                      Scholar
-                    </span>
+                <div className="relative z-0 flex min-h-[290px] flex-col justify-center border-l-[3px] border-[#2C6E9E] bg-[#F1F4F7] px-6 pb-7 pt-14 md:-ml-5 md:min-h-[340px] md:flex-1 md:px-9 md:py-8 md:pl-10 md:pr-8">
+                  <span className="mb-3 text-[0.72rem] font-bold tracking-[0.2em] text-[#2C6E9E]">
+                    {s.label}
+                  </span>
+                  <h3
+                    className={`${s.headlineSize} whitespace-pre-line font-bold leading-[1.08] tracking-[-0.035em] text-[#1F3A52]`}
+                    style={{ fontFamily: "'Montserrat', Arial, sans-serif" }}
+                  >
+                    {s.headline}
+                  </h3>
+                  <blockquote className="mt-5 font-serif text-[1.2rem] leading-[1.5] text-[#1F3A52] md:text-[1.35rem]">
+                    “{s.quote}”
+                  </blockquote>
+                  <div className="mt-5 border-t border-[#D5DEE5] pt-3">
+                    <p className="font-bold text-[#1F3A52]">{s.name}</p>
+                    <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[#536477]">
+                      {s.context}
+                    </p>
                   </div>
-                  <p className="mb-4 inline-flex w-fit items-center gap-2 rounded-full bg-[#F1F4F7] px-3 py-1 text-xs font-semibold text-[#2C6E9E]">
-                    {s.meta}
-                  </p>
-                  <p className="text-sm leading-relaxed text-[#334155] md:text-base" style={{ border: "none", paddingLeft: 0 }}>
-                    “{s.message}”
-                  </p>
                 </div>
               </div>
             ))}

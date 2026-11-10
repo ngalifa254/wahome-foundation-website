@@ -245,3 +245,13 @@ html { scroll-padding-top:105px; }
 .eden-hero .hero-story-cta { width:auto; min-height:0; justify-content:flex-start; }
 .partner-section-under-hero { padding-top:0; }
 .partner-section-under-hero h2 { margin:4px 0 8px; font-size:var(--type-caption); font-weight:600; line-height:1.4; color:var(--green); }
+.partner-marquee { width:100%; overflow:hidden; mask-image:linear-gradient(to right, transparent, #000 5%, #000 95%, transparent); }
+.partner-marquee-track { display:flex; width:max-content; animation:partner-logo-scroll 40s linear infinite; will-change:transform; }
+.partner-marquee:hover .partner-marquee-track { animation-play-state:paused; }
+.partner-marquee-group { display:flex; flex:0 0 auto; align-items:center; justify-content:space-around; gap:clamp(2.5rem,6vw,5rem); padding-inline:clamp(1.5rem,3vw,3rem); }
+@keyframes partner-logo-scroll { to { transform:translateX(-50%); } }
+@media(prefers-reduced-motion:reduce) {
+  .partner-marquee { overflow-x:auto; mask-image:none; }
+  .partner-marquee-track { animation:none; }
+  .partner-marquee-group:nth-child(2) { display:none; }
+}
