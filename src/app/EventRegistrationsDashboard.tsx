@@ -29,7 +29,13 @@ export interface Registration {
   fullName: string;
   age: number;
   gender?: "male" | "female" | "";
-  category: "21K" | "10K" | "Children's 1K";
+  category: "Children's Fun Run" | "5KM Run/Walk" | "10KM Run" | "21KM Half Marathon";
+  registrationTier: string;
+  feeKes: number;
+  beneficiarySchoolName: string;
+  schoolRepresentativeName: string;
+  schoolRepresentativeEmail: string;
+  schoolRepresentativePhone: string;
   email: string;
   phone: string;
   paymentStatus: "verified" | "pending" | "failed";
@@ -136,6 +142,23 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
       setIsLoadingRegistrations(false);
     }
   }, []);
+
+  const confirmRegistration = async (item: Registration) => {
+    if (!functions || !window.confirm(item.registrationTier === "Beneficiary school student" ?
+      `Confirm ${item.fullName}'s free beneficiary-school entry?` :
+      `Confirm payment for ${item.fullName} (${item.registrationTier}, KSh ${item.feeKes.toLocaleString()})?`)) return;
+    setReconcilingPayment(`admin:${item.id}`);
+    setPaymentRecoveryError("");
+    try {
+      const confirm = httpsCallable<{registrationId: string}, {paymentStatus: "verified"}>(functions, "confirmRaceRegistration");
+      await confirm({registrationId: item.id});
+      await loadRegistrations();
+    } catch (cause) {
+      setPaymentRecoveryError(cause instanceof Error ? cause.message : "Could not confirm this registration.");
+    } finally {
+      setReconcilingPayment("");
+    }
+  };
 
   const loadSponsors = useCallback(async () => {
     if (!functions) {
@@ -271,7 +294,7 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
   const EVENT_CAPACITY = 500;
   const verifiedCount = registrations.filter(r => r.paymentStatus === 'verified').length;
   const pendingCount = registrations.filter(r => r.paymentStatus === 'pending').length;
-  const ticketRevenue = verifiedCount * 1000;
+  const ticketRevenue = registrations.reduce((total, item) => total + (item.paymentStatus === "verified" ? item.feeKes : 0), 0);
   const sponsorshipTotal = sponsors.reduce((acc, s) => acc + (s.status === "Confirmed" ? s.amount : 0), 0);
   const totalFunds = ticketRevenue + sponsorshipTotal;
 
@@ -447,10 +470,10 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
                   const donationExport = activeView === "donations";
                   const headers = donationExport
                     ? ["Donor Name", "Email", "Amount", "Currency", "Payment Provider", "Receipt", "Reference", "Status", "Created At"]
-                    : ["Name", "Age", "Gender", "Email", "Phone", "Category", "Payment Method", "Receipt", "Status"];
+                    : ["Name", "Age", "Gender", "Email", "Phone", "Race Category", "Registration Tier", "Fee KES", "Beneficiary School", "School Representative", "Payment Method", "Receipt", "Status"];
                   const rows = donationExport
                     ? donations.map((donation) => [donation.donorName, donation.donorEmail, donation.amount.toFixed(2), donation.currency, donation.paymentProvider, donation.paymentReceipt, donation.paymentReference, donation.paymentStatus, donation.createdAt])
-                    : registrations.map((registration) => [registration.fullName, registration.age, registration.gender || "", registration.email, registration.phone, registration.category, registration.paymentMethod || "", registration.paymentReceipt || "", registration.paymentStatus]);
+                    : registrations.map((registration) => [registration.fullName, registration.age, registration.gender || "", registration.email, registration.phone, registration.category, registration.registrationTier, registration.feeKes, registration.beneficiarySchoolName, registration.schoolRepresentativeName, registration.paymentMethod || "", registration.paymentReceipt || "", registration.paymentStatus]);
                   const escapeCsv = (value: string | number) => `"${String(value).replace(/"/g, '""')}"`;
                   const csvContent = "data:text/csv;charset=utf-8," + [headers, ...rows].map((row) => row.map(escapeCsv).join(",")).join("\r\n");
                   const encodedUri = encodeURI(csvContent);
@@ -523,7 +546,7 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
                 KSh {ticketRevenue.toLocaleString()}
               </div>
               <p className="text-[11px] text-slate-400 mt-1">
-                {verifiedCount} verified payment entries
+                {verifiedCount} confirmed registrations
               </p>
             </div>
 
@@ -577,7 +600,7 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
                       : "text-slate-600 hover:text-slate-900"
                   }`}
                 >
-                  Verified ({verifiedCount})
+                  Confirmed ({verifiedCount})
                 </button>
                 <button
                   onClick={() => setActiveTab("pending")}
@@ -611,9 +634,10 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
                     className="bg-slate-50 border border-slate-200 text-slate-700 text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-emerald-600"
                   >
                     <option value="all">All Categories</option>
-                    <option value="21K">21K</option>
-                    <option value="10K">10K</option>
-                    <option value="Children's 1K">Children's 1K</option>
+                    <option value="Children's Fun Run">Children's Fun Run</option>
+                    <option value="5KM Run/Walk">5KM Run/Walk</option>
+                    <option value="10KM Run">10KM Run</option>
+                    <option value="21KM Half Marathon">21KM Half Marathon</option>
                   </select>
                 </div>
               </div>
@@ -649,6 +673,8 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
                           <span className="bg-slate-200 text-slate-700 text-[10px] font-medium px-2 py-0.5 rounded">
                             {item.category}
                           </span>
+                          <span className="bg-blue-100 text-blue-800 text-[10px] font-medium px-2 py-0.5 rounded">{item.registrationTier}</span>
+                          <span className="text-[11px] font-semibold text-slate-600">{item.feeKes === 0 ? "Free" : `KSh ${item.feeKes.toLocaleString()}`}</span>
                           <span className="text-[11px] text-slate-400">Age: {item.age}</span>
                           {item.gender && <span className="text-[11px] text-slate-400">Gender: {item.gender === "male" ? "Male" : "Female"}</span>}
                         </div>
@@ -656,6 +682,7 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
                           <span>{item.email}</span>
                           <span>•</span>
                           <span>{item.phone}</span>
+                          {item.beneficiarySchoolName && <span className="text-blue-700">School: {item.beneficiarySchoolName} · Rep: {item.schoolRepresentativeName}</span>}
                         </div>
                       </div>
                     </div>
@@ -663,11 +690,11 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
                     <div className="flex items-center justify-between md:justify-end gap-6 pt-3 md:pt-0 border-t md:border-t-0 border-slate-200">
                       <div className="text-right">
                         <div className="text-xs text-slate-400 mb-0.5">
-                          {item.paymentMethod ? `${item.paymentMethod === "paypal" ? "PayPal" : item.paymentMethod}: ` : "Payment: "}<span className="font-mono text-slate-800 font-medium">{item.paymentReceipt || "—"}</span>
+                          {item.paymentMethod ? `${item.paymentMethod === "paypal" ? "PayPal" : item.paymentMethod === "school_sponsored" ? "School sponsored" : item.paymentMethod === "admin_confirmed" ? "Admin confirmed" : item.paymentMethod}: ` : "Payment: "}<span className="font-mono text-slate-800 font-medium">{item.paymentReceipt || "—"}</span>
                         </div>
                         {item.paymentStatus === "verified" ? (
                           <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
-                            <CheckCircle2 className="w-3 h-3" /> Verified
+                            <CheckCircle2 className="w-3 h-3" /> {item.feeKes === 0 ? "School entry confirmed" : "Payment confirmed"}
                           </span>
                         ) : item.paymentStatus === "failed" ? (
                           <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-red-700 bg-red-50 border border-red-200 px-2.5 py-0.5 rounded-full">
@@ -683,6 +710,10 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
                       <div className="flex flex-col items-end gap-2 sm:flex-row sm:items-center">
                         {item.paymentStatus === "pending" && (
                           <div className="flex flex-wrap items-center justify-end gap-2">
+                            {item.paymentMethod !== "paypal" && <button type="button" onClick={() => void confirmRegistration(item)} disabled={Boolean(reconcilingPayment)} className="rounded-lg bg-emerald-700 px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-emerald-800 disabled:opacity-50">
+                              {reconcilingPayment === `admin:${item.id}` ? "Confirming…" : item.feeKes === 0 ? "Confirm school entry" : "Confirm payment"}
+                            </button>}
+                            {item.paymentMethod === "paypal" && <>
                             {item.paymentMethod === "paypal" && item.paypalOrderId && (
                               <button
                                 type="button"
@@ -719,6 +750,7 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
                           >
                             {reconcilingPayment === `auto:registration:${item.id}` ? "Searching…" : "Auto verify"}
                           </button>
+                            </>}
                           </div>
                         )}
                         <button
@@ -1032,6 +1064,15 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
                   <span className="text-slate-400 block mb-1">Category</span>
                   <span className="text-slate-900 font-semibold">{selectedParticipant.category}</span>
                 </div>
+                <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                  <span className="text-slate-400 block mb-1">Registration package</span>
+                  <span className="text-slate-900 font-semibold">{selectedParticipant.registrationTier} · {selectedParticipant.feeKes === 0 ? "Free" : `KSh ${selectedParticipant.feeKes.toLocaleString()}`}</span>
+                </div>
+                {selectedParticipant.beneficiarySchoolName && <div className="bg-blue-50 p-3 rounded-xl border border-blue-100 col-span-2">
+                  <span className="text-slate-400 block mb-1">Beneficiary school</span>
+                  <span className="text-slate-900 font-semibold">{selectedParticipant.beneficiarySchoolName}</span>
+                  <span className="mt-1 block text-slate-600">Submitted by {selectedParticipant.schoolRepresentativeName} · {selectedParticipant.schoolRepresentativeEmail} · {selectedParticipant.schoolRepresentativePhone}</span>
+                </div>}
                 <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
                   <span className="text-slate-400 block mb-1">Age</span>
                   <span className="text-slate-900 font-semibold">{selectedParticipant.age} years</span>
