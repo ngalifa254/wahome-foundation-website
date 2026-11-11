@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { ArrowRight, CalendarDays, Clock3, MapPin, HeartHandshake, X } from "lucide-react";
 import { httpsCallable } from "firebase/functions";
-import posterImage from "@/imports/event-poster-2027.jpg";
+import posterImage from "@/imports/poster.jpg";
 import { functions } from "@/lib/firebase";
 import RegistrationForm from "./RegistrationForm";
 
@@ -148,6 +148,12 @@ export function EventPage({
   onDialogRequestHandled?: () => void;
 }) {
   const [activeDialog, setActiveDialog] = useState<EventDialog | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<Category>("21KM Half Marathon");
+
+  const chooseCategory = (category: Category) => {
+    setSelectedCategory(category);
+    setActiveDialog("registration");
+  };
 
   useEffect(() => {
     const previousTitle = document.title;
@@ -190,10 +196,20 @@ export function EventPage({
         <p>Funds raised support children’s education through the Thomas D.K. Wahome Scholarship Program. Choose a race distance and package: Regular KES 500, VIP KES 1,000, or VVIP KES 1,500. Students from beneficiary schools participate free through school representative registration. Participants under 18 need parent or guardian authorization.</p>
       </div>
       <div className="run-category-grid">
-        <article><span>01</span><h3>Children&apos;s Fun Run</h3><p>For participants under 18</p><strong>Choose a package</strong></article>
-        <article><span>02</span><h3>5KM Run/Walk</h3><p>Open to everyone</p><strong>Choose a package</strong></article>
-        <article><span>03</span><h3>10KM Run</h3><p>Open to everyone</p><strong>Choose a package</strong></article>
-        <article><span>04</span><h3>21KM Half Marathon</h3><p>Open to everyone</p><strong>Choose a package</strong></article>
+        {([
+          ["01", "Children's Fun Run", "For participants under 18"],
+          ["02", "5KM Run/Walk", "Open to everyone"],
+          ["03", "10KM Run", "Open to everyone"],
+          ["04", "21KM Half Marathon", "Open to everyone"],
+        ] as const).map(([number, category, audience]) => (
+          <article className="run-category-card" key={category}>
+            <span className="run-category-number">{number}</span>
+            <div className="run-category-copy"><h3>{category}</h3><p>{audience}</p></div>
+            <button type="button" className="run-category-cta" onClick={() => chooseCategory(category)}>
+              Choose a package <ArrowRight size={17} aria-hidden="true" />
+            </button>
+          </article>
+        ))}
       </div>
     </section>
     <section className="run-info-band"><div className="layout run-info-grid"><div><span className="eyebrow">Event information</span><h2>Details to follow</h2><p>We’ll share more information when it is confirmed.</p></div><dl><div><dt>Route</dt><dd>To be announced</dd></div><div><dt>Registration deadline</dt><dd>To be announced</dd></div><div><dt>Participant capacity</dt><dd>To be announced</dd></div><div><dt>Event-day guidance</dt><dd>To be announced</dd></div></dl></div></section>
@@ -202,7 +218,7 @@ export function EventPage({
       <div className="run-dialog" role="dialog" aria-modal="true" aria-labelledby="run-dialog-title">
         <header className="run-dialog-header support-modal-header"><h2 id="run-dialog-title">{activeDialog === "registration" ? "Participant Registration" : "Become a Sponsor"}</h2><button type="button" className="run-dialog-close support-modal-close" onClick={() => setActiveDialog(null)} aria-label="Close dialog"><X size={20} /></button></header>
         <div className={`run-dialog-content${activeDialog === "registration" ? " registration-dialog-content" : ""}`}>
-          {activeDialog === "registration" ? <><RegistrationForm /><aside className="run-payment-note"><span className="eyebrow">Registration packages</span><h2>Choose your entry package</h2><p>Regular: KES 500 — entry ticket.</p><p>VIP: KES 1,000 — entry ticket, participation medal, and VIP tent access.</p><p>VVIP: KES 1,500 — entry ticket, participation medal, T-shirt, and sponsor lounge access.</p><p>Students from beneficiary schools register free through a school representative. Paid registrations stay pending until an administrator confirms payment; student entries stay pending until eligibility is confirmed.</p></aside></> : <SponsorForm />}
+          {activeDialog === "registration" ? <><RegistrationForm initialCategory={selectedCategory} /><aside className="run-payment-note"><span className="eyebrow">Registration packages</span><h2>Choose your entry package</h2><p>Regular: KES 500 — entry ticket.</p><p>VIP: KES 1,000 — entry ticket, participation medal, and VIP tent access.</p><p>VVIP: KES 1,500 — entry ticket, participation medal, T-shirt, and sponsor lounge access.</p><p>Students from beneficiary schools register free through a school representative. Paid registrations stay pending until an administrator confirms payment; student entries stay pending until eligibility is confirmed.</p></aside></> : <SponsorForm />}
         </div>
       </div>
     </div>}

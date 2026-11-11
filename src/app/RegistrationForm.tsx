@@ -49,12 +49,12 @@ declare global {
   }
 }
 
-export default function RegistrationForm() {
+export default function RegistrationForm({ initialCategory = "21KM Half Marathon" }: { initialCategory?: Category }) {
   const [formData, setFormData] = useState({
     fullName: "",
     age: "",
     gender: "" as Gender | "",
-    category: "21KM Half Marathon" as Category,
+    category: initialCategory,
     registrationTier: "Regular" as RegistrationTier,
     email: "",
     phone: "",
