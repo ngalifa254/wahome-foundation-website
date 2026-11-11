@@ -6,14 +6,14 @@ import image_Prizegiving_What_we_do from "@/imports/Prizegiving-What-we-do.png";
 import image_wells_of_hope from "@/imports/wells_of_hope.jpg";
 import image_fundeducation from "@/imports/fundeducation.jpg";
 import scholarshipPhoto from "@/imports/Scholarship.png";
-import alexPhoto from "@/imports/Alex.jpeg";
-import jedidahPhoto from "@/imports/Jedidah.jpeg";
-import jamesPhoto from "@/imports/James.jpeg";
+import alexPhoto from "@/imports/Alex.jpg";
+import jedidahPhoto from "@/imports/Jedidah.jpg";
+import jamesPhoto from "@/imports/James.jpg";
 import jamesWachiraPhoto from "@/imports/gallery/Jamesw.jpg";
 import jamesGachugiPhoto from "@/imports/gallery/Jamesg.jpg";
 import wilsonKiriungiPhoto from "@/imports/gallery/Wilson.jpg";
-import newtonPhoto from "@/imports/Newton.jpeg";
-import samuelPhoto from "@/imports/Samuel.jpeg";
+import newtonPhoto from "@/imports/Newton.jpg";
+import samuelPhoto from "@/imports/Samuel.jpg";
 import thomasPhoto from "@/imports/thomas.jpg";
 import wellsPhoto from "@/imports/wells.jpg";
 import mentorshipPhoto from "@/imports/mentorship.jpg";
@@ -487,16 +487,16 @@ function Footer({ onNav, onOpenDonate }: { onNav: (p: Page) => void; onOpenDonat
         <div className="footer-brand-row">
           <button className="footer-brand" onClick={() => onNav("home")} aria-label="Wahome Foundation home"><img src={mainLogo} alt="Wahome Foundation" /></button>
           <div className="footer-social">
-            <a href="#" aria-label="Facebook"><Facebook size={16} /></a>
-            <a href="#" aria-label="Instagram"><Instagram size={16} /></a>
-            <a href="#" aria-label="YouTube"><Youtube size={16} /></a>
+            <a href="https://web.facebook.com/p/The-Wahome-Foundation-61551130312703/?_rdc=1&_rdr#" aria-label="Wahome Foundation on Facebook" target="_blank" rel="noreferrer"><Facebook size={16} /></a>
+            <a href="https://www.instagram.com/wahomefoundation/" aria-label="Wahome Foundation on Instagram" target="_blank" rel="noreferrer"><Instagram size={16} /></a>
+            <a href="https://www.youtube.com/@WahomeFoundation" aria-label="Wahome Foundation on YouTube" target="_blank" rel="noreferrer"><Youtube size={16} /></a>
           </div>
         </div>
         <a className="footer-email" href="mailto:info@wahomefoundation.com"><Mail size={14} /> info@wahomefoundation.com</a>
         <button className="footer-support" onClick={() => onOpenDonate()}>Support our work <ArrowRight size={17} /></button>
       </div>
       <div className="footer-offices-group">
-        <div className="footer-office"><h3>Kenya</h3><address><MapPin size={14} /> 69 Haile Salasie Road<br />Nanyuki</address></div>
+        <div className="footer-office"><h3>Kenya</h3><address><MapPin size={14} /> Laikipia Heights-Haile Salasie Road<br />Nanyuki</address></div>
         <div className="footer-office"><h3>United States</h3><address><MapPin size={14} /> 560 Boston Turnpike<br />Shrewsbury, Massachusetts</address></div>
       </div>
     </div>
@@ -1557,7 +1557,7 @@ function ScholarshipPage({
                     className={`w-full h-full object-cover ${s.objectPosition}`}
                   />
                 </div>
-                <div className="relative z-0 flex min-h-[290px] flex-col justify-center border-l-[3px] border-[#2C6E9E] bg-[#F1F4F7] px-6 pb-7 pt-14 md:-ml-5 md:min-h-[340px] md:flex-1 md:px-9 md:py-8 md:pl-10 md:pr-8">
+                <div className="relative z-0 flex min-h-[290px] flex-col justify-center bg-[#F1F4F7] px-6 pb-7 pt-14 md:-ml-5 md:min-h-[340px] md:flex-1 md:px-9 md:py-8 md:pl-10 md:pr-8">
                   <span className="mb-3 text-[0.72rem] font-bold tracking-[0.2em] text-[#2C6E9E]">
                     {s.label}
                   </span>
