@@ -261,7 +261,7 @@ export const registerEvent = onCall({
     paidAt: null,
   });
 
-  return {registrationId: registration.id, paymentStatus: "pending" as const};
+  return {registrationId: registration.id, paymentStatus: "pending" as const, feeKes: tierFees[registrationTier]};
 });
 
 export const startDonationPayPalOrder = onCall({

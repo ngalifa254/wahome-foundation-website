@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
-import { ArrowRight, CheckCircle2, Loader2, Sparkles } from "lucide-react";
+import { ArrowRight, Loader2, Sparkles } from "lucide-react";
 import { httpsCallable } from "firebase/functions";
 import { functions } from "../lib/firebase"; // Uses existing functions export from lib/firebase.ts
 
-type Category = "Children's Fun Run" | "5KM Run/Walk" | "10KM Run" | "21KM Half Marathon";
+export type Category = "Children's Fun Run" | "5KM Run/Walk" | "10KM Run" | "21KM Half Marathon";
 type RegistrationTier = "Regular" | "VIP" | "VVIP" | "Beneficiary school student";
 type Gender = "male" | "female";
 type GuardianRelationship = "parent" | "legal_guardian" | "other";
@@ -31,6 +31,14 @@ interface RegisterEventPayload {
 interface RegisterEventResponse {
   registrationId: string;
   paymentStatus: "pending";
+  feeKes?: number;
+}
+
+export interface RegistrationConfirmation {
+  registrationId: string;
+  category: Category;
+  tier: RegistrationTier;
+  feeKes: number;
 }
 
 declare global {
@@ -49,13 +57,13 @@ declare global {
   }
 }
 
-export default function RegistrationForm({ initialCategory = "21KM Half Marathon" }: { initialCategory?: Category }) {
+export default function RegistrationForm({ initialCategory = "21KM Half Marathon", initialTier = "Regular", onRegistered }: { initialCategory?: Category; initialTier?: Exclude<RegistrationTier, "Beneficiary school student">; onRegistered?: (confirmation: RegistrationConfirmation) => void }) {
   const [formData, setFormData] = useState({
     fullName: "",
     age: "",
     gender: "" as Gender | "",
     category: initialCategory,
-    registrationTier: "Regular" as RegistrationTier,
+    registrationTier: initialTier as RegistrationTier,
     email: "",
     phone: "",
     agreedToTerms: false,
@@ -68,8 +76,6 @@ export default function RegistrationForm({ initialCategory = "21KM Half Marathon
   });
 
   const [loading, setLoading] = useState(false);
-  const [registrationId, setRegistrationId] = useState<string | null>(null);
-  const [submittedTier, setSubmittedTier] = useState<RegistrationTier>("Regular");
   const [turnstileToken, setTurnstileToken] = useState("");
   const [error, setError] = useState("");
   const turnstileContainer = useRef<HTMLDivElement>(null);
@@ -106,7 +112,6 @@ export default function RegistrationForm({ initialCategory = "21KM Half Marathon
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    setRegistrationId(null);
     if (!functions) {
       setError("Registration is unavailable because the event service is not configured.");
       return;
@@ -145,8 +150,13 @@ export default function RegistrationForm({ initialCategory = "21KM Half Marathon
         turnstileToken,
       });
 
-      setRegistrationId(result.data.registrationId);
-      setSubmittedTier(formData.registrationTier);
+      const tierFees: Record<RegistrationTier, number> = { Regular: 500, VIP: 1000, VVIP: 1500, "Beneficiary school student": 0 };
+      onRegistered?.({
+        registrationId: result.data.registrationId,
+        category: formData.category,
+        tier: formData.registrationTier,
+        feeKes: typeof result.data.feeKes === "number" ? result.data.feeKes : tierFees[formData.registrationTier],
+      });
       setFormData({
         fullName: "", age: "", gender: "", category: "21KM Half Marathon", registrationTier: "Regular", email: "", phone: "",
         agreedToTerms: false, optInMarketing: false, guardianName: "",
@@ -386,17 +396,6 @@ export default function RegistrationForm({ initialCategory = "21KM Half Marathon
         </button>
       </form>
 
-      {registrationId && (
-        <div className="mx-6 mb-6 rounded-2xl border border-blue-200 bg-blue-50/90 p-5 text-sm text-slate-800 shadow-sm animate-in fade-in duration-300 md:mx-8 md:mb-8">
-          <div className="flex items-start gap-3">
-            <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
-            <div>
-              <p className="font-bold">Registration received · Ref {registrationId}</p>
-              <p className="mt-1 text-xs text-slate-600">{submittedTier === "Beneficiary school student" ? "Your school-submitted free entry is pending administrator confirmation." : `Your ${submittedTier} entry is pending administrator confirmation of payment.`}</p>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

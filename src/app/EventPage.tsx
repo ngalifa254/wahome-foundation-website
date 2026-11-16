@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { ArrowRight, CalendarDays, Clock3, MapPin, HeartHandshake, X } from "lucide-react";
+import { ArrowRight, CalendarDays, CheckCircle2, Clock3, MapPin, HeartHandshake, X } from "lucide-react";
 import { httpsCallable } from "firebase/functions";
 import posterImage from "@/imports/poster.jpg";
 import { functions } from "@/lib/firebase";
-import RegistrationForm from "./RegistrationForm";
+import RegistrationForm, { type RegistrationConfirmation } from "./RegistrationForm";
 
 declare global {
   interface Window {
@@ -22,6 +22,7 @@ declare global {
 }
 
 type Category = "Children's Fun Run" | "5KM Run/Walk" | "10KM Run" | "21KM Half Marathon";
+type PaidRegistrationTier = "Regular" | "VIP" | "VVIP";
 export type EventDialog = "registration" | "sponsor";
 
 const fieldClass = "run-field";
@@ -149,10 +150,32 @@ export function EventPage({
 }) {
   const [activeDialog, setActiveDialog] = useState<EventDialog | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<Category>("21KM Half Marathon");
+  const [selectedTier, setSelectedTier] = useState<PaidRegistrationTier>("Regular");
+  const [registrationConfirmation, setRegistrationConfirmation] = useState<RegistrationConfirmation | null>(null);
+  const confirmationRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (registrationConfirmation) confirmationRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [registrationConfirmation]);
+
+  const handleRegistrationSuccess = (confirmation: RegistrationConfirmation) => {
+    setRegistrationConfirmation(confirmation);
+    setActiveDialog(null);
+  };
+
+  const openRegistration = () => {
+    setRegistrationConfirmation(null);
+    setActiveDialog("registration");
+  };
+
+  const choosePackage = (tier: PaidRegistrationTier) => {
+    setSelectedTier(tier);
+    openRegistration();
+  };
 
   const chooseCategory = (category: Category) => {
+    setRegistrationConfirmation(null);
     setSelectedCategory(category);
-    setActiveDialog("registration");
   };
 
   useEffect(() => {
@@ -188,37 +211,67 @@ export function EventPage({
   }, [activeDialog]);
 
   return <div className="run-page">
-    <section className="run-hero"><div className="layout run-hero-inner"><div className="run-hero-copy"><span className="eyebrow">Move for education</span><h1>Miles for Minds:<br /><em>The Wahome Foundation Run</em></h1><p>Join us to support children’s education through the Thomas D.K. Wahome Scholarship Program.</p><div className="run-hero-details"><span><CalendarDays size={18} /> Saturday, January 9, 2027</span><span><Clock3 size={18} /> 7:00 AM</span><span><MapPin size={18} /> Mugumo Center</span></div><div className="run-hero-actions"><button type="button" className="button button-gold" onClick={() => setActiveDialog("registration")}>Register <ArrowRight size={17} /></button><button type="button" className="button button-outline" onClick={() => setActiveDialog("sponsor")}>Become a Sponsor <HeartHandshake size={17} /></button></div></div></div></section>
-    <section className="layout run-details-section">
-      <div className="run-purpose">
-        <span className="eyebrow">Every mile makes a difference</span>
-        <h2>Run for the next generation</h2>
-        <p>Funds raised support children’s education through the Thomas D.K. Wahome Scholarship Program. Choose a race distance and package: Regular KES 500, VIP KES 1,000, or VVIP KES 1,500. Students from beneficiary schools participate free through school representative registration. Participants under 18 need parent or guardian authorization.</p>
-      </div>
-      <div className="run-category-grid">
-        {([
-          ["01", "Children's Fun Run", "For participants under 18"],
-          ["02", "5KM Run/Walk", "Open to everyone"],
-          ["03", "10KM Run", "Open to everyone"],
-          ["04", "21KM Half Marathon", "Open to everyone"],
-        ] as const).map(([number, category, audience]) => (
-          <article className="run-category-card" key={category}>
-            <span className="run-category-number">{number}</span>
-            <div className="run-category-copy"><h3>{category}</h3><p>{audience}</p></div>
-            <button type="button" className="run-category-cta" onClick={() => chooseCategory(category)}>
-              Choose a package <ArrowRight size={17} aria-hidden="true" />
+    <section className="run-hero"><div className="layout run-hero-inner"><div className="run-hero-copy"><span className="eyebrow">Move for education</span><h1>Miles for Minds:<br /><em>The Wahome Foundation Run</em></h1><p>Join us to support children’s education through the Thomas D.K. Wahome Scholarship Program.</p><div className="run-hero-details"><span><CalendarDays size={18} /> Saturday, January 9, 2027</span><span><Clock3 size={18} /> 7:00 AM</span><span><MapPin size={18} /> Mugumo Center</span></div><div className="run-hero-actions"><button type="button" className="button button-gold" onClick={openRegistration}>Register <ArrowRight size={17} /></button><button type="button" className="button button-outline" onClick={() => setActiveDialog("sponsor")}>Become a Sponsor <HeartHandshake size={17} /></button></div></div></div></section>
+    {registrationConfirmation && <section ref={confirmationRef} className="layout run-registration-confirmation" role="status" aria-live="polite">
+      <div className="run-confirmation-heading"><CheckCircle2 size={25} aria-hidden="true" /><div><span className="eyebrow">Registration received</span><h2>Thank you for registering!</h2><p>Your {registrationConfirmation.category} registration is saved. Reference: <strong>{registrationConfirmation.registrationId}</strong></p></div></div>
+      {registrationConfirmation.feeKes > 0 ? <div className="run-payment-instructions">
+        <h3>Pay your {registrationConfirmation.tier} entry fee</h3>
+        <p className="run-payment-amount">KES {registrationConfirmation.feeKes.toLocaleString("en-KE")}</p>
+        <ol><li>Open M-Pesa and choose <strong>Lipa na M-Pesa</strong>.</li><li>Select <strong>Pay Bill</strong>.</li><li>Business Number: <strong>247247</strong></li><li>Account Number: <strong>208617</strong></li><li>Enter <strong>KES {registrationConfirmation.feeKes.toLocaleString("en-KE")}</strong> and complete payment with your PIN.</li></ol>
+        <p className="run-payment-pending">Your registration remains pending until the Foundation confirms payment. Keep your registration reference for your records.</p>
+      </div> : <p className="run-payment-pending run-student-confirmation">Your beneficiary-school entry is free and is pending school eligibility confirmation.</p>}
+      <button type="button" className="run-confirmation-dismiss" onClick={() => setRegistrationConfirmation(null)}>Done</button>
+    </section>}
+    <section className="run-signup-section">
+      <div className="layout">
+        <div className="run-purpose">
+          <span className="eyebrow">Every mile makes a difference</span>
+          <h1>Run for the next generation</h1>
+          <p>Whether you’re lacing up for the first time or chasing a personal best, there is a place for you. Every shilling raised supports children’s education through the Thomas D.K. Wahome Scholarship Program.</p>
+        </div>
+        <div className="run-category-grid" aria-label="Choose a race distance">
+          {([
+            ["01", "Children's Fun Run", "For participants under 18", "Our youngest runners set the pace. A joyful start to the day, and a first taste of being part of something bigger. Parent or guardian authorization needed."],
+            ["02", "5KM Run/Walk", "Open to everyone", "Run, jog or stroll. Bring family, friends and first-timers. No pressure, just good company for a good cause."],
+            ["03", "10KM Run", "Open to everyone", "A real challenge for those ready to stretch. Steady, rewarding, and the perfect middle ground."],
+            ["04", "21KM Half Marathon", "Open to everyone", "For the dedicated. Go the full distance and know every kilometre carries a child closer to their education."],
+          ] as const).map(([number, category, audience, description]) => (
+            <button type="button" className={`run-category-card${selectedCategory === category ? " is-selected" : ""}`} key={category} onClick={() => chooseCategory(category)} aria-pressed={selectedCategory === category}>
+              <span className="run-category-number">{number}</span>
+              <h2>{category}</h2>
+              <p className="run-category-audience">{audience}</p>
+              <p className="run-category-description">{description}</p>
             </button>
-          </article>
-        ))}
+          ))}
+        </div>
+        <section className="run-packages" aria-labelledby="run-packages-title">
+          <h2 id="run-packages-title">Choose your package</h2>
+          <p className="run-packages-intro">Pick any distance, then pick the package that suits you.</p>
+          <div className="run-package-grid">
+            {([
+              ["Regular", "KES 500", "Entry ticket"],
+              ["VIP", "KES 1,000", "Includes a medal of participation"],
+              ["VVIP", "KES 1,500", "Includes a medal of participation and a T-shirt"],
+            ] as const).map(([tier, price, description]) => (
+              <article className={`run-package-card${tier === "VIP" ? " run-package-featured" : ""}`} key={tier}>
+                <span className="run-package-label">{tier}</span>
+                <h3>{price}</h3>
+                <p>{description}</p>
+                <button type="button" className="run-package-button" onClick={() => choosePackage(tier)} aria-label={`Choose ${tier} package for ${selectedCategory}`}>Choose {tier}</button>
+              </article>
+            ))}
+          </div>
+          <p className="run-student-note">Students from beneficiary schools participate free through school representative registration.</p>
+          <button type="button" className="run-sponsor-link" onClick={() => setActiveDialog("sponsor")}>Interested in sponsoring the run? <span>Get in touch <HeartHandshake size={15} /></span></button>
+        </section>
       </div>
-    </section>
-    <section className="run-info-band"><div className="layout run-info-grid"><div><span className="eyebrow">Event information</span><h2>Details to follow</h2><p>We’ll share more information when it is confirmed.</p></div><dl><div><dt>Route</dt><dd>To be announced</dd></div><div><dt>Registration deadline</dt><dd>To be announced</dd></div><div><dt>Participant capacity</dt><dd>To be announced</dd></div><div><dt>Event-day guidance</dt><dd>To be announced</dd></div></dl></div></section>
+    </section>    <section className="run-info-band"><div className="layout run-info-grid"><div><span className="eyebrow">Event information</span><h2>Details to follow</h2><p>We’ll share more information when it is confirmed.</p></div><dl><div><dt>Route</dt><dd>To be announced</dd></div><div><dt>Registration deadline</dt><dd>To be announced</dd></div><div><dt>Participant capacity</dt><dd>To be announced</dd></div><div><dt>Event-day guidance</dt><dd>To be announced</dd></div></dl></div></section>
     <section className="run-poster-section"><div className="layout run-poster-grid"><div className="run-poster-info"><span className="eyebrow">Save the date</span><h2>Invite someone to run with you</h2><p>The poster provides an event overview. Use the current package details on this page when registering.</p><dl className="run-poster-details"><div><dt>Date</dt><dd>Saturday, January 9, 2027</dd></div><div><dt>Time &amp; venue</dt><dd>7:00 AM · Mugumo Center</dd></div><div><dt>Distances</dt><dd>Children&apos;s Fun Run · 5KM Run/Walk · 10KM Run · 21KM Half Marathon</dd></div><div><dt>Packages</dt><dd>Regular KES 500 · VIP KES 1,000 · VVIP KES 1,500 · Beneficiary school students free</dd></div></dl><p className="run-poster-cause">Every step supports children’s education through the Thomas D.K. Wahome Scholarship Program.</p></div><div className="run-poster-preview"><img src={posterImage} alt="Miles for Minds Run 2027 event poster." /></div></div></section>
     {activeDialog && <div className="run-dialog-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setActiveDialog(null); }}>
       <div className="run-dialog" role="dialog" aria-modal="true" aria-labelledby="run-dialog-title">
         <header className="run-dialog-header support-modal-header"><h2 id="run-dialog-title">{activeDialog === "registration" ? "Participant Registration" : "Become a Sponsor"}</h2><button type="button" className="run-dialog-close support-modal-close" onClick={() => setActiveDialog(null)} aria-label="Close dialog"><X size={20} /></button></header>
         <div className={`run-dialog-content${activeDialog === "registration" ? " registration-dialog-content" : ""}`}>
-          {activeDialog === "registration" ? <><RegistrationForm initialCategory={selectedCategory} /><aside className="run-payment-note"><span className="eyebrow">Registration packages</span><h2>Choose your entry package</h2><p>Regular: KES 500 — entry ticket.</p><p>VIP: KES 1,000 — entry ticket, participation medal, and VIP tent access.</p><p>VVIP: KES 1,500 — entry ticket, participation medal, T-shirt, and sponsor lounge access.</p><p>Students from beneficiary schools register free through a school representative. Paid registrations stay pending until an administrator confirms payment; student entries stay pending until eligibility is confirmed.</p></aside></> : <SponsorForm />}
+          {activeDialog === "registration" ? <><RegistrationForm initialCategory={selectedCategory} initialTier={selectedTier} onRegistered={handleRegistrationSuccess} /><aside className="run-payment-note"><span className="eyebrow">Registration packages</span><h2>Choose your entry package</h2><p>Regular: KES 500 — entry ticket.</p><p>VIP: KES 1,000 — entry ticket, participation medal, and VIP tent access.</p><p>VVIP: KES 1,500 — entry ticket, participation medal, T-shirt, and sponsor lounge access.</p><p>Students from beneficiary schools register free through a school representative. Paid registrations stay pending until an administrator confirms payment; student entries stay pending until eligibility is confirmed.</p></aside></> : <SponsorForm />}
         </div>
       </div>
     </div>}

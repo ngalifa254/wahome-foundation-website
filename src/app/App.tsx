@@ -1012,7 +1012,7 @@ function HeroStoryCTA({ onNav }: { onNav: (page: Page) => void }) {
 
 // ─── HOME PAGE ────────────────────────────────────────────────────────────────
 
-function HomePage({ onNav, onOpenEventDialog }: { onNav: (p: Page) => void; onOpenEventDialog: (dialog: EventDialog) => void }) {
+function HomePage({ onNav, onOpenEventDialog, onPartnersClick }: { onNav: (p: Page) => void; onOpenEventDialog: (dialog: EventDialog) => void; onPartnersClick: () => void }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [playing, setPlaying] = useState(false);
   useEffect(() => {
@@ -1046,7 +1046,7 @@ function HomePage({ onNav, onOpenEventDialog }: { onNav: (p: Page) => void; onOp
         <div className="hero-controls"><span>Our community. Our shared future.</span><button onClick={() => { if (playing) videoRef.current?.pause(); else videoRef.current?.play().catch(() => setPlaying(false)); }} aria-label={playing ? "Pause background video" : "Play background video"}>{playing ? <><span aria-hidden="true">Ⅱ</span> Pause</> : <><PlayCircle size={16} /> Play</>}</button></div>
       </section>
 
-      <section className="partner-section partner-section-under-hero" aria-label="Our partners"><div className="layout"><h2>Our Trusted Partners</h2><div className="partner-logos">{[{name:"Autism Allies",src:logoAutismAllies},{name:"Coffee Bench",src:logoCoffeeBench},{name:"Laikipia Heights",src:logoLaikipiaHeights},{name:"Luxo",src:logoLuxo},{name:"Tufaha Resort",src:logoTufahaResort}].map(partner => <div key={partner.name}><img src={partner.src} alt={partner.name} loading="lazy" /></div>)}</div><button className="text-link" onClick={() => onNav("about")}>Meet our community of partners <ArrowRight size={17} /></button></div></section>
+      <section className="partner-section partner-section-under-hero" aria-label="Our partners"><div className="layout"><h2>Our Trusted Partners</h2><div className="partner-logos">{[{name:"Autism Allies",src:logoAutismAllies},{name:"Coffee Bench",src:logoCoffeeBench},{name:"Laikipia Heights",src:logoLaikipiaHeights},{name:"Luxo",src:logoLuxo},{name:"Tufaha Resort",src:logoTufahaResort}].map(partner => <div key={partner.name}><img src={partner.src} alt={partner.name} loading="lazy" /></div>)}</div><button className="text-link" onClick={onPartnersClick}>Meet our community of partners <ArrowRight size={17} /></button></div></section>
 
       <section className="impact-band">
         <div className="layout impact-section">
@@ -1310,7 +1310,7 @@ function AboutPage({ onNav }: { onNav: (p: Page) => void }) {
             Powered by our partners
           </p>
 
-          <div className="partner-marquee" role="region" aria-label="Foundation partners">
+          <div id="powered-by-partners" className="partner-marquee scroll-mt-28" role="region" aria-label="Foundation partners">
             <div className="partner-marquee-track">
               {[0, 1].map((copy) => (
                 <div
@@ -2132,6 +2132,23 @@ export default function App() {
     setPage(next);
   };
 
+  const navigateToPartners = () => {
+    navigate("about");
+    let attempts = 0;
+    const scrollToPartners = () => {
+      const target = document.getElementById("powered-by-partners");
+      if (target) {
+        const headerOffset = document.querySelector(".site-header")?.getBoundingClientRect().height ?? 0;
+        const targetTop = target.getBoundingClientRect().top + window.scrollY - headerOffset - 16;
+        window.scrollTo({ top: targetTop, behavior: "auto" });
+        if (attempts++ < 10) window.setTimeout(scrollToPartners, 120);
+      } else if (attempts++ < 12) {
+        window.setTimeout(scrollToPartners, 50);
+      }
+    };
+    window.setTimeout(scrollToPartners, 50);
+  };
+
   const openEventDialog = (dialog: EventDialog) => {
     setEventDialogRequest(dialog);
     navigate("event");
@@ -2145,7 +2162,7 @@ export default function App() {
   const closeDonate = () => setIsDonateOpen(false);
 
   const pages: Record<Page, React.ReactNode> = {
-    home: <HomePage onNav={navigate} onOpenEventDialog={openEventDialog} />,
+    home: <HomePage onNav={navigate} onOpenEventDialog={openEventDialog} onPartnersClick={navigateToPartners} />,
     about: <AboutPage onNav={navigate} />,
     scholarship: (
       <ScholarshipPage onNav={navigate} onOpenDonate={openDonate} />

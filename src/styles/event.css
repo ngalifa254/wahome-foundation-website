@@ -11,6 +11,48 @@
 .button-run-outline { border:1px solid #ffffffbd; color:#fff; }
 .button-run-outline:hover { background:#fff; color:var(--dark); }
 .run-page { color:var(--ink); }
+.run-registration-confirmation { scroll-margin-top:110px; margin-block:28px; border:1px solid #bfd8c8; border-top:4px solid #27814b; border-radius:14px; background:#f5fbf7; padding:clamp(20px,4vw,34px); box-shadow:0 12px 30px #16324a0b; }
+.run-confirmation-heading { display:flex; align-items:flex-start; gap:13px; }
+.run-confirmation-heading > svg { flex:0 0 auto; margin-top:3px; color:#27814b; }
+.run-confirmation-heading .eyebrow { color:#27814b; }
+.run-confirmation-heading h2 { margin:4px 0 7px; color:var(--ink); font-size:clamp(24px,3vw,32px); line-height:1.2; }
+.run-confirmation-heading p { margin:0; color:var(--quiet); font-size:var(--type-small); line-height:1.6; overflow-wrap:anywhere; }
+.run-payment-instructions { margin:22px 0 0 38px; border:1px solid #d8e5eb; border-radius:10px; background:#fff; padding:20px; }
+.run-payment-instructions h3 { margin:0 0 3px; color:var(--ink); font-size:18px; }
+.run-payment-amount { margin:0 0 12px; color:#1e5f32; font-size:22px; font-weight:700; }
+.run-payment-instructions ol { display:grid; gap:7px; margin:0; padding-left:20px; color:var(--quiet); font-size:var(--type-small); line-height:1.6; }
+.run-payment-instructions li strong { color:var(--ink); }
+.run-payment-pending { margin:14px 0 0; color:#526778; font-size:var(--type-caption); line-height:1.6; }
+.run-student-confirmation { margin:20px 0 0 38px; }
+.run-confirmation-dismiss { min-height:40px; margin:18px 0 0 38px; border:1px solid #aac4d2; border-radius:7px; background:#fff; padding:9px 20px; color:#1e5274; font:700 var(--type-caption) 'Montserrat',Arial,sans-serif; cursor:pointer; }
+.run-confirmation-dismiss:hover { background:#edf4f8; }
+.run-page .run-signup-section { padding-block:54px 72px; background:#fff; }
+.run-page .run-purpose { max-width:720px; margin:0 0 27px; }
+.run-purpose h1 { margin:8px 0 11px; color:var(--ink); font-size:clamp(30px,4vw,42px); font-weight:500; line-height:1.12; letter-spacing:-.035em; }
+.run-purpose > p { max-width:680px; margin:0; color:var(--quiet); font-size:var(--type-small); line-height:1.7; }
+.run-page .run-category-grid { grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; }
+.run-page .run-category-card { position:relative; display:flex; min-width:0; flex-direction:column; align-items:flex-start; border:1px solid #dce6ed; border-top:3px solid var(--green); border-radius:12px; background:#f7fafc; padding:16px; color:var(--ink); font:inherit; text-align:left; cursor:pointer; transition:background .18s,border-color .18s,transform .18s; }
+.run-page .run-category-card:hover { transform:translateY(-2px); border-color:#8fb7cd; background:#f2f7fa; }
+.run-page .run-category-card.is-selected { border-color:var(--green); background:#f0f7fa; box-shadow:0 0 0 1px var(--green); }
+.run-page .run-category-card:focus-visible,.run-page .run-package-button:focus-visible,.run-page .run-sponsor-link:focus-visible { outline:3px solid #75b9d7; outline-offset:3px; }
+.run-page .run-category-number { width:27px; height:27px; font-size:10px; }
+.run-page .run-category-card h2 { margin:14px 0 5px; color:var(--ink); font-size:clamp(15px,1.5vw,19px); font-weight:500; line-height:1.25; letter-spacing:-.015em; }
+.run-page .run-category-audience { margin:0 0 8px; color:#1e5f32; font-size:11px; font-weight:600; line-height:1.4; }
+.run-page .run-category-description { margin:0; color:var(--quiet); font-size:11px; line-height:1.52; }
+.run-packages { margin-top:34px; }
+.run-packages > h2 { margin:0 0 4px; color:var(--ink); font-size:24px; font-weight:500; line-height:1.3; }
+.run-packages-intro { margin:0 0 16px; color:var(--quiet); font-size:12px; }
+.run-package-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; }
+.run-package-card { display:flex; min-width:0; min-height:150px; flex-direction:column; align-items:flex-start; border:1px solid #dce6ed; border-radius:12px; background:#fff; padding:17px; }
+.run-package-featured { border-color:var(--green); background:#f3f8fb; }
+.run-package-label { color:#1d5275; font-size:10px; font-weight:700; letter-spacing:.16em; text-transform:uppercase; }
+.run-package-card h3 { margin:5px 0 4px; color:var(--ink); font-size:22px; font-weight:600; line-height:1.2; }
+.run-package-card p { min-height:30px; margin:0 0 12px; color:var(--quiet); font-size:11px; line-height:1.45; }
+.run-package-button { width:100%; min-height:36px; margin-top:auto; border:1px solid #c9dce8; border-radius:7px; background:#fff; color:#1e5274; font:700 11px 'Montserrat',Arial,sans-serif; cursor:pointer; transition:background .18s,color .18s,border-color .18s; }
+.run-package-button:hover,.run-package-featured .run-package-button { border-color:#236a98; background:#236a98; color:#fff; }
+.run-student-note { margin:14px 0 0; color:var(--quiet); font-size:11px; line-height:1.5; }
+.run-sponsor-link { display:flex; flex-wrap:wrap; align-items:center; gap:5px 12px; margin-top:18px; border:0; background:none; padding:0; color:var(--quiet); font:500 12px 'Montserrat',Arial,sans-serif; text-align:left; cursor:pointer; }
+.run-sponsor-link span { display:inline-flex; align-items:center; gap:6px; color:#1e5f32; font-weight:700; }
 .run-hero { position:relative; overflow:hidden; background:linear-gradient(90deg,#10202ff0 0%,#10202fc9 55%,#10202f50 100%),url('../imports/marathon1.jpg') center 44%/cover; }
 .run-hero-inner { min-height:530px; display:flex; align-items:center; padding-block:60px; }
 .run-hero-copy { max-width:760px; color:white; }
@@ -84,12 +126,31 @@
 .run-dialog-content.registration-dialog-content { padding:0; background:#fff; }
 .run-dialog-content .run-payment-note { position:static; margin-top:16px; }
 @media(max-width:960px) {
+  .run-page .run-signup-section { padding-block:42px 58px; }
+  .run-page .run-category-grid { grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; }
+  .run-page .run-category-card { padding:13px; }
+  .run-page .run-category-description { font-size:10px; }
   .run-promo { grid-template-columns:.8fr 1.2fr; }
   .run-details-section,.run-info-grid,.run-poster-grid { grid-template-columns:1fr; gap:30px; }
   .run-payment-note { position:static; }
   .run-poster-grid { gap:25px; }
 }
 @media(max-width:640px) {
+  .run-registration-confirmation { margin-block:18px; padding:18px; }
+  .run-payment-instructions,.run-student-confirmation,.run-confirmation-dismiss { margin-left:0; }
+  .run-payment-instructions { padding:15px; }
+  .run-page .run-signup-section { padding-block:34px 42px; }
+  .run-page .run-purpose { margin-bottom:22px; }
+  .run-page .run-category-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+  .run-page .run-category-card { min-height:190px; padding:14px; }
+  .run-page .run-category-card h2 { font-size:16px; }
+  .run-page .run-category-description { font-size:11px; }
+  .run-package-grid { gap:9px; }
+  .run-package-card { min-height:145px; padding:12px; }
+  .run-package-card h3 { font-size:19px; }
+  .run-package-card p { font-size:10px; }
+  .run-package-button { font-size:10px; }
+  .run-packages { margin-top:26px; }
   .run-promo-section { margin-block:22px 40px; }
   .run-promo-section .run-promo-section-title { font-size:30px; margin-bottom:12px; }
   .run-promo { width:100%; grid-template-columns:1fr; margin:0; }
