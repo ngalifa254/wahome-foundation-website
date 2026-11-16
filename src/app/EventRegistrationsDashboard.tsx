@@ -76,6 +76,19 @@ function formatKshInput(value: string): string {
   return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
+function formatKsh(value: unknown): string {
+  return (typeof value === "number" && Number.isFinite(value) ? value : 0).toLocaleString("en-US");
+}
+
+function getRegistrationFee(tier: string, fee: unknown): number {
+  if (typeof fee === "number" && Number.isFinite(fee)) return fee;
+  if (tier === "Beneficiary school student") return 0;
+  if (tier === "Regular") return 500;
+  if (tier === "VIP") return 1000;
+  if (tier === "VVIP") return 1500;
+  return 1000;
+}
+
 export interface Sponsor {
   id: string;
   companyName: string;
@@ -135,7 +148,10 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
     try {
       const listRegistrations = httpsCallable<unknown, ListRegistrationsResponse>(functions, "listEventRegistrations");
       const response = await listRegistrations();
-      setRegistrations(response.data.registrations);
+      setRegistrations(response.data.registrations.map((item) => ({
+        ...item,
+        feeKes: getRegistrationFee(item.registrationTier, item.feeKes),
+      })));
     } catch (cause) {
       setRegistrationLoadError(cause instanceof Error ? cause.message : "Could not load event registrations.");
     } finally {
@@ -146,7 +162,7 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
   const confirmRegistration = async (item: Registration) => {
     if (!functions || !window.confirm(item.registrationTier === "Beneficiary school student" ?
       `Confirm ${item.fullName}'s free beneficiary-school entry?` :
-      `Confirm payment for ${item.fullName} (${item.registrationTier}, KSh ${item.feeKes.toLocaleString()})?`)) return;
+      `Confirm payment for ${item.fullName} (${item.registrationTier}, KSh ${formatKsh(item.feeKes)})?`)) return;
     setReconcilingPayment(`admin:${item.id}`);
     setPaymentRecoveryError("");
     try {
@@ -172,7 +188,10 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
     try {
       const listSponsors = httpsCallable<unknown, ListEventSponsorsResponse>(functions, "listEventSponsors");
       const response = await listSponsors();
-      setSponsors(response.data.sponsors);
+      setSponsors(response.data.sponsors.map((sponsor) => ({
+        ...sponsor,
+        amount: typeof sponsor.amount === "number" && Number.isFinite(sponsor.amount) ? sponsor.amount : 0,
+      })));
     } catch (cause) {
       setSponsorLoadError(cause instanceof Error ? cause.message : "Could not load event sponsors.");
     } finally {
@@ -192,7 +211,14 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
     try {
       const listDonations = httpsCallable<unknown, ListGeneralDonationsResponse>(functions, "listGeneralDonations");
       const response = await listDonations();
-      setDonations(response.data.donations);
+      setDonations(response.data.donations.map((donation) => ({
+        ...donation,
+        amount: typeof donation.amount === "number" && Number.isFinite(donation.amount) ? donation.amount : 0,
+        donorName: typeof donation.donorName === "string" ? donation.donorName : "Anonymous donor",
+        donorEmail: typeof donation.donorEmail === "string" ? donation.donorEmail : "",
+        paymentReceipt: typeof donation.paymentReceipt === "string" ? donation.paymentReceipt : "",
+        paymentReference: typeof donation.paymentReference === "string" ? donation.paymentReference : donation.id,
+      })));
     } catch (cause) {
       setDonationLoadError(cause instanceof Error ? cause.message : "Could not load general donations.");
     } finally {
@@ -314,7 +340,7 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
       companyName: sponsor.companyName,
       contactPerson: sponsor.contactPerson,
       email: sponsor.email,
-      amount: sponsor.amount.toLocaleString("en-US"),
+      amount: formatKsh(sponsor.amount),
       status: sponsor.status,
       logoSubmitted: sponsor.logoSubmitted,
     } : {
@@ -472,7 +498,7 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
                     ? ["Donor Name", "Email", "Amount", "Currency", "Payment Provider", "Receipt", "Reference", "Status", "Created At"]
                     : ["Name", "Age", "Gender", "Email", "Phone", "Race Category", "Registration Tier", "Fee KES", "Beneficiary School", "School Representative", "Payment Method", "Receipt", "Status"];
                   const rows = donationExport
-                    ? donations.map((donation) => [donation.donorName, donation.donorEmail, donation.amount.toFixed(2), donation.currency, donation.paymentProvider, donation.paymentReceipt, donation.paymentReference, donation.paymentStatus, donation.createdAt])
+                    ? donations.map((donation) => [donation.donorName, donation.donorEmail, (typeof donation.amount === "number" ? donation.amount : 0).toFixed(2), donation.currency, donation.paymentProvider, donation.paymentReceipt, donation.paymentReference, donation.paymentStatus, donation.createdAt])
                     : registrations.map((registration) => [registration.fullName, registration.age, registration.gender || "", registration.email, registration.phone, registration.category, registration.registrationTier, registration.feeKes, registration.beneficiarySchoolName, registration.schoolRepresentativeName, registration.paymentMethod || "", registration.paymentReceipt || "", registration.paymentStatus]);
                   const escapeCsv = (value: string | number) => `"${String(value).replace(/"/g, '""')}"`;
                   const csvContent = "data:text/csv;charset=utf-8," + [headers, ...rows].map((row) => row.map(escapeCsv).join(",")).join("\r\n");
@@ -674,7 +700,7 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
                             {item.category}
                           </span>
                           <span className="bg-blue-100 text-blue-800 text-[10px] font-medium px-2 py-0.5 rounded">{item.registrationTier}</span>
-                          <span className="text-[11px] font-semibold text-slate-600">{item.feeKes === 0 ? "Free" : `KSh ${item.feeKes.toLocaleString()}`}</span>
+                          <span className="text-[11px] font-semibold text-slate-600">{item.feeKes === 0 ? "Free" : `KSh ${formatKsh(item.feeKes)}`}</span>
                           <span className="text-[11px] text-slate-400">Age: {item.age}</span>
                           {item.gender && <span className="text-[11px] text-slate-400">Gender: {item.gender === "male" ? "Male" : "Female"}</span>}
                         </div>
@@ -841,7 +867,7 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
                     <div className="flex min-w-0 flex-col gap-3 pt-3 md:pt-0 border-t md:border-t-0 border-slate-200 md:w-[min(100%,34rem)]">
                       <div className="flex items-center justify-between gap-3 md:justify-end md:gap-6">
                         <div className="min-w-0 md:text-right">
-                          <p className="text-base font-bold text-slate-900">{donation.currency} {donation.amount.toFixed(2)}</p>
+                          <p className="text-base font-bold text-slate-900">{donation.currency} {(typeof donation.amount === "number" ? donation.amount : 0).toFixed(2)}</p>
                           <p className="truncate text-[11px] text-slate-500">{donation.paymentProvider ? `${donation.paymentProvider === "paypal" ? "PayPal" : donation.paymentProvider} · ` : ""}{donation.paymentReceipt || donation.paymentReference}</p>
                         </div>
                         <span className={`inline-flex shrink-0 items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full w-fit ${
@@ -944,7 +970,7 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
                   <div className="flex items-center justify-between md:justify-end gap-4 pt-3 md:pt-0 border-t md:border-t-0 border-slate-200">
                     <div className="text-right">
                       <div className="text-sm font-bold text-slate-900 mb-0.5">
-                        KSh {sponsor.amount.toLocaleString("en-US")}
+                        KSh {formatKsh(sponsor.amount)}
                       </div>
                       <div className="flex items-center justify-end gap-2 text-xs">
                         {sponsor.logoSubmitted ? (
@@ -1066,7 +1092,7 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
                 </div>
                 <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
                   <span className="text-slate-400 block mb-1">Registration package</span>
-                  <span className="text-slate-900 font-semibold">{selectedParticipant.registrationTier} · {selectedParticipant.feeKes === 0 ? "Free" : `KSh ${selectedParticipant.feeKes.toLocaleString()}`}</span>
+                  <span className="text-slate-900 font-semibold">{selectedParticipant.registrationTier} · {selectedParticipant.feeKes === 0 ? "Free" : `KSh ${formatKsh(selectedParticipant.feeKes)}`}</span>
                 </div>
                 {selectedParticipant.beneficiarySchoolName && <div className="bg-blue-50 p-3 rounded-xl border border-blue-100 col-span-2">
                   <span className="text-slate-400 block mb-1">Beneficiary school</span>
