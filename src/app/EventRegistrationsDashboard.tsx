@@ -13,6 +13,7 @@ import {
   Handshake,
   Heart,
   Building,
+  Mail,
   Target,
   Plus,
   Pencil,
@@ -71,6 +72,21 @@ interface ListEventSponsorsResponse {
   sponsors: Sponsor[];
 }
 
+export interface SponsorInquiry {
+  id: string;
+  contactName: string;
+  organization: string;
+  contactEmail: string;
+  contactPhone: string;
+  supportMessage: string;
+  status: string;
+  submittedAt: string;
+}
+
+interface ListSponsorInquiriesResponse {
+  inquiries: SponsorInquiry[];
+}
+
 function formatKshInput(value: string): string {
   const digits = value.replace(/\D/g, "").replace(/^0+(?=\d)/, "");
   return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
@@ -100,7 +116,7 @@ export interface Sponsor {
 }
 
 export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: () => Promise<void> }) {
-  const [activeView, setActiveView] = useState<"registrations" | "donations" | "sponsors">("registrations");
+  const [activeView, setActiveView] = useState<"registrations" | "donations" | "sponsors" | "inquiries">("registrations");
   const [signOutError, setSignOutError] = useState("");
   
   const [registrations, setRegistrations] = useState<Registration[]>([]);
@@ -126,6 +142,10 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
     status: "Pledged" as Sponsor["status"],
     logoSubmitted: false,
   });
+
+  const [sponsorInquiries, setSponsorInquiries] = useState<SponsorInquiry[]>([]);
+  const [isLoadingInquiries, setIsLoadingInquiries] = useState(false);
+  const [inquiryLoadError, setInquiryLoadError] = useState("");
 
   const [activeTab, setActiveTab] = useState<"all" | "verified" | "pending">("all");
   const [activeDonationTab, setActiveDonationTab] = useState<"all" | "verified" | "pending" | "failed">("all");
@@ -196,6 +216,26 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
       setSponsorLoadError(cause instanceof Error ? cause.message : "Could not load event sponsors.");
     } finally {
       setIsLoadingSponsors(false);
+    }
+  }, []);
+
+  const loadSponsorInquiries = useCallback(async () => {
+    if (!functions) {
+      setInquiryLoadError("Sponsor enquiry service is not configured.");
+      setIsLoadingInquiries(false);
+      return;
+    }
+
+    setIsLoadingInquiries(true);
+    setInquiryLoadError("");
+    try {
+      const listInquiries = httpsCallable<unknown, ListSponsorInquiriesResponse>(functions, "listSponsorInquiries");
+      const response = await listInquiries();
+      setSponsorInquiries(response.data.inquiries);
+    } catch (cause) {
+      setInquiryLoadError(cause instanceof Error ? cause.message : "Could not load sponsor enquiries.");
+    } finally {
+      setIsLoadingInquiries(false);
     }
   }, []);
 
@@ -300,13 +340,14 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
   useEffect(() => {
     void loadRegistrations();
     void loadSponsors();
+    void loadSponsorInquiries();
     if (functions) {
       const configurePayPal = httpsCallable(functions, "ensurePayPalWebhook");
       void configurePayPal().catch((cause) => {
         setPaymentRecoveryError(cause instanceof Error ? cause.message : "Automatic PayPal verification could not be configured.");
       });
     }
-  }, [loadRegistrations, loadSponsors]);
+  }, [loadRegistrations, loadSponsors, loadSponsorInquiries]);
 
   useEffect(() => {
     const refreshActivePayments = () => {
@@ -423,6 +464,11 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
     const matchesTab = activeDonationTab === "all" || item.paymentStatus === activeDonationTab;
     return matchesSearch && matchesTab;
   });
+  const filteredSponsorInquiries = sponsorInquiries.filter((item) => {
+    const query = searchTerm.toLowerCase();
+    return [item.contactName, item.organization, item.contactEmail, item.contactPhone, item.supportMessage, item.status]
+      .some((value) => value.toLowerCase().includes(query));
+  });
   const verifiedDonationCount = donations.filter((donation) => donation.paymentStatus === "verified").length;
   const pendingDonationCount = donations.filter((donation) => donation.paymentStatus === "pending").length;
 
@@ -445,11 +491,11 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
                 Wahome Foundation Admin
               </h1>
               <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold px-3 py-1 rounded-full">
-                {activeView === "donations" ? "General Donations" : "Miles for Minds 2027"}
+                {activeView === "donations" ? "General Donations" : activeView === "inquiries" ? "Sponsor Enquiries" : "Miles for Minds 2027"}
               </span>
             </div>
             <p className="text-sm text-slate-500 mt-1 pl-11">
-              {activeView === "donations" ? "General donor contributions and PayPal payment ledger." : "Event registration portal and PayPal payment ledger."}
+              {activeView === "donations" ? "General donor contributions and PayPal payment ledger." : activeView === "inquiries" ? "Incoming sponsorship requests from the event website." : "Event registration portal and PayPal payment ledger."}
             </p>
             <div className="flex flex-wrap items-center gap-3">
               <div className="bg-white p-1 rounded-xl border border-slate-200 shadow-xs flex items-center gap-1">
@@ -477,6 +523,20 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
                 </button>
                 <button
                   onClick={() => {
+                    setActiveView("inquiries");
+                    void loadSponsorInquiries();
+                  }}
+                  className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition ${
+                    activeView === "inquiries"
+                      ? "bg-slate-900 text-white font-semibold"
+                      : "text-slate-600 hover:bg-slate-50"
+                  }`}
+                >
+                  <Mail className="w-3.5 h-3.5" />
+                  Sponsor Enquiries ({sponsorInquiries.length})
+                </button>
+                <button
+                  onClick={() => {
                     setActiveView("donations");
                     void loadDonations();
                   }}
@@ -494,18 +554,23 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
               <button
                 onClick={() => {
                   const donationExport = activeView === "donations";
-                  const headers = donationExport
-                    ? ["Donor Name", "Email", "Amount", "Currency", "Payment Provider", "Receipt", "Reference", "Status", "Created At"]
-                    : ["Name", "Age", "Gender", "Email", "Phone", "Race Category", "Registration Tier", "Fee KES", "Beneficiary School", "School Representative", "Payment Method", "Receipt", "Status"];
-                  const rows = donationExport
-                    ? donations.map((donation) => [donation.donorName, donation.donorEmail, (typeof donation.amount === "number" ? donation.amount : 0).toFixed(2), donation.currency, donation.paymentProvider, donation.paymentReceipt, donation.paymentReference, donation.paymentStatus, donation.createdAt])
-                    : registrations.map((registration) => [registration.fullName, registration.age, registration.gender || "", registration.email, registration.phone, registration.category, registration.registrationTier, registration.feeKes, registration.beneficiarySchoolName, registration.schoolRepresentativeName, registration.paymentMethod || "", registration.paymentReceipt || "", registration.paymentStatus]);
+                  const inquiryExport = activeView === "inquiries";
+                  const headers = inquiryExport
+                    ? ["Contact Name", "Organization", "Email", "Phone", "Support Message", "Status", "Submitted At"]
+                    : donationExport
+                      ? ["Donor Name", "Email", "Amount", "Currency", "Payment Provider", "Receipt", "Reference", "Status", "Created At"]
+                      : ["Name", "Age", "Gender", "Email", "Phone", "Race Category", "Registration Tier", "Fee KES", "Beneficiary School", "School Representative", "Payment Method", "Receipt", "Status"];
+                  const rows = inquiryExport
+                    ? sponsorInquiries.map((inquiry) => [inquiry.contactName, inquiry.organization, inquiry.contactEmail, inquiry.contactPhone, inquiry.supportMessage, inquiry.status, inquiry.submittedAt])
+                    : donationExport
+                      ? donations.map((donation) => [donation.donorName, donation.donorEmail, (typeof donation.amount === "number" ? donation.amount : 0).toFixed(2), donation.currency, donation.paymentProvider, donation.paymentReceipt, donation.paymentReference, donation.paymentStatus, donation.createdAt])
+                      : registrations.map((registration) => [registration.fullName, registration.age, registration.gender || "", registration.email, registration.phone, registration.category, registration.registrationTier, registration.feeKes, registration.beneficiarySchoolName, registration.schoolRepresentativeName, registration.paymentMethod || "", registration.paymentReceipt || "", registration.paymentStatus]);
                   const escapeCsv = (value: string | number) => `"${String(value).replace(/"/g, '""')}"`;
                   const csvContent = "data:text/csv;charset=utf-8," + [headers, ...rows].map((row) => row.map(escapeCsv).join(",")).join("\r\n");
                   const encodedUri = encodeURI(csvContent);
                   const link = document.createElement("a");
                   link.setAttribute("href", encodedUri);
-                  link.setAttribute("download", donationExport ? "general_donations.csv" : "miles_for_minds_ledger.csv");
+                  link.setAttribute("download", inquiryExport ? "sponsor_enquiries.csv" : donationExport ? "general_donations.csv" : "miles_for_minds_ledger.csv");
                   document.body.appendChild(link);
                   link.click();
                   link.remove();
@@ -520,13 +585,14 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
                 onClick={() => {
                   if (activeView === "donations") void loadDonations();
                   else if (activeView === "registrations") void loadRegistrations();
-                  else void loadSponsors();
+                  else if (activeView === "sponsors") void loadSponsors();
+                  else void loadSponsorInquiries();
                 }}
-                disabled={activeView === "donations" ? isLoadingDonations : activeView === "registrations" ? isLoadingRegistrations : isLoadingSponsors}
+                disabled={activeView === "donations" ? isLoadingDonations : activeView === "registrations" ? isLoadingRegistrations : activeView === "sponsors" ? isLoadingSponsors : isLoadingInquiries}
                 className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 shadow-xs transition hover:bg-slate-50 disabled:opacity-50"
-                title={activeView === "donations" ? "Refresh general donations" : activeView === "registrations" ? "Refresh participant registrations" : "Refresh event sponsors"}
+                title={activeView === "donations" ? "Refresh general donations" : activeView === "registrations" ? "Refresh participant registrations" : activeView === "sponsors" ? "Refresh event sponsors" : "Refresh sponsor enquiries"}
               >
-                <RefreshCw className={`h-3.5 w-3.5 ${(activeView === "donations" ? isLoadingDonations : activeView === "registrations" ? isLoadingRegistrations : isLoadingSponsors) ? "animate-spin" : ""}`} />
+                <RefreshCw className={`h-3.5 w-3.5 ${(activeView === "donations" ? isLoadingDonations : activeView === "registrations" ? isLoadingRegistrations : activeView === "sponsors" ? isLoadingSponsors : isLoadingInquiries) ? "animate-spin" : ""}`} />
                 Refresh
               </button>
             </div>
@@ -913,7 +979,7 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
               )}
             </div>
           </div>
-        ) : (
+        ) : activeView === "sponsors" ? (
           <div className="bg-white border border-slate-200 rounded-2xl p-6 mt-6 shadow-xs">
             <div className="flex items-center justify-between pb-6 border-b border-slate-100">
               <div>
@@ -1007,6 +1073,66 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
                     </div>
                   </div>
                 </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className="bg-white border border-slate-200 rounded-2xl p-6 mt-6 shadow-xs">
+            <div className="flex flex-col gap-4 pb-6 border-b border-slate-100 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 className="text-base font-bold text-slate-900">Sponsor Enquiries</h2>
+                <p className="mt-0.5 text-xs text-slate-500">Incoming requests submitted through the Miles for Minds sponsor form.</p>
+              </div>
+              <span className="w-fit rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-800">{sponsorInquiries.length} total</span>
+            </div>
+
+            <div className="relative mt-5 w-full md:w-80">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Search contact, organization, or message..."
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-4 text-xs text-slate-800 placeholder:text-slate-400 focus:border-emerald-600 focus:bg-white focus:outline-none"
+              />
+            </div>
+
+            <div className="mt-5 flex flex-col gap-3">
+              {isLoadingInquiries ? (
+                <div className="py-16 text-center text-slate-500">Loading sponsor enquiries…</div>
+              ) : inquiryLoadError ? (
+                <div role="alert" className="rounded-xl border border-red-100 bg-red-50 py-10 text-center text-red-700">
+                  <p>{inquiryLoadError}</p>
+                  <p className="mt-1 text-xs text-red-600">Check that this signed-in account has a staff or superadmin record.</p>
+                </div>
+              ) : filteredSponsorInquiries.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 py-16 text-center text-slate-400">
+                  {sponsorInquiries.length === 0 ? "No sponsor enquiries have been submitted yet." : "No enquiries match this search."}
+                </div>
+              ) : filteredSponsorInquiries.map((inquiry) => (
+                <article key={inquiry.id} className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="flex min-w-0 items-start gap-3">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-blue-100 bg-blue-50 text-blue-700">
+                        <Mail className="h-4 w-4" />
+                      </div>
+                      <div className="min-w-0">
+                        <h3 className="text-sm font-semibold text-slate-900">{inquiry.contactName || "Unnamed contact"}</h3>
+                        {inquiry.organization && <p className="mt-0.5 text-xs font-medium text-slate-600">{inquiry.organization}</p>}
+                        <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-600">
+                          {inquiry.contactEmail && <a className="hover:text-blue-700 hover:underline" href={`mailto:${inquiry.contactEmail}`}>{inquiry.contactEmail}</a>}
+                          {inquiry.contactPhone && <a className="hover:text-blue-700 hover:underline" href={`tel:${inquiry.contactPhone}`}>{inquiry.contactPhone}</a>}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-2 sm:flex-col sm:items-end">
+                      <span className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-amber-800">{inquiry.status || "new"}</span>
+                      <time className="text-[11px] text-slate-400" dateTime={inquiry.submittedAt || undefined}>{inquiry.submittedAt ? new Date(inquiry.submittedAt).toLocaleString() : "Date unavailable"}</time>
+                    </div>
+                  </div>
+                  <div className="mt-4 rounded-lg border border-slate-200 bg-white p-3 text-sm leading-relaxed text-slate-700 whitespace-pre-wrap">{inquiry.supportMessage || "No message provided."}</div>
+                  <p className="mt-2 text-[10px] text-slate-400">Reference: {inquiry.id}</p>
+                </article>
               ))}
             </div>
           </div>

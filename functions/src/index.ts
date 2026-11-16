@@ -1104,3 +1104,29 @@ export const submitSponsorInquiry = onCall({
 
   return {inquiryId: inquiry.id};
 });
+
+export const listSponsorInquiries = onCall(async (request) => {
+  await requireEventSponsorAdmin(request.auth?.uid);
+  const snapshot = await db.collection("eventSponsorshipInquiries")
+    .where("eventSlug", "==", eventSlug)
+    .limit(500)
+    .get();
+
+  const inquiries = snapshot.docs.map((document) => {
+    const data = document.data();
+    const submittedAt = data.submittedAt && typeof data.submittedAt.toDate === "function" ?
+      data.submittedAt.toDate().toISOString() : "";
+    return {
+      id: document.id,
+      contactName: typeof data.contactName === "string" ? data.contactName : "",
+      organization: typeof data.organization === "string" ? data.organization : "",
+      contactEmail: typeof data.contactEmail === "string" ? data.contactEmail : "",
+      contactPhone: typeof data.contactPhone === "string" ? data.contactPhone : "",
+      supportMessage: typeof data.supportMessage === "string" ? data.supportMessage : "",
+      status: typeof data.status === "string" ? data.status : "new",
+      submittedAt,
+    };
+  }).sort((left, right) => right.submittedAt.localeCompare(left.submittedAt));
+
+  return {inquiries};
+});
