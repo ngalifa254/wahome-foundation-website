@@ -181,6 +181,7 @@ function DonateModal({
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [donationReceipt, setDonationReceipt] = useState("");
   const [paymentError, setPaymentError] = useState("");
   const donationIdRef = useRef<string | null>(null);
 
@@ -206,13 +207,27 @@ function DonateModal({
       {donationId: string; orderId: string},
       {paymentStatus: "verified"; receipt: string}
     >(functions, "captureDonationPayPalOrder");
-    await captureDonation({donationId: donationIdRef.current, orderId: orderID});
+    const result = await captureDonation({donationId: donationIdRef.current, orderId: orderID});
+    setDonationReceipt(result.data.receipt);
     setSubmitted(true);
   }, []);
 
   const handleDonationError = useCallback((cause: unknown) => {
     setPaymentError(cause instanceof Error ? cause.message : "PayPal could not complete the donation. Please try again.");
   }, []);
+
+  const closeDonationModal = () => {
+    if (submitted) {
+      setSubmitted(false);
+      setDonationReceipt("");
+      setAmount("");
+      setFirstName("");
+      setLastName("");
+      setEmail("");
+      donationIdRef.current = null;
+    }
+    onClose();
+  };
 
   const currencySymbol = "$";
 
@@ -226,11 +241,11 @@ function DonateModal({
             className="font-bold text-lg"
             style={{ fontFamily: "'Montserrat', Arial, sans-serif" }}
           >
-            Support Wahome Foundation
+            {submitted ? "Donation confirmed" : "Support Wahome Foundation"}
           </h2>
           <button
             type="button"
-            onClick={onClose}
+            onClick={closeDonationModal}
             className="support-modal-close flex items-center justify-center transition-colors"
           >
             ✕
@@ -238,22 +253,20 @@ function DonateModal({
         </div>
 
         {submitted ? (
-          <div className="p-10 text-center space-y-4">
+          <div className="donation-confirmation p-10 text-center space-y-4" role="status" aria-live="polite">
             <div className="w-16 h-16 bg-[#F1F4F7] text-[#2C6E9E] rounded-full flex items-center justify-center mx-auto text-2xl font-bold">
               ✓
             </div>
             <h3 className="text-2xl font-bold text-[#1F3A52]">
-              Thank you for your generosity!
+              Donation confirmed. Thank you!
             </h3>
             <p className="text-[#5B6670] text-sm max-w-md mx-auto">
-              Your contribution directly empowers bright students and communities across Kenya.
+              Your ${Number(amount || 0).toFixed(2)} donation was processed successfully and helps empower students and communities across Kenya.
             </p>
+            {donationReceipt && <p className="text-xs text-[#5B6670]">PayPal receipt: <strong>{donationReceipt}</strong></p>}
             <button
               type="button"
-              onClick={() => {
-                setSubmitted(false);
-                onClose();
-              }}
+              onClick={closeDonationModal}
               className="mt-4 px-6 py-3 bg-[#2C6E9E] text-white font-semibold rounded-xl hover:bg-[#16324A] transition-colors"
             >
               Close Window

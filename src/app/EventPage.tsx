@@ -48,7 +48,7 @@ function SponsorField({
   </div>;
 }
 
-function SponsorForm() {
+function SponsorForm({ onComplete }: { onComplete: (inquiryId: string) => void }) {
   const [status, setStatus] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState("");
@@ -114,7 +114,7 @@ function SponsorForm() {
       form.reset();
       setTurnstileToken("");
       if (turnstileWidgetId.current) window.turnstile?.reset(turnstileWidgetId.current);
-      setStatus(`Sponsor inquiry received. Your reference is ${response.data.inquiryId}.`);
+      onComplete(response.data.inquiryId);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Your inquiry could not be submitted. Please try again.";
       setStatus(message);
@@ -152,6 +152,7 @@ export function EventPage({
   const [selectedCategory, setSelectedCategory] = useState<Category>("21KM Half Marathon");
   const [selectedTier, setSelectedTier] = useState<PaidRegistrationTier>("Regular");
   const [registrationConfirmation, setRegistrationConfirmation] = useState<RegistrationConfirmation | null>(null);
+  const [sponsorConfirmationId, setSponsorConfirmationId] = useState<string | null>(null);
   const confirmationRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -176,6 +177,11 @@ export function EventPage({
   const chooseCategory = (category: Category) => {
     setRegistrationConfirmation(null);
     setSelectedCategory(category);
+  };
+
+  const openSponsorDialog = () => {
+    setSponsorConfirmationId(null);
+    setActiveDialog("sponsor");
   };
 
   useEffect(() => {
@@ -262,16 +268,16 @@ export function EventPage({
             ))}
           </div>
           <p className="run-student-note">Students from beneficiary schools participate free through school representative registration.</p>
-          <button type="button" className="run-sponsor-link" onClick={() => setActiveDialog("sponsor")}>Interested in sponsoring the run? <span>Get in touch <HeartHandshake size={15} /></span></button>
+      <button type="button" className="run-sponsor-link" onClick={openSponsorDialog}>Interested in sponsoring the run? <span>Get in touch <HeartHandshake size={15} /></span></button>
         </section>
       </div>
     </section>    <section className="run-info-band"><div className="layout run-info-grid"><div><span className="eyebrow">Event information</span><h2>Details to follow</h2><p>We’ll share more information when it is confirmed.</p></div><dl><div><dt>Route</dt><dd>To be announced</dd></div><div><dt>Registration deadline</dt><dd>To be announced</dd></div><div><dt>Participant capacity</dt><dd>To be announced</dd></div><div><dt>Event-day guidance</dt><dd>To be announced</dd></div></dl></div></section>
     <section className="run-poster-section"><div className="layout run-poster-grid"><div className="run-poster-info"><span className="eyebrow">Save the date</span><h2>Invite someone to run with you</h2><p>The poster provides an event overview. Use the current package details on this page when registering.</p><dl className="run-poster-details"><div><dt>Date</dt><dd>Saturday, January 9, 2027</dd></div><div><dt>Time &amp; venue</dt><dd>7:00 AM · Mugumo Center</dd></div><div><dt>Distances</dt><dd>Children&apos;s Fun Run · 5KM Run/Walk · 10KM Run · 21KM Half Marathon</dd></div><div><dt>Packages</dt><dd>Regular KES 500 · VIP KES 1,000 · VVIP KES 1,500 · Beneficiary school students free</dd></div></dl><p className="run-poster-cause">Every step supports children’s education through the Thomas D.K. Wahome Scholarship Program.</p></div><div className="run-poster-preview"><img src={posterImage} alt="Miles for Minds Run 2027 event poster." /></div></div></section>
-    {activeDialog && <div className="run-dialog-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setActiveDialog(null); }}>
+    {activeDialog && <div className="run-dialog-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) { setActiveDialog(null); setSponsorConfirmationId(null); } }}>
       <div className="run-dialog" role="dialog" aria-modal="true" aria-labelledby="run-dialog-title">
-        <header className="run-dialog-header support-modal-header"><h2 id="run-dialog-title">{activeDialog === "registration" ? "Participant Registration" : "Become a Sponsor"}</h2><button type="button" className="run-dialog-close support-modal-close" onClick={() => setActiveDialog(null)} aria-label="Close dialog"><X size={20} /></button></header>
+        <header className="run-dialog-header support-modal-header"><h2 id="run-dialog-title">{activeDialog === "registration" ? "Participant Registration" : sponsorConfirmationId ? "Sponsor inquiry received" : "Become a Sponsor"}</h2><button type="button" className="run-dialog-close support-modal-close" onClick={() => { setActiveDialog(null); setSponsorConfirmationId(null); }} aria-label="Close dialog"><X size={20} /></button></header>
         <div className={`run-dialog-content${activeDialog === "registration" ? " registration-dialog-content" : ""}`}>
-          {activeDialog === "registration" ? <><RegistrationForm initialCategory={selectedCategory} initialTier={selectedTier} onRegistered={handleRegistrationSuccess} /><aside className="run-payment-note"><span className="eyebrow">Registration packages</span><h2>Choose your entry package</h2><p>Regular: KES 500 — entry ticket.</p><p>VIP: KES 1,000 — entry ticket, participation medal, and VIP tent access.</p><p>VVIP: KES 1,500 — entry ticket, participation medal, T-shirt, and sponsor lounge access.</p><p>Students from beneficiary schools register free through a school representative. Paid registrations stay pending until an administrator confirms payment; student entries stay pending until eligibility is confirmed.</p></aside></> : <SponsorForm />}
+          {activeDialog === "registration" ? <><RegistrationForm initialCategory={selectedCategory} initialTier={selectedTier} onRegistered={handleRegistrationSuccess} /><aside className="run-payment-note"><span className="eyebrow">Registration packages</span><h2>Choose your entry package</h2><p>Regular: KES 500 — entry ticket.</p><p>VIP: KES 1,000 — entry ticket, participation medal, and VIP tent access.</p><p>VVIP: KES 1,500 — entry ticket, participation medal, T-shirt, and sponsor lounge access.</p><p>Students from beneficiary schools register free through a school representative. Paid registrations stay pending until an administrator confirms payment; student entries stay pending until eligibility is confirmed.</p></aside></> : sponsorConfirmationId ? <div className="run-sponsor-confirmation" role="status" aria-live="polite"><CheckCircle2 size={42} aria-hidden="true" /><span className="eyebrow">Thank you for reaching out</span><h2>Your sponsor request has been received.</h2><p>The Wahome Foundation team will review your inquiry and follow up with you.</p><p className="run-sponsor-reference">Inquiry reference: <strong>{sponsorConfirmationId}</strong></p><button type="button" className="button button-green" onClick={() => { setActiveDialog(null); setSponsorConfirmationId(null); }}>Done</button></div> : <SponsorForm onComplete={setSponsorConfirmationId} />}
         </div>
       </div>
     </div>}

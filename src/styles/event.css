@@ -125,6 +125,13 @@
 .run-dialog-content { min-height:0; overflow-y:auto; padding:20px; }
 .run-dialog-content.registration-dialog-content { padding:0; background:#fff; }
 .run-dialog-content .run-payment-note { position:static; margin-top:16px; }
+.run-sponsor-confirmation { display:flex; min-height:360px; flex-direction:column; align-items:center; justify-content:center; padding:clamp(28px,6vw,64px) 24px; text-align:center; }
+.run-sponsor-confirmation > svg { margin-bottom:18px; color:#27814b; }
+.run-sponsor-confirmation .eyebrow { color:#27814b; }
+.run-sponsor-confirmation h2 { margin:8px 0 10px; color:var(--ink); font-size:clamp(24px,3vw,32px); line-height:1.25; }
+.run-sponsor-confirmation p { max-width:500px; color:var(--quiet); font-size:var(--type-small); line-height:1.7; }
+.run-sponsor-confirmation .run-sponsor-reference { margin-top:12px; overflow-wrap:anywhere; }
+.run-sponsor-confirmation .button { margin-top:12px; }
 @media(max-width:960px) {
   .run-page .run-signup-section { padding-block:42px 58px; }
   .run-page .run-category-grid { grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; }
