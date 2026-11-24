@@ -25,7 +25,7 @@ function loadPayPalSdk(clientId: string): Promise<void> {
   if (window.paypal) return Promise.resolve();
   if (paypalSdkLoad) return paypalSdkLoad;
 
-  paypalSdkLoad = new Promise((resolve, reject) => {
+  const sdkLoad = new Promise<void>((resolve, reject) => {
     const existing = document.getElementById("paypal-checkout-sdk") as HTMLScriptElement | null;
     const script = existing || document.createElement("script");
     script.id = "paypal-checkout-sdk";
@@ -34,11 +34,13 @@ function loadPayPalSdk(clientId: string): Promise<void> {
     script.onload = () => window.paypal ? resolve() : reject(new Error("PayPal checkout did not load."));
     script.onerror = () => reject(new Error("PayPal checkout could not load."));
     if (!existing) document.body.appendChild(script);
-  }).catch((error: unknown) => {
+  });
+  const cachedSdkLoad = sdkLoad.catch((error: unknown) => {
     paypalSdkLoad = null;
     throw error;
   });
-  return paypalSdkLoad;
+  paypalSdkLoad = cachedSdkLoad;
+  return cachedSdkLoad;
 }
 
 export default function PayPalCheckoutButton({

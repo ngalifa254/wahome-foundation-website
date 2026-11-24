@@ -177,7 +177,12 @@ export const registerEvent = onCall({
   }
 
   const registrationTier = data.registrationTier;
-  const tierFees: Record<string, number> = {Regular: 500, VIP: 1000, VVIP: 1500, "Beneficiary school student": 0};
+  const tierFees: Record<string, number> = {
+    "Regular": 500,
+    "VIP": 1000,
+    "VVIP": 1500,
+    "Beneficiary school student": 0,
+  };
   if (typeof registrationTier !== "string" || !Object.prototype.hasOwnProperty.call(tierFees, registrationTier)) {
     throw new HttpsError("invalid-argument", "Please choose a valid registration package.");
   }
