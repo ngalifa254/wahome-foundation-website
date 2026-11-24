@@ -7,9 +7,9 @@ import react from '@vitejs/plugin-react'
 const configDir = path.dirname(fileURLToPath(import.meta.url))
 
 export default defineConfig({
-  // Required for GitHub Pages subfolder deployment. Override with VITE_BASE_PATH
-  // to build a branch preview into a subfolder (e.g. /wahome-foundation-website/v2/).
-  base: process.env.VITE_BASE_PATH || '/wahome-foundation-website/',
+  // Production is served from the root custom domain. VITE_BASE_PATH remains
+  // available for explicit local or branch preview builds.
+  base: process.env.VITE_BASE_PATH || '/',
   plugins: [
     react(),
     tailwindcss(),
