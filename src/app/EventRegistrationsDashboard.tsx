@@ -481,7 +481,7 @@ export default function EventRegistrationsDashboard({ onSignOut }: { onSignOut: 
           <div className="flex flex-col gap-3">
             <div className="flex items-center gap-3">
               <a 
-                href="#/" 
+                href="/" 
                 className="p-2 bg-white border border-slate-200 hover:bg-slate-100 rounded-xl text-slate-600 transition shadow-xs"
                 title="Return to website"
               >

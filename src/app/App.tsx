@@ -49,17 +49,6 @@ import AdminLoginForm from "./components/AdminLoginForm";
 import PayPalCheckoutButton from "./components/PayPalCheckoutButton";
 import { onAuthStateChanged, auth, signOutAdmin } from "../lib/adminAuth";
 import { functions } from "../lib/firebase";
-function useHashLocation() {
-  const [hash, setHash] = useState(window.location.hash);
-  useEffect(() => {
-    const handleHashChange = () => setHash(window.location.hash);
-    window.addEventListener("hashchange", handleHashChange);
-    return () => window.removeEventListener("hashchange", handleHashChange);
-  }, []);
-  return hash;
-}
-
-
 // Utility function to shuffle array
 const shuffleArray = <T,>(array: T[]): T[] => {
   const shuffled = [...array];
@@ -107,7 +96,7 @@ type Page =
   | "mentorship"
   | "event";
 
-const isMilesForMindsRoute = (hash: string) => hash === "#/miles-for-minds" || hash.startsWith("#/miles-for-minds/");
+const isMilesForMindsRoute = (pathname: string) => pathname === "/miles-for-minds" || pathname.startsWith("/miles-for-minds/");
 
 // ─── Shared primitives ────────────────────────────────────────────────────────
 
@@ -2093,11 +2082,11 @@ function MentorshipPage({
 
 export default function App() {
   const [isAdminRoute, setIsAdminRoute] = useState<boolean>(
-    () => window.location.hash === "#/admin/registrations"
+    () => window.location.pathname === "/admin/registrations"
   );
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [page, setPage] = useState<Page>(() =>
-    isMilesForMindsRoute(window.location.hash) ? "event" : "home"
+    isMilesForMindsRoute(window.location.pathname) ? "event" : "home"
   );
   const [isDonateOpen, setIsDonateOpen] = useState<boolean>(false);
   const [donateAmount, setDonateAmount] = useState<number | undefined>(undefined);
@@ -2105,18 +2094,18 @@ export default function App() {
 
   useEffect(() => {
     const syncRoute = () => {
-      const currentHash = window.location.hash;
-      setIsAdminRoute(currentHash === "#/admin/registrations");
-      setPage(isMilesForMindsRoute(currentHash) ? "event" : "home");
+      const pathname = window.location.pathname;
+      setIsAdminRoute(pathname === "/admin/registrations");
+      setPage(isMilesForMindsRoute(pathname) ? "event" : "home");
     };
 
-    window.addEventListener("hashchange", syncRoute);
+    window.addEventListener("popstate", syncRoute);
     const unsubscribe = auth ? onAuthStateChanged(auth, (user) => {
       setIsAuthenticated(!!user);
     }) : undefined;
 
     return () => {
-      window.removeEventListener("hashchange", syncRoute);
+      window.removeEventListener("popstate", syncRoute);
       unsubscribe?.();
     };
   }, []);
@@ -2132,15 +2121,11 @@ export default function App() {
   // 2. WEBSITE ROUTING CONTROLLERS
   const navigate = (next: Page) => {
     if (next === "event") {
-      if (window.location.hash !== "#/miles-for-minds") {
-        window.location.hash = "/miles-for-minds";
+      if (!isMilesForMindsRoute(window.location.pathname)) {
+        window.history.pushState(null, "", "/miles-for-minds");
       }
-    } else if (window.location.hash) {
-      window.history.replaceState(
-        null,
-        "",
-        `${window.location.pathname}${window.location.search}`
-      );
+    } else if (isMilesForMindsRoute(window.location.pathname)) {
+      window.history.pushState(null, "", "/");
     }
     setPage(next);
   };
