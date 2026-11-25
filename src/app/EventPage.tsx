@@ -185,18 +185,6 @@ export function EventPage({
   };
 
   useEffect(() => {
-    const previousTitle = document.title;
-    const description = document.querySelector('meta[name="description"]');
-    const previousDescription = description?.getAttribute("content");
-    document.title = "Miles for Minds: The Wahome Foundation Run | Wahome Foundation";
-    description?.setAttribute("content", "Join Miles for Minds on January 9, 2027 at Mugumo Center. Choose the Children's Fun Run, 5KM Run/Walk, 10KM Run, or 21KM Half Marathon to support the Thomas D.K. Wahome Scholarship Program.");
-    return () => {
-      document.title = previousTitle;
-      if (previousDescription != null && description) description.setAttribute("content", previousDescription);
-    };
-  }, []);
-
-  useEffect(() => {
     if (!requestedDialog) return;
     setActiveDialog(requestedDialog);
     onDialogRequestHandled?.();
@@ -232,7 +220,7 @@ export function EventPage({
       <div className="layout">
         <div className="run-purpose">
           <span className="eyebrow">Every mile makes a difference</span>
-          <h1>Run for the next generation</h1>
+          <h2>Run for the next generation</h2>
           <p>Whether you’re lacing up for the first time or chasing a personal best, there is a place for you. Every shilling raised supports children’s education through the Thomas D.K. Wahome Scholarship Program.</p>
         </div>
         <div className="run-category-grid" aria-label="Choose a race distance">

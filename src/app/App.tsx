@@ -96,7 +96,71 @@ type Page =
   | "mentorship"
   | "event";
 
-const isMilesForMindsRoute = (pathname: string) => pathname === "/miles-for-minds" || pathname.startsWith("/miles-for-minds/");
+const pagePaths: Record<Page, string> = {
+  home: "/",
+  about: "/about",
+  scholarship: "/thomas-dk-wahome-scholarship",
+  wells: "/wells-of-hope",
+  prize: "/prize-giving",
+  mentorship: "/mentorship",
+  event: "/miles-for-minds",
+};
+
+const pageSEO: Record<Page, { title: string; description: string }> = {
+  home: {
+    title: "Wahome Foundation | Change Lives Through Direct Actions",
+    description: "The Wahome Foundation supports education, clean water, and mentorship so children and communities can build brighter futures.",
+  },
+  about: {
+    title: "About Wahome Foundation | Our Story and Impact",
+    description: "Learn about Wahome Foundation’s work with Kenyan communities through education, clean water, scholarships, and opportunity.",
+  },
+  scholarship: {
+    title: "Thomas D.K. Wahome Scholarship | Wahome Foundation",
+    description: "Learn how the Thomas D.K. Wahome Scholarship helps academically gifted students continue their education with tuition and ongoing support.",
+  },
+  wells: {
+    title: "Wells of Hope | Clean Water in Kenya | Wahome Foundation",
+    description: "Discover how Wells of Hope brings reliable, community-managed clean water closer to families and schools in rural Kenya.",
+  },
+  prize: {
+    title: "Prize Giving Day | Wahome Foundation",
+    description: "Celebrate the students, families, teachers, and schools recognized through Wahome Foundation’s annual Prize Giving Day.",
+  },
+  mentorship: {
+    title: "Youth Mentorship Programme | Wahome Foundation",
+    description: "See how Wahome Foundation prepares Kenyan professionals for remote careers through practical training, mentorship, and U.S. company placements.",
+  },
+  event: {
+    title: "Miles for Minds Run 2027 | Wahome Foundation",
+    description: "Join Miles for Minds on January 9, 2027 at Mugumo Center. Choose a race distance and support children’s education through the Wahome Foundation.",
+  },
+};
+
+const legacyPagePaths: Record<string, Page> = {
+  "/service/thomas-d-k-wahome-scholarship": "scholarship",
+  "/service/prize-giving": "prize",
+  "/service/wells-of-hope": "wells",
+  "/service/roaming-reads": "home",
+  "/donations/thomas-d-k-wahome-scholarship": "scholarship",
+  "/donations/prize-giving": "prize",
+  "/donations/sponsor-for-trusted-and-pure-water-for-peoples": "wells",
+  "/donations/roaming-reads": "home",
+  "/donations/boston": "event",
+  "/donations/boston-marathon-2": "event",
+  "/boston": "event",
+};
+
+const pageFromPathname = (pathname: string): Page => {
+  const normalizedPath = pathname.replace(/\/+$/, "") || "/";
+  const legacyPage = legacyPagePaths[normalizedPath];
+  if (legacyPage) return legacyPage;
+
+  const route = (Object.entries(pagePaths) as [Page, string][]).find(
+    ([, path]) => path === normalizedPath
+  );
+  return route?.[0] ?? "home";
+};
 
 // ─── Shared primitives ────────────────────────────────────────────────────────
 
@@ -1107,12 +1171,12 @@ function AboutPage({ onNav }: { onNav: (p: Page) => void }) {
         <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center text-left">
           <div>
             <SectionTag>OUR STORY</SectionTag>
-            <h2
+            <h1
               className="font-serif text-3xl md:text-4xl font-bold text-[#1F3A52] mb-6"
               style={{ fontFamily: "'Montserrat', Arial, sans-serif" }}
             >
               Founded in 2006 with a single promise
-            </h2>
+            </h1>
             <p className="text-[#5B6670] leading-relaxed mb-4">
               Wahome Foundation was established in Laikipia County to address a clear and urgent need:
               too many brilliant children were being left behind by poverty, lack of water, and absence
@@ -1351,12 +1415,12 @@ function WellsPage({
         <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center text-left">
           <div>
             <SectionTag>Why Water</SectionTag>
-            <h2
+            <h1
               className="font-serif text-3xl md:text-4xl font-bold text-[#1F3A52] mb-6"
               style={{ fontFamily: "'Montserrat', Arial, sans-serif" }}
             >
               Water is the foundation of everything
-            </h2>
+            </h1>
             <p className="text-[#5B6670] leading-relaxed mb-4">
               In rural Kenya, children — particularly girls — spend hours each day walking to collect water.
               Every hour spent on that journey is an hour not spent in class. Clean water close to home
@@ -1414,12 +1478,12 @@ function ScholarshipPage({
         <div className="max-w-7xl mx-auto grid lg:grid-cols-[1.05fr_0.95fr] gap-8 xl:gap-12 items-start text-left">
           <div>
             <SectionTag>About the Scholarship</SectionTag>
-            <h2
+            <h1
               className="text-3xl sm:text-4xl font-extrabold text-[#1F3A52] leading-tight mb-4"
               style={{ fontFamily: "'Montserrat', Arial, sans-serif" }}
             >
               Breaking financial barriers to education
-            </h2>
+            </h1>
             <p className="text-[#5B6670] leading-relaxed text-xs sm:text-sm mb-4">
               The Thomas D.K. Wahome Scholarship is our flagship programme, providing comprehensive financial
               support for academically gifted students from low-income households in Kiambu County and
@@ -1817,12 +1881,12 @@ function PrizePage({
         <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center text-left">
           <div>
             <SectionTag>Annual Celebration</SectionTag>
-            <h2
+            <h1
               className="font-serif text-3xl md:text-4xl font-bold text-[#1F3A52] mb-6"
               style={{ fontFamily: "'Montserrat', Arial, sans-serif" }}
             >
               Excellence deserves to be seen
-            </h2>
+            </h1>
             <p className="text-[#5B6670] leading-relaxed mb-4">
               Every year, Wahome Foundation convenes hundreds of students, parents, teachers, and community
               leaders for our flagship Prize Giving Day, a vibrant ceremony that honours top academic
@@ -1968,12 +2032,12 @@ function MentorshipPage({
         <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center text-left">
           <div>
             <SectionTag>Mentorship Programme</SectionTag>
-            <h2
+            <h1
               className="font-serif text-3xl md:text-4xl font-bold text-[#1F3A52] mb-6"
               style={{ fontFamily: "'Montserrat', Arial, sans-serif" }}
             >
               Kenyan talent, working for the world
-            </h2>
+            </h1>
             <p className="text-[#5B6670] leading-relaxed mb-4">
               Our programme connects skilled Kenyan professionals with employers in the United States,
               opening the door to meaningful remote work without requiring anyone to leave home.
@@ -2029,9 +2093,9 @@ function MentorshipPage({
             {[
               {
                 name: "Cynthia Wachira",
-                role: "Accountant",
+                role: "Remote Business Support Associate",
                 quote:
-                  "Empowering Kenyan professionals with practical financial skills and remote career opportunities. Cynthia has been instrumental in helping local talents navigate global financial standards and remote work expectations.",
+                  "I am a Business Support Associate working remotely from Kenya for a U.S.-based company, an opportunity made possible through the Wahome Foundation. As a fresh graduate with a Bachelor of Commerce degree in Finance and a CPA qualification, I received valuable mentorship and professional training from the Foundation, which equipped me with the practical skills and confidence to thrive in the workplace. Today, I am proud to be building my career and gaining international work experience without leaving Kenya. I am truly grateful to the Wahome Foundation for believing in my potential, opening doors, and helping turn my dreams into reality. Viva Wahome Foundation!",
                 img: cynthiaPhoto,
               },
               {
@@ -2085,9 +2149,7 @@ export default function App() {
     () => window.location.pathname === "/admin/registrations"
   );
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [page, setPage] = useState<Page>(() =>
-    isMilesForMindsRoute(window.location.pathname) ? "event" : "home"
-  );
+  const [page, setPage] = useState<Page>(() => pageFromPathname(window.location.pathname));
   const [isDonateOpen, setIsDonateOpen] = useState<boolean>(false);
   const [donateAmount, setDonateAmount] = useState<number | undefined>(undefined);
   const [eventDialogRequest, setEventDialogRequest] = useState<EventDialog | null>(null);
@@ -2096,7 +2158,7 @@ export default function App() {
     const syncRoute = () => {
       const pathname = window.location.pathname;
       setIsAdminRoute(pathname === "/admin/registrations");
-      setPage(isMilesForMindsRoute(pathname) ? "event" : "home");
+      setPage(pageFromPathname(pathname));
     };
 
     window.addEventListener("popstate", syncRoute);
@@ -2110,6 +2172,25 @@ export default function App() {
     };
   }, []);
 
+  useEffect(() => {
+    const canonicalUrl = new URL(pagePaths[page], "https://wahomefoundation.com").href;
+    const { title, description } = pageSEO[page];
+    const canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+    const descriptionMeta = document.querySelector<HTMLMetaElement>('meta[name="description"]');
+    if (canonical) canonical.href = canonicalUrl;
+    if (descriptionMeta) descriptionMeta.content = description;
+    document.title = title;
+    const updateMeta = (selector: string, content: string) => {
+      const meta = document.querySelector<HTMLMetaElement>(selector);
+      if (meta) meta.content = content;
+    };
+    updateMeta('meta[property="og:title"]', title);
+    updateMeta('meta[property="og:description"]', description);
+    updateMeta('meta[property="og:url"]', canonicalUrl);
+    updateMeta('meta[name="twitter:title"]', title);
+    updateMeta('meta[name="twitter:description"]', description);
+  }, [page]);
+
   // 1. ADMIN AUTHENTICATION GUARD
   if (isAdminRoute) {
     if (!isAuthenticated) {
@@ -2120,12 +2201,9 @@ export default function App() {
 
   // 2. WEBSITE ROUTING CONTROLLERS
   const navigate = (next: Page) => {
-    if (next === "event") {
-      if (!isMilesForMindsRoute(window.location.pathname)) {
-        window.history.pushState(null, "", "/miles-for-minds");
-      }
-    } else if (isMilesForMindsRoute(window.location.pathname)) {
-      window.history.pushState(null, "", "/");
+    const nextPath = pagePaths[next];
+    if (window.location.pathname !== nextPath) {
+      window.history.pushState(null, "", nextPath);
     }
     setPage(next);
   };

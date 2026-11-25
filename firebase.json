@@ -35,6 +35,33 @@
         ]
       }
     ],
+    "redirects": [
+      { "regex": "^/boston/?$", "destination": "/miles-for-minds", "type": 301 },
+      { "regex": "^/donations/(boston|boston-marathon-2)/?$", "destination": "/miles-for-minds", "type": 301 },
+      { "regex": "^/about/$", "destination": "/about", "type": 301 },
+      { "regex": "^/wells-of-hope/$", "destination": "/wells-of-hope", "type": 301 },
+      { "regex": "^/thomas-dk-wahome-scholarship/$", "destination": "/thomas-dk-wahome-scholarship", "type": 301 },
+      { "regex": "^/prize-giving/$", "destination": "/prize-giving", "type": 301 },
+      { "regex": "^/roaming-reads/?$", "destination": "/", "type": 301 },
+      { "regex": "^/(service|donations)/thomas-d-k-wahome-scholarship/?$", "destination": "/thomas-dk-wahome-scholarship", "type": 301 },
+      { "regex": "^/(service|donations)/prize-giving/?$", "destination": "/prize-giving", "type": 301 },
+      { "regex": "^/service/wells-of-hope/?$", "destination": "/wells-of-hope", "type": 301 },
+      { "regex": "^/donations/sponsor-for-trusted-and-pure-water-for-peoples/?$", "destination": "/wells-of-hope", "type": 301 },
+      { "regex": "^/(service|donations)/roaming-reads/?$", "destination": "/", "type": 301 },
+      { "regex": "^/our-initiatives/?$", "destination": "/", "type": 301 },
+      { "regex": "^/contact/?$", "destination": "/", "type": 301 },
+      { "regex": "^/donor-dashboard/?$", "destination": "/", "type": 301 },
+      { "regex": "^/donation-(confirmation(-2)?|failed(-2)?|list|history|form)/?$", "destination": "/", "type": 301 },
+      { "regex": "^/donations(?:/.*)?/?$", "destination": "/", "type": 301 },
+      { "regex": "^/service(?:/.*)?/?$", "destination": "/", "type": 301 },
+      { "regex": "^/cause(?:/.*)?/?$", "destination": "/", "type": 301 },
+      { "regex": "^/cause_category(?:/.*)?/?$", "destination": "/", "type": 301 },
+      { "regex": "^/team(?:/.*)?/?$", "destination": "/about", "type": 301 },
+      { "regex": "^/testimonial(?:/.*)?/?$", "destination": "/mentorship", "type": 301 },
+      { "regex": "^/portfolio(?:/.*)?/?$", "destination": "/about", "type": 301 },
+      { "regex": "^/portfolio_category(?:/.*)?/?$", "destination": "/about", "type": 301 },
+      { "regex": "^/tag(?:/.*)?/?$", "destination": "/", "type": 301 }
+    ],
     "rewrites": [
       {
         "source": "**",
